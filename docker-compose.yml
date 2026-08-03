@@ -1,0 +1,6 @@
+services:
+  research:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts

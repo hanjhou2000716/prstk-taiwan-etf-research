@@ -1,0 +1,14 @@
+{
+  "baseline": ["buy_hold_006208", "buy_hold_00685L", "fixed_beta_50_cash_50_00685L", "ma200_switch_00685L"] ,
+  "all_nine": {
+    "1_fixed_beta": {"description": "50% 00685L + 50% cash; target beta 1.0", "status": "baseline"},
+    "2_ma200_switch": {"description": "00685L above 200MA; signal delayed one trading day", "status": "baseline"},
+    "3_vix_target": {"description": "VIX regime switch; VIX source not included in phase 1", "status": "spec_only"},
+    "4_all_in_00685L": {"description": "100% 00685L", "status": "baseline"},
+    "5_all_in_006208": {"description": "100% 006208", "status": "baseline"},
+    "6_pledge_006208_once": {"description": "100% 006208, pledge once, buy 006208; 3.3%, 60%", "status": "spec_only"},
+    "7_pledge_006208_dynamic": {"description": "006208 pledge with maintenance guardrails and target leverage 1.3-1.6", "status": "spec_only"},
+    "8_pledge_00685L_buy_006208": {"description": "00685L collateral, buy 006208; target maintenance >=300%", "status": "spec_only", "warning": "user provided collateral eligibility only for 006208"},
+    "9_pledge_00685L_buy_00685L": {"description": "00685L collateral, buy 00685L; target maintenance >=400%", "status": "spec_only", "warning": "user provided collateral eligibility only for 006208"}
+  }
+}
