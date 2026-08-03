@@ -25,6 +25,7 @@ jobs:
           mkdir -p pages/assets
           cp site/index.html pages/index.html
           cp site/proposal.html pages/proposal.html
+          cp site/audit.html pages/audit.html
           cp site/dashboard.html pages/dashboard.html
           cp site/horizons.html pages/horizons.html
           cp artifacts/reports/research_report.html pages/report.html

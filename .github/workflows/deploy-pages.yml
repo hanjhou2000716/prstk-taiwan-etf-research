@@ -12,6 +12,7 @@ jobs:
           mkdir -p artifacts/reports/assets
           cp site/index.html artifacts/reports/index.html
           cp site/proposal.html artifacts/reports/proposal.html
+          cp site/audit.html artifacts/reports/audit.html
           cp site/dashboard.html artifacts/reports/dashboard.html
           cp site/horizons.html artifacts/reports/horizons.html
           cp site/builder.html artifacts/reports/builder.html
