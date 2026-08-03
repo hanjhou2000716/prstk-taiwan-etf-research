@@ -10,6 +10,12 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
       - run: python -m prstk_research.pipeline run --download
+        continue-on-error: true
+      - if: always()
+        run: |
+          mkdir -p artifacts/reports
+          cp site/index.html artifacts/reports/index.html
+          cp docs/PROPOSAL.md artifacts/reports/PROPOSAL.md
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: {path: artifacts/reports}

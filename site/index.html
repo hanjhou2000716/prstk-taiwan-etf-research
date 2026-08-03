@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PRStK 台灣 ETF 研究平台</title>
+<style>body{font-family:system-ui,-apple-system,sans-serif;max-width:900px;margin:0 auto;padding:28px;line-height:1.7;color:#172033;background:#f6f8fb}main{background:white;border-radius:16px;padding:28px;box-shadow:0 8px 30px #17203318}h1{margin-top:0}a{color:#075985}.status{padding:14px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa}li{margin:6px 0}</style>
+<main><h1>PRStK 台灣 ETF 研究平台</h1>
+<p>研究標的：006208 與 00685L。這是一個可重現、可審計的槓桿與質押策略研究平台。</p>
+<div class="status"><strong>資料狀態：</strong>網站不會顯示虛構績效。GitHub Actions 會從 TWSE 官方資料抓取並驗證後，才發布回測數字。</div>
+<h2>研究內容</h2><ul>
+<li><a href="PROPOSAL.md">研究 Proposal 與方法</a></li>
+<li><a href="https://github.com/hanjhou2000716/prstk-taiwan-etf-research">GitHub 原始碼與執行紀錄</a></li>
+<li><a href="https://github.com/hanjhou2000716/prstk-taiwan-etf-research/actions">GitHub Actions 資料更新狀態</a></li>
+</ul><h2>四個最小基準</h2><p>006208 buy-and-hold、00685L buy-and-hold、50% 00685L＋50%現金、00685L 200MA 切換（訊號延後一個交易日）。</p>
+<h2>九策略規格</h2><p>固定 Beta、200MA、VIX、全倉正二、全倉原型，以及三種質押／借款策略均已規格化；動態質押策略會在擔保品資格、配息、公司行動與逐日現金流資料補齊後才進入實證回測。</p>
+</main></html>
