@@ -4,6 +4,7 @@ import calendar, csv, hashlib, json, time
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlencode
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 URL = "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY"
@@ -21,7 +22,25 @@ def download_month(symbol: str, year: int, month: int, raw_dir: Path, pause: flo
     if path.exists(): return path
     params = urlencode({"date": f"{year:04d}{month:02d}01", "stockNo": symbol, "response": "json"})
     req = Request(f"{URL}?{params}", headers=HEADERS)
-    with urlopen(req, timeout=30) as response: payload = response.read()
+    payload = None
+    last_error = None
+    # TWSE's CDN can briefly return 307/429 during long historical pulls.
+    # Retry the same official URL instead of silently substituting another source.
+    for attempt in range(5):
+        try:
+            with urlopen(req, timeout=30) as response:
+                payload = response.read()
+            break
+        except (HTTPError, URLError) as exc:
+            last_error = exc
+            code = getattr(exc, "code", None)
+            if code not in {307, 429, 500, 502, 503, 504} and not isinstance(exc, URLError):
+                raise
+            if attempt == 4:
+                raise RuntimeError(f"TWSE download failed after retries: {req.full_url}; last_error={exc}") from exc
+            time.sleep(2 ** attempt)
+    if payload is None:
+        raise RuntimeError(f"TWSE download returned no payload: {req.full_url}; last_error={last_error}")
     path.write_bytes(payload)
     time.sleep(pause)
     return path
