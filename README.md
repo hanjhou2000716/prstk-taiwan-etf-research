@@ -14,7 +14,7 @@ python -m prstk_research.pipeline run --download
 python -m prstk_research.pipeline run
 ```
 
-完整流程會：下載 TWSE 官方月資料、保存原始 JSON 與 SHA-256 manifest、清理及驗證價格、執行四個最小基準策略、計算績效指標，並產生 HTML Proposal/研究報告。
+完整流程會：下載 TWSE 官方月資料與 Cboe VIX、保存原始資料與 SHA-256 manifest、清理及驗證價格、執行九種策略、計算績效指標，並產生 HTML 研究報告。預設自 2021 年起，足以支援近 1／3／5 年比較與 200MA 熱身期。
 
 ## 目前明確不宣稱
 
