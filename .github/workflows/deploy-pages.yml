@@ -10,7 +10,7 @@ jobs:
       - run: |
           mkdir -p artifacts/reports
           cp site/index.html artifacts/reports/index.html
-          cp docs/PROPOSAL.md artifacts/reports/PROPOSAL.md
+          cp site/proposal.html artifacts/reports/proposal.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: {path: artifacts/reports}
