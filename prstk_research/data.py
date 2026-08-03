@@ -64,8 +64,8 @@ def parse_twse_json(path: Path) -> list[dict]:
 def apply_split_adjustments(rows: list[dict], actions: list[dict]) -> list[dict]:
     """Create a continuous historical price series without changing raw data."""
     split_actions = sorted((a for a in actions if a.get("action_type") == "split"), key=lambda a: a["effective_date"])
-    factor = 1.0
-    for row in reversed(rows):
+    for row in rows:
+        factor = 1.0
         for action in split_actions:
             if row["date"] < action["effective_date"]:
                 factor *= float(action["ratio"])
