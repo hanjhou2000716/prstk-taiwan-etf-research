@@ -61,13 +61,30 @@ def parse_twse_json(path: Path) -> list[dict]:
                      "volume": row[1].replace(",", ""), "source_file": path.name})
     return rows
 
-def normalize(symbol: str, files: list[Path], out_path: Path) -> int:
+def apply_split_adjustments(rows: list[dict], actions: list[dict]) -> list[dict]:
+    """Create a continuous historical price series without changing raw data."""
+    split_actions = sorted((a for a in actions if a.get("action_type") == "split"), key=lambda a: a["effective_date"])
+    factor = 1.0
+    for row in reversed(rows):
+        for action in split_actions:
+            if row["date"] < action["effective_date"]:
+                factor *= float(action["ratio"])
+        row["adjustment_factor"] = factor
+        row["adjusted_close"] = row["close"] / factor
+        try:
+            row["adjusted_volume"] = float(row["volume"].replace(",", "")) * factor
+        except (ValueError, AttributeError):
+            row["adjusted_volume"] = row["volume"]
+    return rows
+
+def normalize(symbol: str, files: list[Path], out_path: Path, actions: list[dict] | None = None) -> int:
     rows = [dict(r, symbol=symbol) for p in files for r in parse_twse_json(p)]
     rows.sort(key=lambda r: r["date"])
     dedup = {r["date"]: r for r in rows}
+    apply_split_adjustments(list(dedup.values()), actions or [])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["date", "symbol", "close", "volume", "source_file"])
+        writer = csv.DictWriter(f, fieldnames=["date", "symbol", "close", "adjusted_close", "volume", "adjusted_volume", "adjustment_factor", "source_file"])
         writer.writeheader(); writer.writerows(dedup.values())
     return len(dedup)
 

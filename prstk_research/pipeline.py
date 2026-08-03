@@ -5,7 +5,7 @@ from pathlib import Path
 from .data import (download_month, download_vix, normalize, normalize_vix,
                    validate_csv, build_manifest, months)
 from .backtest import (read_prices, read_vix, align, series, fixed_beta,
-                       ma200_switch, vix_switch, pledge_strategy, metrics,
+                       ma200_switch, vix_switch, pledge_strategy, metrics, horizon_metrics,
                        write_rows)
 from .models import FinancingTerms, maintenance_ratio, max_loan, interest_due
 
@@ -22,7 +22,8 @@ def run(download=False):
     validation = ROOT / "artifacts/validation"
     back, metrics_dir = ROOT / "artifacts/backtests", ROOT / "artifacts/metrics"
     all_files = []
-    for symbol in ("006208", "00685L"):
+    actions_config = load_json(ROOT / "config/corporate_actions.json")
+    for symbol in ("006208", "00685L", "00631L"):
         if download:
             all_files.extend(download_month(symbol, y, m, raw, cfg["download_pause_seconds"])
                              for y, m in months(start, end))
@@ -31,7 +32,7 @@ def run(download=False):
         sym_files = [p for p in all_files if p.name.startswith(symbol + "_")]
         if not sym_files:
             raise RuntimeError(f"No raw data for {symbol}. Run with --download.")
-        normalize(symbol, sym_files, processed / f"{symbol}.csv")
+        normalize(symbol, sym_files, processed / f"{symbol}.csv", actions_config.get(symbol, []))
         report = validate_csv(processed / f"{symbol}.csv")
         validation.mkdir(parents=True, exist_ok=True)
         (validation / f"{symbol}.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -46,7 +47,8 @@ def run(download=False):
     normalize_vix(vix_raw, vix_processed)
     build_manifest(list(raw.glob("*.json")) + [vix_raw, *processed.glob("*.csv")], ROOT, ROOT / "artifacts/manifests/manifest.json")
 
-    p208, p685, vix = read_prices(processed / "006208.csv"), read_prices(processed / "00685L.csv"), read_vix(vix_processed)
+    p208, p685 = read_prices(processed / "006208.csv"), read_prices(processed / "00685L.csv")
+    p631, vix = read_prices(processed / "00631L.csv"), read_vix(vix_processed)
     dates, a, b = align(p208, p685)
     vix_values = []
     known = sorted(vix)
@@ -56,9 +58,11 @@ def run(download=False):
     terms = load_json(ROOT / "config/financing.json")
     rate, max_ltv = terms["annual_interest_rate"], terms["max_loan_to_collateral"]
     thresholds = terms["maintenance_ratio"]
+    dates631 = sorted(set(p631) & set(p208))
     results, events = {}, {}
     results["buy_hold_006208"] = series(dates, a, "buy_hold_006208")
     results["buy_hold_00685L"] = series(dates, b, "buy_hold_00685L")
+    results["buy_hold_00631L"] = series(dates631, [p631[d] for d in dates631], "buy_hold_00631L")
     results["fixed_beta_50_cash_50_00685L"] = fixed_beta(dates, b)
     results["ma200_switch_00685L"] = ma200_switch(dates, b)
     results["vix_switch_00685L"] = vix_switch(dates, b, dict(zip(dates, vix_values)), cfg["vix_exit_threshold"])
@@ -76,12 +80,14 @@ def run(download=False):
                                 4.00, thresholds["rollover"], 0.20, True)
     results["pledge_00685L_buy_00685L"], events["pledge_00685L_buy_00685L"] = rows, ev
 
-    metric_rows = []
+    metric_rows, horizon_rows = [], []
     for name, rows in results.items():
         write_rows(back / f"{name}.csv", rows)
         metric_rows.append(dict(strategy=name, **metrics(rows, cfg["risk_free_rate"])))
+        horizon_rows.extend(dict(strategy=name, **x) for x in horizon_metrics(rows, risk_free=cfg["risk_free_rate"]))
     metrics_dir.mkdir(parents=True, exist_ok=True)
     (metrics_dir / "baseline_metrics.json").write_text(json.dumps(metric_rows, ensure_ascii=False, indent=2), encoding="utf-8")
+    (metrics_dir / "horizon_metrics.json").write_text(json.dumps(horizon_rows, ensure_ascii=False, indent=2), encoding="utf-8")
     (metrics_dir / "strategy_events.json").write_text(json.dumps(events, ensure_ascii=False, indent=2), encoding="utf-8")
     financing = {"terms": terms, "example": {"collateral_value": 1000000,
                  "max_loan": max_loan(1000000, FinancingTerms(**{k: terms[k] for k in ["annual_interest_rate", "max_loan_to_collateral", "interest_period_months"]})),

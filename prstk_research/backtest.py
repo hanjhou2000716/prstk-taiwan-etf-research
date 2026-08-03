@@ -2,9 +2,9 @@ from __future__ import annotations
 import csv, math
 from pathlib import Path
 
-def read_prices(path: Path) -> dict[str, float]:
+def read_prices(path: Path, field: str = "adjusted_close") -> dict[str, float]:
     with path.open(encoding="utf-8") as f:
-        return {r["date"]: float(r["close"]) for r in csv.DictReader(f)}
+        return {r["date"]: float(r[field] or r["close"]) for r in csv.DictReader(f)}
 
 def read_vix(path: Path) -> dict[str, float]:
     with path.open(encoding="utf-8") as f:
@@ -143,6 +143,20 @@ def metrics(rows, risk_free=0.0):
             "total_return": total, "annualized_return": annual, "roi": total,
             "annualized_volatility": vol, "sharpe": sharpe,
             "max_drawdown": maxdd, "observations": len(rows)}
+
+def horizon_metrics(rows, horizons=(20, 10, 5, 3, 1), risk_free=0.0):
+    """Return actual-data availability and metrics by trading-year window."""
+    output = []
+    for years in horizons:
+        observations = years * 252
+        if len(rows) <= observations:
+            output.append({"horizon_years": years, "status": "unavailable", "data_type": "actual_etf",
+                           "reason": "listing history shorter than requested window"})
+        else:
+            window = rows[-(observations + 1):]
+            output.append({"horizon_years": years, "status": "available", "data_type": "actual_etf",
+                           **metrics(window, risk_free)})
+    return output
 
 def write_rows(path: Path, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
