@@ -27,6 +27,7 @@ jobs:
           cp site/dashboard.html pages/dashboard.html
           cp artifacts/metrics/baseline_metrics.json pages/data/baseline_metrics.json
           cp artifacts/metrics/financing_model.json pages/data/financing_model.json
+          cp artifacts/metrics/strategy_events.json pages/data/strategy_events.json
           cp artifacts/backtests/*.csv pages/data/backtests/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

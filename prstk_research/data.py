@@ -8,6 +8,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 URL = "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY"
+CBOE_VIX_URL = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
 HEADERS = {"User-Agent": "PRStK-Research/0.1 (+research; contact unavailable)"}
 
 def sha256(path: Path) -> str:
@@ -69,6 +70,37 @@ def normalize(symbol: str, files: list[Path], out_path: Path) -> int:
         writer = csv.DictWriter(f, fieldnames=["date", "symbol", "close", "volume", "source_file"])
         writer.writeheader(); writer.writerows(dedup.values())
     return len(dedup)
+
+def download_vix(out_path: Path) -> Path:
+    """Download the Cboe VIX historical CSV used by strategy 3."""
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    if out_path.exists():
+        return out_path
+    req = Request(CBOE_VIX_URL, headers=HEADERS)
+    with urlopen(req, timeout=60) as response:
+        out_path.write_bytes(response.read())
+    return out_path
+
+def normalize_vix(path: Path, out_path: Path) -> int:
+    rows = []
+    with path.open(encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            raw_date = (row.get("DATE") or row.get("Date") or "").strip()
+            raw_close = (row.get("CLOSE") or row.get("Close") or "").strip()
+            if not raw_date or not raw_close or raw_close in {"-", "NA"}:
+                continue
+            try:
+                parsed = datetime.strptime(raw_date, "%m/%d/%Y").date()
+                close = float(raw_close)
+            except ValueError:
+                continue
+            rows.append({"date": parsed.isoformat(), "vix": close})
+    rows.sort(key=lambda r: r["date"])
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["date", "vix"])
+        writer.writeheader(); writer.writerows(rows)
+    return len(rows)
 
 def validate_csv(path: Path) -> dict:
     with path.open(encoding="utf-8") as f: rows = list(csv.DictReader(f))

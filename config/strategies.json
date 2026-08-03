@@ -1,5 +1,5 @@
 {
-  "baseline": ["buy_hold_006208", "buy_hold_00685L", "fixed_beta_50_cash_50_00685L", "ma200_switch_00685L"] ,
+  "baseline": ["buy_hold_006208", "buy_hold_00685L", "fixed_beta_50_cash_50_00685L", "ma200_switch_00685L", "vix_switch_00685L", "pledge_006208_once", "pledge_006208_dynamic", "pledge_00685L_buy_006208", "pledge_00685L_buy_00685L"] ,
   "all_nine": {
     "1_fixed_beta": {"description": "50% 00685L + 50% cash; target beta 1.0", "status": "baseline"},
     "2_ma200_switch": {"description": "00685L above 200MA; signal delayed one trading day", "status": "baseline"},
