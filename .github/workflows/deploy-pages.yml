@@ -9,12 +9,14 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           mkdir -p artifacts/reports
+          mkdir -p artifacts/reports/assets
           cp site/index.html artifacts/reports/index.html
           cp site/proposal.html artifacts/reports/proposal.html
           cp site/dashboard.html artifacts/reports/dashboard.html
           cp site/horizons.html artifacts/reports/horizons.html
           cp site/builder.html artifacts/reports/builder.html
           cp site/styles.css artifacts/reports/styles.css
+          cp site/assets/*.png artifacts/reports/assets/
           cp site/report.html artifacts/reports/report.html
           cp -r site/data artifacts/reports/data
       - uses: actions/configure-pages@v5
