@@ -7,12 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: {python-version: '3.11'}
-      - run: python -m prstk_research.pipeline run --download
-        continue-on-error: true
-      - if: always()
-        run: |
+      - run: |
           mkdir -p artifacts/reports
           cp site/index.html artifacts/reports/index.html
           cp docs/PROPOSAL.md artifacts/reports/PROPOSAL.md
