@@ -28,6 +28,7 @@ jobs:
           cp site/horizons.html pages/horizons.html
           cp artifacts/reports/research_report.html pages/report.html
           cp site/builder.html pages/builder.html
+          cp site/styles.css pages/styles.css
           cp artifacts/metrics/baseline_metrics.json pages/data/baseline_metrics.json
           cp artifacts/metrics/horizon_metrics.json pages/data/horizon_metrics.json
           cp artifacts/metrics/financing_model.json pages/data/financing_model.json
