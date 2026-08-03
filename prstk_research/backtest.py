@@ -98,7 +98,8 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
             events["margin_calls"] += 1
             # Sell target assets first and use proceeds to repay debt. If the
             # target is also collateral, the denominator adjusts naturally.
-            needed = max(0.0, rollover * debt - collateral_value)
+            repair_target = max(rollover, margin_call)
+            needed = max(0.0, repair_target * debt - collateral_value)
             sale = min(target_value, needed)
             if sale > 0:
                 target_units -= sale / target_prices[i]
