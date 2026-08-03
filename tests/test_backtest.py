@@ -20,3 +20,8 @@ def test_dynamic_pledge_has_a_nav_and_events():
     rows, events = pledge_strategy(dates, [100, 100, 90, 95], [100, 100, 90, 95], "x")
     assert len(rows) == 4
     assert events["borrow_events"] >= 1
+
+def test_metrics_are_relative_to_window_start():
+    rows = [{"date": "2020-01-01", "strategy": "x", "nav": 2.0},
+            {"date": "2020-01-02", "strategy": "x", "nav": 3.0}]
+    assert metrics(rows)["total_return"] == 0.5
