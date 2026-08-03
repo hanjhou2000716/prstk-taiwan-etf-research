@@ -13,6 +13,8 @@ jobs:
           cp site/proposal.html artifacts/reports/proposal.html
           cp site/dashboard.html artifacts/reports/dashboard.html
           cp site/horizons.html artifacts/reports/horizons.html
+          cp site/builder.html artifacts/reports/builder.html
+          cp work/latest-horizon/reports/research_report.html artifacts/reports/report.html 2>/dev/null || true
           cp -r site/data artifacts/reports/data
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

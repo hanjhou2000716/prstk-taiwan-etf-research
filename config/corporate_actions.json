@@ -1,5 +1,6 @@
 {
   "00685L": [{"effective_date": "2026-07-07", "action_type": "split", "ratio": 24.0, "source": "TWSE announcement 2026-07-06"}],
   "00631L": [{"effective_date": "2026-03-31", "action_type": "split", "ratio": 22.0, "source": "TWSE announcement 2026-02-26"}],
-  "006208": []
+  "006208": [],
+  "0050": [{"effective_date": "2025-06-11", "action_type": "split", "ratio": 4.0, "source": "TWSE announcement 2025-06-09; 4:1 split"}]
 }

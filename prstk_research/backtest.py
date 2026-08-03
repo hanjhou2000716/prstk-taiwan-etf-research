@@ -23,6 +23,20 @@ def series(dates, values, name):
         prev = value
     return out
 
+def synthetic_2x_proxy(dates, underlying, name, annual_drag=0.0, leverage=2.0):
+    """Build a transparent daily-reset leveraged proxy for pre-listing history."""
+    if not dates:
+        return []
+    nav, out = 1.0, [{"date": dates[0], "strategy": name, "nav": 1.0,
+                      "data_type": "synthetic_2x_proxy"}]
+    daily_drag = annual_drag / 252.0
+    for i in range(1, len(dates)):
+        underlying_return = underlying[i] / underlying[i - 1] - 1
+        nav *= max(0.000001, 1 + leverage * underlying_return - daily_drag)
+        out.append({"date": dates[i], "strategy": name, "nav": nav,
+                    "data_type": "synthetic_2x_proxy"})
+    return out
+
 def _returns(dates, prices, weights, name):
     if not dates:
         return []
@@ -145,17 +159,21 @@ def metrics(rows, risk_free=0.0):
             "annualized_volatility": vol, "sharpe": sharpe,
             "max_drawdown": maxdd, "observations": len(rows)}
 
-def horizon_metrics(rows, horizons=(20, 10, 5, 3, 1), risk_free=0.0):
-    """Return actual-data availability and metrics by trading-year window."""
+def horizon_metrics(rows, horizons=(20, 10, 5, 3, 1), risk_free=0.0,
+                    data_type=None, proxy_basis=None):
+    """Return availability and metrics by trading-year window."""
+    data_type = data_type or (rows[0].get("data_type", "actual_etf") if rows else "actual_etf")
     output = []
     for years in horizons:
         observations = years * 252
         if len(rows) <= observations:
-            output.append({"horizon_years": years, "status": "unavailable", "data_type": "actual_etf",
+            output.append({"horizon_years": years, "status": "unavailable", "data_type": data_type,
+                           **({"proxy_basis": proxy_basis} if proxy_basis else {}),
                            "reason": "listing history shorter than requested window"})
         else:
             window = rows[-(observations + 1):]
-            output.append({"horizon_years": years, "status": "available", "data_type": "actual_etf",
+            output.append({"horizon_years": years, "status": "available", "data_type": data_type,
+                           **({"proxy_basis": proxy_basis} if proxy_basis else {}),
                            **metrics(window, risk_free)})
     return output
 
