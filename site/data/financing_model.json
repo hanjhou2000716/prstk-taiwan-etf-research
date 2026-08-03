@@ -1,0 +1,16 @@
+{
+  "terms": {
+    "annual_interest_rate": 0.033,
+    "max_loan_to_collateral": 0.6,
+    "interest_period_months": 6,
+    "margin_call": 1.3,
+    "rollover": 1.66,
+    "release": 1.67
+  },
+  "example": {
+    "collateral_value": 1000000,
+    "max_loan": 600000.0,
+    "six_month_interest": 9900.0,
+    "maintenance_at_max_loan": 1.6666666666666667
+  }
+}

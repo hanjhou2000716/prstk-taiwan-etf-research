@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '30 10 * * 1-5'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -15,3 +19,17 @@ jobs:
         with:
           name: prstk-research-artifacts
           path: artifacts/
+      - name: Prepare interactive Pages site
+        run: |
+          mkdir -p pages/data/backtests
+          cp site/index.html pages/index.html
+          cp site/proposal.html pages/proposal.html
+          cp site/dashboard.html pages/dashboard.html
+          cp artifacts/metrics/baseline_metrics.json pages/data/baseline_metrics.json
+          cp artifacts/metrics/financing_model.json pages/data/financing_model.json
+          cp artifacts/backtests/*.csv pages/data/backtests/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+      - uses: actions/deploy-pages@v4

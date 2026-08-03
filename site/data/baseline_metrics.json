@@ -1,0 +1,50 @@
+[
+  {
+    "strategy": "buy_hold_006208",
+    "start": "2017-03-30",
+    "end": "2026-08-03",
+    "total_return": 4.327081427264409,
+    "annualized_return": 0.21172929982451283,
+    "roi": 4.327081427264409,
+    "annualized_volatility": 0.20796474599069767,
+    "sharpe": 1.0276793245081755,
+    "max_drawdown": -0.3504973668812167,
+    "observations": 2196
+  },
+  {
+    "strategy": "buy_hold_00685L",
+    "start": "2017-03-30",
+    "end": "2026-08-03",
+    "total_return": 0.06451612903226422,
+    "annualized_return": 0.007203557433211882,
+    "roi": 0.06451612903226422,
+    "annualized_volatility": 0.5153958528902248,
+    "sharpe": 0.67382261589415,
+    "max_drawdown": -0.9722045213169473,
+    "observations": 2196
+  },
+  {
+    "strategy": "fixed_beta_50_cash_50_00685L",
+    "start": "2017-03-30",
+    "end": "2026-08-03",
+    "total_return": 2.201666786045908,
+    "annualized_return": 0.1429320284805875,
+    "roi": 2.201666786045908,
+    "annualized_volatility": 0.25769792644511225,
+    "sharpe": 0.6738226158941489,
+    "max_drawdown": -0.5630497444416747,
+    "observations": 2196
+  },
+  {
+    "strategy": "ma200_switch_00685L",
+    "start": "2017-03-30",
+    "end": "2026-08-03",
+    "total_return": -0.2761867135529906,
+    "annualized_return": -0.03642786427911893,
+    "roi": -0.2761867135529906,
+    "annualized_volatility": 0.44452076326806966,
+    "sharpe": 0.6042916279336047,
+    "max_drawdown": -0.9628887877408587,
+    "observations": 2196
+  }
+]

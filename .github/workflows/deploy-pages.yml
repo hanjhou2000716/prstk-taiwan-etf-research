@@ -11,6 +11,8 @@ jobs:
           mkdir -p artifacts/reports
           cp site/index.html artifacts/reports/index.html
           cp site/proposal.html artifacts/reports/proposal.html
+          cp site/dashboard.html artifacts/reports/dashboard.html
+          cp -r site/data artifacts/reports/data
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: {path: artifacts/reports}
