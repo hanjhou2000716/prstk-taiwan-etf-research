@@ -16,6 +16,7 @@ def load_json(p):
 
 def run(download=False):
     cfg = load_json(ROOT / "config/research.json")
+    instruments = load_json(ROOT / "config/instruments.json")
     start = date.fromisoformat(cfg["start_date"])
     end = date.fromisoformat(cfg["end_date"]) if cfg["end_date"] else date.today()
     raw, processed = ROOT / "data/raw/twse", ROOT / "data/processed"
@@ -24,9 +25,11 @@ def run(download=False):
     all_files = []
     actions_config = load_json(ROOT / "config/corporate_actions.json")
     for symbol in ("0050", "006208", "00685L", "00631L"):
+        listing = instruments.get(symbol, {}).get("listing_date") or {"006208": "2012-06-22"}.get(symbol)
+        symbol_start = max(start, date.fromisoformat(listing)) if listing else start
         if download:
             all_files.extend(download_month(symbol, y, m, raw, cfg["download_pause_seconds"])
-                             for y, m in months(start, end))
+                             for y, m in months(symbol_start, end))
         else:
             all_files = list(raw.glob("*.json"))
         sym_files = [p for p in all_files if p.name.startswith(symbol + "_")]
