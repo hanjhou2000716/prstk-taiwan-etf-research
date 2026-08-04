@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-04T07:19:07.007733Z",
+  "generated_at_utc": "2026-08-04T07:28:00.967729Z",
   "files": [
     {
       "path": "data\\raw\\twse\\0050_2003-06.json",
@@ -3543,23 +3543,23 @@
     },
     {
       "path": "data\\processed\\0050.csv",
-      "bytes": 289338,
-      "sha256": "265cf48ef9403933add5d1b6f974f5e32dc7e695d4c043cb787df287262b8612"
+      "bytes": 313737,
+      "sha256": "bfe8e720147d690d201eb7e74c21923b5d05aa98a5fb46a324b807cc8f778f40"
     },
     {
       "path": "data\\processed\\006208.csv",
-      "bytes": 227779,
-      "sha256": "7915017f8950a4de5bf6c514ddfb337bc065324f69a2a16f3412c6f9152e8aaa"
+      "bytes": 247240,
+      "sha256": "8dac025bd5065fe2d5a453bba622d70893b1f80228bcc548894b583818bc05cb"
     },
     {
       "path": "data\\processed\\00631L.csv",
-      "bytes": 248678,
-      "sha256": "ef33ca06d372969be3cf9b29b1cdb684a5c69a2356cdc3b192e621828a6f2f3c"
+      "bytes": 268678,
+      "sha256": "58e04a332b16dbbd9bac2d3fde8945e4f7943e8c066786eff673125efa2893c2"
     },
     {
       "path": "data\\processed\\00685L.csv",
-      "bytes": 183744,
-      "sha256": "d763b3fa54148ad3710c5d60499980eb3610ad59654b510efc6a59bc89234ca8"
+      "bytes": 199421,
+      "sha256": "095791953f7afeab65494dfa10561ee1d43d2796c0132b8d99ef6b53cd9c3a33"
     },
     {
       "path": "data\\processed\\vix.csv",

@@ -55,10 +55,24 @@ def build_reconciliation(root: Path) -> dict:
     if not metrics_available:
         failures.append({"file": str(baseline), "issue": "baseline metrics 不存在"})
     schema_status = "failed" if failures else "passed"
+    corporate_report = root / "artifacts" / "validation" / "corporate_actions.json"
+    if not corporate_report.exists():
+        corporate_report = root / "site" / "data" / "corporate_actions.json"
+    corporate_status = "not_run"
+    if corporate_report.exists():
+        try:
+            assets = json.loads(corporate_report.read_text(encoding="utf-8")).get("assets", {})
+            corporate_status = "passed" if assets and all(
+                value.get("configured_actions", 0) >= value.get("split_actions", 0)
+                and value.get("total_return_status") == "available"
+                for value in assets.values()
+            ) else "partial"
+        except (OSError, json.JSONDecodeError):
+            corporate_status = "failed"
     validation_layers = {
         "source_integrity": "passed" if data_source in {"artifacts", "site_snapshot"} else "not_run",
         "schema_validation": schema_status,
-        "corporate_action_validation": "not_run",
+        "corporate_action_validation": corporate_status,
         "backtest_engine_validation": "not_run",
         "lookahead_validation": "not_run",
         "metric_validation": "not_run",
@@ -68,7 +82,7 @@ def build_reconciliation(root: Path) -> dict:
     }
     report = {"generated_at": datetime.now(timezone.utc).isoformat(), "data_source": data_source, "status": "failed" if failures else ("warning" if warnings else "passed"),
               "publish_blocked": bool(failures), "formal_conclusions_blocked": validation_layers["publish_readiness"] != "passed", "validation_layers": validation_layers, "checks": checks, "warnings": warnings, "failures": failures,
-              "summary": {"files_checked": len(checks), "warnings": len(warnings), "failures": len(failures), "baseline_metrics_present": metrics_available}}
+              "summary": {"files_checked": len(checks), "warnings": len(warnings), "failures": len(failures), "baseline_metrics_present": metrics_available, "corporate_actions_present": corporate_report.exists()}}
     for target in (root / "artifacts" / "validation" / "reconciliation_report.json", root / "site" / "data" / "reconciliation_report.json"):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -105,7 +105,9 @@ def apply_path_costs(rows, annual_management_fee=0.0, annual_tracking_difference
 
 def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0.033,
                     max_ltv=0.60, margin_call=1.30, rollover=1.66,
-                    target_debt_ratio=0.30, dynamic=True, borrow_floor=None):
+                    target_debt_ratio=0.30, dynamic=True, borrow_floor=None,
+                    collateral_eligibility=1.0, forced_liquidation_ratio=1.10,
+                    liquidation_haircut=0.05):
     """Daily marked-to-market collateral model.
 
     Borrowing is assumed to occur at the close when maintenance is above the
@@ -120,6 +122,7 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
     target_units = 0.0
     debt = 0.0
     cash = 0.0
+    accrued_interest = 0.0
     events = {"margin_calls": 0, "borrow_events": 0, "repay_events": 0}
 
     def values(i):
@@ -135,9 +138,17 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
     out = []
     for i, d in enumerate(dates):
         if i > 0:
-            debt *= 1 + annual_rate / 252
+            interest = debt * annual_rate / 252
+            debt += interest
+            accrued_interest += interest
         collateral_value, target_value = values(i)
-        maintenance = collateral_value / debt if debt > 0 else float("inf")
+        eligible_collateral_value = collateral_value * collateral_eligibility
+        non_eligible_asset_value = target_value
+        maintenance = eligible_collateral_value / debt if debt > 0 else float("inf")
+        required_repayment = 0.0
+        required_additional_collateral = max(0.0, debt * margin_call - eligible_collateral_value)
+        liquidation_proceeds = 0.0
+        liquidation_event = ""
         if dynamic and maintenance < margin_call:
             events["margin_calls"] += 1
             # Sell target assets first and use proceeds to repay debt. If the
@@ -146,14 +157,23 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
             # If the sold target asset is not eligible collateral, the basic
             # repayment required to restore ratio R is debt - collateral/R.
             # The collateral value is not increased by buying the target asset.
-            needed = max(0.0, debt - collateral_value / repair_target)
+            needed = max(0.0, debt - eligible_collateral_value / repair_target)
+            required_repayment = needed
             sale = min(target_value, needed)
             if sale > 0:
                 target_units -= sale / target_prices[i]
-                debt -= sale
+                debt = max(0.0, debt - sale)
                 events["repay_events"] += 1
                 collateral_value, target_value = values(i)
                 maintenance = collateral_value / debt if debt > 0 else float("inf")
+                eligible_collateral_value = collateral_value * collateral_eligibility
+                required_additional_collateral = max(0.0, debt * margin_call - eligible_collateral_value)
+        if debt > 0 and maintenance < forced_liquidation_ratio:
+            liquidation_event = "forced_liquidation_threshold"
+            liquidation_proceeds = max(0.0, target_value * (1.0 - liquidation_haircut))
+            debt = max(0.0, debt - liquidation_proceeds)
+            target_units = 0.0
+            events["liquidation_events"] = events.get("liquidation_events", 0) + 1
         if dynamic and maintenance >= (borrow_floor or rollover):
             max_debt = collateral_value * max_ltv
             desired = min(max_debt, collateral_value * target_debt_ratio)
@@ -163,11 +183,23 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
                 target_units += extra / target_prices[i]
                 events["borrow_events"] += 1
         collateral_value, target_value = values(i)
+        eligible_collateral_value = collateral_value * collateral_eligibility
+        maintenance = eligible_collateral_value / debt if debt > 0 else float("inf")
         equity = collateral_value + target_value + cash - debt
         out.append({"date": d, "strategy": name, "nav": equity / capital,
-                    "maintenance": collateral_value / debt if debt > 0 else float("inf"),
+                    "nav_gross": equity / capital, "nav_net": equity / capital,
+                    "cash": cash, "interest": accrued_interest,
+                    "maintenance": maintenance,
                     "debt": debt, "collateral_value": collateral_value,
-                    "target_value": target_value})
+                    "eligible_collateral_value": eligible_collateral_value,
+                    "non_eligible_asset_value": non_eligible_asset_value,
+                    "target_value": target_value,
+                    "required_repayment": required_repayment,
+                    "required_additional_collateral": required_additional_collateral,
+                    "liquidation_proceeds": liquidation_proceeds,
+                    "net_equity": equity,
+                    "liquidation_event": liquidation_event,
+                    "margin_call": maintenance < margin_call})
     return out, events
 
 def metrics(rows, risk_free=0.0):
@@ -215,7 +247,10 @@ def write_rows(path: Path, rows):
     fields = ["date", "strategy", "nav", "nav_gross", "nav_net", "cash", "debt",
               "interest", "collateral_value", "maintenance", "gross_exposure",
               "net_exposure", "turnover", "transaction_cost", "signal", "position",
-              "margin_call", "liquidation_event"]
+              "margin_call", "liquidation_event", "eligible_collateral_value",
+              "non_eligible_asset_value", "required_repayment",
+              "required_additional_collateral", "liquidation_proceeds", "net_equity",
+              "cost_drag"]
     with path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         w.writeheader()

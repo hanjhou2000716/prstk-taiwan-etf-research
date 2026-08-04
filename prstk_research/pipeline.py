@@ -1,6 +1,6 @@
 from __future__ import annotations
 import argparse, json
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from .data import (download_month, download_vix, normalize, normalize_vix,
                    validate_csv, build_manifest, months)
@@ -26,6 +26,7 @@ def run(download=False):
     back, metrics_dir = ROOT / "artifacts/backtests", ROOT / "artifacts/metrics"
     all_files = []
     actions_config = load_json(ROOT / "config/corporate_actions.json")
+    corporate_action_report = {}
     for symbol in ("0050", "006208", "00685L", "00631L"):
         listing = instruments.get(symbol, {}).get("listing_date") or {"006208": "2012-06-22"}.get(symbol)
         symbol_start = max(start, date.fromisoformat(listing)) if listing else start
@@ -38,6 +39,14 @@ def run(download=False):
         if not sym_files:
             raise RuntimeError(f"No raw data for {symbol}. Run with --download.")
         normalize(symbol, sym_files, processed / f"{symbol}.csv", actions_config.get(symbol, []))
+        actions = actions_config.get(symbol, [])
+        corporate_action_report[symbol] = {
+            "configured_actions": len(actions),
+            "split_actions": sum(a.get("action_type") == "split" for a in actions),
+            "distribution_actions": sum(a.get("action_type") in {"dividend", "distribution"} for a in actions),
+            "total_return_status": "available" if actions and all(a.get("action_type") in {"dividend", "distribution"} and a.get("per_share") is not None for a in actions) else "not_separately_verified",
+            "source": "config/corporate_actions.json",
+        }
         report = validate_csv(processed / f"{symbol}.csv")
         validation.mkdir(parents=True, exist_ok=True)
         (validation / f"{symbol}.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -55,6 +64,7 @@ def run(download=False):
     manifest = load_json(manifest_path)
     manifest.update({"data_end_date": end.isoformat(), "pipeline_version": "pipeline-v2", "model_version": load_json(ROOT / "site/data/model-config.json").get("model_version")})
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    (validation / "corporate_actions.json").write_text(json.dumps({"generated_at": datetime.now().isoformat(), "assets": corporate_action_report}, ensure_ascii=False, indent=2), encoding="utf-8")
 
     p050 = read_prices(processed / "0050.csv")
     p208, p685 = read_prices(processed / "006208.csv"), read_prices(processed / "00685L.csv")

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T07:19:12.868902+00:00",
+  "generated_at": "2026-08-04T07:28:05.416166+00:00",
   "data_source": "artifacts",
   "status": "warning",
   "publish_blocked": false,
@@ -7,7 +7,7 @@
   "validation_layers": {
     "source_integrity": "passed",
     "schema_validation": "passed",
-    "corporate_action_validation": "not_run",
+    "corporate_action_validation": "partial",
     "backtest_engine_validation": "not_run",
     "lookahead_validation": "not_run",
     "metric_validation": "not_run",
@@ -142,7 +142,7 @@
       "file": "pledge_00685L_buy_00685L.csv",
       "date": "2025-04-10",
       "issue": "單日 NAV 變動超過 25%",
-      "return": 0.27654968241830535
+      "return": 0.27654968241830935
     }
   ],
   "failures": [],
@@ -150,6 +150,7 @@
     "files_checked": 12,
     "warnings": 1,
     "failures": 0,
-    "baseline_metrics_present": true
+    "baseline_metrics_present": true,
+    "corporate_actions_present": true
   }
 }

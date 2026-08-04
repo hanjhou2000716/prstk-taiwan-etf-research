@@ -68,8 +68,16 @@ def parse_twse_json(path: Path) -> list[dict]:
     return rows
 
 def apply_split_adjustments(rows: list[dict], actions: list[dict]) -> list[dict]:
-    """Create a continuous historical price series without changing raw data."""
+    """Create split-adjusted and, only when supplied, total-return fields.
+
+    TWSE daily close data does not contain distributions.  Therefore the
+    total-return field stays blank unless every configured distribution is
+    explicitly supplied in the corporate-actions file.
+    """
     split_actions = sorted((a for a in actions if a.get("action_type") == "split"), key=lambda a: a["effective_date"])
+    dividend_actions = sorted((a for a in actions if a.get("action_type") in {"dividend", "distribution"}), key=lambda a: a.get("effective_date", a.get("ex_date", "")))
+    complete_total_return = bool(dividend_actions) and all(a.get("per_share") is not None for a in dividend_actions)
+    by_date = {r["date"]: r for r in rows}
     for row in rows:
         factor = 1.0
         for action in split_actions:
@@ -81,6 +89,27 @@ def apply_split_adjustments(rows: list[dict], actions: list[dict]) -> list[dict]
             row["adjusted_volume"] = float(row["volume"].replace(",", "")) * factor
         except (ValueError, AttributeError):
             row["adjusted_volume"] = row["volume"]
+        row["split_ratio"] = factor
+        row["cash_dividend"] = ""
+        row["total_return_close"] = ""
+    if complete_total_return:
+        for action in dividend_actions:
+            ex_date = action.get("ex_date", action.get("effective_date"))
+            ex_row = by_date.get(ex_date)
+            if not ex_row:
+                complete_total_return = False
+                break
+        if complete_total_return:
+            for row in rows:
+                total_factor = 1.0
+                for action in dividend_actions:
+                    ex_date = action.get("ex_date", action.get("effective_date"))
+                    if row["date"] < ex_date:
+                        ex_close = float(by_date[ex_date]["adjusted_close"])
+                        total_factor *= 1.0 + float(action["per_share"]) / ex_close
+                    if row["date"] == ex_date:
+                        row["cash_dividend"] = float(action["per_share"])
+                row["total_return_close"] = float(row["adjusted_close"]) * total_factor
     return rows
 
 def normalize(symbol: str, files: list[Path], out_path: Path, actions: list[dict] | None = None) -> int:
@@ -90,7 +119,7 @@ def normalize(symbol: str, files: list[Path], out_path: Path, actions: list[dict
     apply_split_adjustments(list(dedup.values()), actions or [])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["date", "symbol", "close", "adjusted_close", "volume", "adjusted_volume", "adjustment_factor", "source_file"])
+        writer = csv.DictWriter(f, fieldnames=["date", "symbol", "close", "adjusted_close", "total_return_close", "cash_dividend", "split_ratio", "volume", "adjusted_volume", "adjustment_factor", "source_file"])
         writer.writeheader(); writer.writerows(dedup.values())
     return len(dedup)
 

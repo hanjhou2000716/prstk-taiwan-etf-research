@@ -20,6 +20,7 @@ jobs:
       - name: Sync generated data into site snapshot
         run: |
           cp artifacts/validation/reconciliation_report.json site/data/reconciliation_report.json
+          cp artifacts/validation/corporate_actions.json site/data/corporate_actions.json
           cp artifacts/manifests/manifest.json site/data/manifest.json
           cp artifacts/metrics/baseline_metrics.json site/data/baseline_metrics.json
           cp artifacts/metrics/horizon_metrics.json site/data/horizon_metrics.json
