@@ -1,13 +1,19 @@
 """TWSE downloader, parser, hashing and validation. Standard library only."""
 from __future__ import annotations
-import calendar, csv, hashlib, json, time
+import calendar, csv, hashlib, json, ssl, time
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-URL = "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY"
+try:
+    import certifi
+    TLS_CONTEXT = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    TLS_CONTEXT = ssl.create_default_context()
+
+URL = "https://www.twse.com.tw/exchangeReport/STOCK_DAY"
 CBOE_VIX_URL = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
 HEADERS = {"User-Agent": "PRStK-Research/0.1 (+research; contact unavailable)"}
 
@@ -29,7 +35,7 @@ def download_month(symbol: str, year: int, month: int, raw_dir: Path, pause: flo
     # Retry the same official URL instead of silently substituting another source.
     for attempt in range(5):
         try:
-            with urlopen(req, timeout=30) as response:
+            with urlopen(req, timeout=30, context=TLS_CONTEXT) as response:
                 payload = response.read()
             break
         except (HTTPError, URLError) as exc:
@@ -94,7 +100,7 @@ def download_vix(out_path: Path) -> Path:
     if out_path.exists():
         return out_path
     req = Request(CBOE_VIX_URL, headers=HEADERS)
-    with urlopen(req, timeout=60) as response:
+    with urlopen(req, timeout=60, context=TLS_CONTEXT) as response:
         out_path.write_bytes(response.read())
     return out_path
 

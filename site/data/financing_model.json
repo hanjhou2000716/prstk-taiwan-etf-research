@@ -3,9 +3,12 @@
     "annual_interest_rate": 0.033,
     "max_loan_to_collateral": 0.6,
     "interest_period_months": 6,
-    "margin_call": 1.3,
-    "rollover": 1.66,
-    "release": 1.67
+    "maintenance_ratio": {
+      "margin_call": 1.3,
+      "rollover": 1.66,
+      "release": 1.67
+    },
+    "formula_note": "maintenance_ratio = collateral_market_value / principal"
   },
   "example": {
     "collateral_value": 1000000,
