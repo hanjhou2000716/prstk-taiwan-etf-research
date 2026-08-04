@@ -9,6 +9,10 @@ def _read_rows(path: Path):
 
 def build_reconciliation(root: Path) -> dict:
     backtests = root / "artifacts" / "backtests"
+    data_source = "artifacts"
+    if not list(backtests.glob("*.csv")):
+        backtests = root / "site" / "data" / "backtests"
+        data_source = "site_snapshot"
     checks, warnings, failures = [], [], []
     for path in sorted(backtests.glob("*.csv")):
         rows = _read_rows(path)
@@ -45,10 +49,12 @@ def build_reconciliation(root: Path) -> dict:
             except (KeyError, ZeroDivisionError, ValueError):
                 pass
     baseline = root / "artifacts" / "metrics" / "baseline_metrics.json"
+    if not baseline.exists():
+        baseline = root / "site" / "data" / "baseline_metrics.json"
     metrics_available = baseline.exists()
     if not metrics_available:
         failures.append({"file": str(baseline), "issue": "baseline metrics 不存在"})
-    report = {"generated_at": datetime.now(timezone.utc).isoformat(), "status": "failed" if failures else ("warning" if warnings else "passed"),
+    report = {"generated_at": datetime.now(timezone.utc).isoformat(), "data_source": data_source, "status": "failed" if failures else ("warning" if warnings else "passed"),
               "publish_blocked": bool(failures), "checks": checks, "warnings": warnings, "failures": failures,
               "summary": {"files_checked": len(checks), "warnings": len(warnings), "failures": len(failures), "baseline_metrics_present": metrics_available}}
     for target in (root / "artifacts" / "validation" / "reconciliation_report.json", root / "site" / "data" / "reconciliation_report.json"):

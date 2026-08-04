@@ -1,10 +1,116 @@
 {
-  "generated_at":"2026-08-04T00:00:00+08:00",
-  "status":"not_run",
-  "publish_blocked":true,
-  "summary":{"files_checked":0,"warnings":0,"failures":0,"baseline_metrics_present":false},
-  "checks":[],
-  "warnings":[{"issue":"目前 workspace 沒有 artifacts/backtests 或原始下載資料，尚未能重新執行 reconciliation。"}],
-  "failures":[],
-  "next_action":"執行 Python research pipeline 後重新產生此報告；在此之前不得把新增結果標示為正式驗證。"
+  "generated_at": "2026-08-04T05:32:01.808890+00:00",
+  "data_source": "site_snapshot",
+  "status": "passed",
+  "publish_blocked": false,
+  "checks": [
+    {
+      "file": "buy_hold_006208.csv",
+      "rows": 2196,
+      "start": "2017-03-30",
+      "end": "2026-08-03",
+      "first_nav_is_one": true,
+      "finite_nav": true,
+      "non_positive_dates": [],
+      "duplicate_dates": false
+    },
+    {
+      "file": "buy_hold_00631L.csv",
+      "rows": 2702,
+      "start": "2014-10-31",
+      "end": "2026-08-03",
+      "first_nav_is_one": true,
+      "finite_nav": true,
+      "non_positive_dates": [],
+      "duplicate_dates": false
+    },
+    {
+      "file": "buy_hold_00685L.csv",
+      "rows": 2196,
+      "start": "2017-03-30",
+      "end": "2026-08-03",
+      "first_nav_is_one": true,
+      "finite_nav": true,
+      "non_positive_dates": [],
+      "duplicate_dates": false
+    },
+    {
+      "file": "fixed_beta_50_cash_50_00685L.csv",
+      "rows": 2196,
+      "start": "2017-03-30",
+      "end": "2026-08-03",
+      "first_nav_is_one": true,
+      "finite_nav": true,
+      "non_positive_dates": [],
+      "duplicate_dates": false
+    },
+    {
+      "file": "ma200_switch_00685L.csv",
+      "rows": 2196,
+      "start": "2017-03-30",
+      "end": "2026-08-03",
+      "first_nav_is_one": true,
+      "finite_nav": true,
+      "non_positive_dates": [],
+      "duplicate_dates": false
+    },
+    {
+      "file": "pledge_006208_dynamic.csv",
+      "rows": 2196,
+      "start": "2017-03-30",
+      "end": "2026-08-03",
+      "first_nav_is_one": true,
+      "finite_nav": true,
+      "non_positive_dates": [],
+      "duplicate_dates": false
+    },
+    {
+      "file": "pledge_006208_once.csv",
+      "rows": 2196,
+      "start": "2017-03-30",
+      "end": "2026-08-03",
+      "first_nav_is_one": true,
+      "finite_nav": true,
+      "non_positive_dates": [],
+      "duplicate_dates": false
+    },
+    {
+      "file": "pledge_00685L_buy_006208.csv",
+      "rows": 2196,
+      "start": "2017-03-30",
+      "end": "2026-08-03",
+      "first_nav_is_one": true,
+      "finite_nav": true,
+      "non_positive_dates": [],
+      "duplicate_dates": false
+    },
+    {
+      "file": "pledge_00685L_buy_00685L.csv",
+      "rows": 2196,
+      "start": "2017-03-30",
+      "end": "2026-08-03",
+      "first_nav_is_one": true,
+      "finite_nav": true,
+      "non_positive_dates": [],
+      "duplicate_dates": false
+    },
+    {
+      "file": "vix_switch_00685L.csv",
+      "rows": 2196,
+      "start": "2017-03-30",
+      "end": "2026-08-03",
+      "first_nav_is_one": true,
+      "finite_nav": true,
+      "non_positive_dates": [],
+      "duplicate_dates": false
+    }
+  ],
+  "warnings": [],
+  "failures": [],
+  "summary": {
+    "files_checked": 10,
+    "warnings": 0,
+    "failures": 0,
+    "baseline_metrics_present": true
+  }
 }
