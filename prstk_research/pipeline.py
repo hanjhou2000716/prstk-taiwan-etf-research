@@ -49,7 +49,11 @@ def run(download=False):
     elif not vix_raw.exists():
         raise RuntimeError("No Cboe VIX data. Run with --download.")
     normalize_vix(vix_raw, vix_processed)
-    build_manifest(list(raw.glob("*.json")) + [vix_raw, *processed.glob("*.csv")], ROOT, ROOT / "artifacts/manifests/manifest.json")
+    manifest_path = ROOT / "artifacts/manifests/manifest.json"
+    build_manifest(list(raw.glob("*.json")) + [vix_raw, *processed.glob("*.csv")], ROOT, manifest_path)
+    manifest = load_json(manifest_path)
+    manifest.update({"data_end_date": end.isoformat(), "pipeline_version": "pipeline-v2", "model_version": load_json(ROOT / "site/data/model-config.json").get("model_version")})
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
     p050 = read_prices(processed / "0050.csv")
     p208, p685 = read_prices(processed / "006208.csv"), read_prices(processed / "00685L.csv")

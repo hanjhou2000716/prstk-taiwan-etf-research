@@ -1,8 +1,20 @@
 {
-  "generated_at": "2026-08-04T06:56:52.599707+00:00",
+  "generated_at": "2026-08-04T07:06:03.810598+00:00",
   "data_source": "artifacts",
   "status": "warning",
   "publish_blocked": false,
+  "formal_conclusions_blocked": true,
+  "validation_layers": {
+    "source_integrity": "passed",
+    "schema_validation": "passed",
+    "corporate_action_validation": "not_run",
+    "backtest_engine_validation": "not_run",
+    "lookahead_validation": "not_run",
+    "metric_validation": "not_run",
+    "python_js_parity": "not_run",
+    "broker_assumption_validation": "assumption_only",
+    "publish_readiness": "blocked"
+  },
   "checks": [
     {
       "file": "buy_hold_006208.csv",

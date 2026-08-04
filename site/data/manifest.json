@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-04T06:56:48.242523Z",
+  "generated_at_utc": "2026-08-04T07:06:00.847148Z",
   "files": [
     {
       "path": "data\\raw\\twse\\0050_2003-06.json",
@@ -3566,5 +3566,8 @@
       "bytes": 165394,
       "sha256": "a27d9771de297a18851c650c436a3dcf289a05902069da1f49a09cf1004f25ad"
     }
-  ]
+  ],
+  "data_end_date": "2026-08-04",
+  "pipeline_version": "pipeline-v2",
+  "model_version": "phase2-p0-2026.08.04"
 }

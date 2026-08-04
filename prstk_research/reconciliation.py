@@ -54,8 +54,20 @@ def build_reconciliation(root: Path) -> dict:
     metrics_available = baseline.exists()
     if not metrics_available:
         failures.append({"file": str(baseline), "issue": "baseline metrics 不存在"})
+    schema_status = "failed" if failures else "passed"
+    validation_layers = {
+        "source_integrity": "passed" if data_source in {"artifacts", "site_snapshot"} else "not_run",
+        "schema_validation": schema_status,
+        "corporate_action_validation": "not_run",
+        "backtest_engine_validation": "not_run",
+        "lookahead_validation": "not_run",
+        "metric_validation": "not_run",
+        "python_js_parity": "not_run",
+        "broker_assumption_validation": "assumption_only",
+        "publish_readiness": "blocked" if failures or warnings else "pending_required_layers"
+    }
     report = {"generated_at": datetime.now(timezone.utc).isoformat(), "data_source": data_source, "status": "failed" if failures else ("warning" if warnings else "passed"),
-              "publish_blocked": bool(failures), "checks": checks, "warnings": warnings, "failures": failures,
+              "publish_blocked": bool(failures), "formal_conclusions_blocked": validation_layers["publish_readiness"] != "passed", "validation_layers": validation_layers, "checks": checks, "warnings": warnings, "failures": failures,
               "summary": {"files_checked": len(checks), "warnings": len(warnings), "failures": len(failures), "baseline_metrics_present": metrics_available}}
     for target in (root / "artifacts" / "validation" / "reconciliation_report.json", root / "site" / "data" / "reconciliation_report.json"):
         target.parent.mkdir(parents=True, exist_ok=True)
