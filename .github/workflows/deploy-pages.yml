@@ -9,6 +9,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Validate publish inputs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          required = [
+              Path('site/data/manifest.json'),
+              Path('site/data/strategy-catalog.json'),
+              Path('site/data/reconciliation_report.json'),
+          ]
+          for path in required:
+              json.loads(path.read_text(encoding='utf-8'))
+              print('valid JSON:', path)
+          pages = ['index.html','research-lab.html','compare.html','stress-test.html','report.html']
+          for name in pages:
+              text = Path('site', name).read_text(encoding='utf-8')
+              if '</html>' in text and text.split('</html>', 1)[1].strip():
+                  raise SystemExit(f'invalid trailing content after </html>: {name}')
+          PY
       - name: Write deployment metadata
         env:
           SITE_COMMIT: ${{ github.sha }}
@@ -51,3 +70,19 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with: {path: artifacts/reports}
       - uses: actions/deploy-pages@v4
+      - name: Smoke test published site
+        run: |
+          set -euo pipefail
+          base="https://hanjhou2000716.github.io/prstk-taiwan-etf-research"
+          for path in index.html research-lab.html compare.html stress-test.html report.html data/manifest.json data/backtests/buy_hold_006208.csv; do
+            code=$(curl -L -sS -o /dev/null -w '%{http_code}' "$base/$path")
+            test "$code" = "200"
+          done
+          python - <<'PY'
+          import json, urllib.request
+          base='https://hanjhou2000716.github.io/prstk-taiwan-etf-research'
+          meta=json.load(urllib.request.urlopen(base+'/data/deployment.json'))
+          expected='${{ github.sha }}'
+          assert meta['commit_sha'] == expected, (meta, expected)
+          print('published commit verified:', meta['commit_sha'])
+          PY
