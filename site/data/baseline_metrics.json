@@ -6,8 +6,8 @@
     "total_return": 6.900789564023388,
     "annualized_return": 0.17469934843357726,
     "roi": 6.900789564023388,
-    "annualized_volatility": 0.1910007530098129,
-    "sharpe": 0.9387119079878263,
+    "annualized_volatility": 0.1910007530098127,
+    "sharpe": 0.938711907987828,
     "max_drawdown": -0.3504973668812168,
     "observations": 3236
   },
@@ -18,8 +18,8 @@
     "total_return": 24.37903225806453,
     "annualized_return": 0.4399815221537433,
     "roi": 24.37903225806453,
-    "annualized_volatility": 0.39569471660501193,
-    "sharpe": 1.121725013576035,
+    "annualized_volatility": 0.3956947166050118,
+    "sharpe": 1.1217250135760326,
     "max_drawdown": -0.5480558325024921,
     "observations": 2236
   },
@@ -30,8 +30,8 @@
     "total_return": 34.01485148514864,
     "annualized_return": 0.36764033162090937,
     "roi": 34.01485148514864,
-    "annualized_volatility": 0.3809161500786987,
-    "sharpe": 1.0143117077175436,
+    "annualized_volatility": 0.38091615007869917,
+    "sharpe": 1.01431170771754,
     "max_drawdown": -0.5514366796736425,
     "observations": 2863
   },
@@ -42,8 +42,8 @@
     "total_return": 27.67602092602198,
     "annualized_return": 0.23171796693191093,
     "roi": 27.67602092602198,
-    "annualized_volatility": 0.37589957054043127,
-    "sharpe": 0.7429585063365383,
+    "annualized_volatility": 0.3758995705404313,
+    "sharpe": 0.7429585063365379,
     "max_drawdown": -0.6104687631719028,
     "observations": 4059
   },
@@ -54,8 +54,8 @@
     "total_return": 27.67602092602198,
     "annualized_return": 0.23171796693191093,
     "roi": 27.67602092602198,
-    "annualized_volatility": 0.37589957054043127,
-    "sharpe": 0.7429585063365383,
+    "annualized_volatility": 0.3758995705404313,
+    "sharpe": 0.7429585063365379,
     "max_drawdown": -0.6104687631719028,
     "observations": 4059
   },
@@ -67,7 +67,7 @@
     "annualized_return": 0.228550700516029,
     "roi": 5.011694102177866,
     "annualized_volatility": 0.19972677530362995,
-    "sharpe": 1.131180517575598,
+    "sharpe": 1.1311805175755973,
     "max_drawdown": -0.3061457698672949,
     "observations": 2197
   },
@@ -78,8 +78,8 @@
     "total_return": 13.900019051177376,
     "annualized_return": 0.36341477540527434,
     "roi": 13.900019051177376,
-    "annualized_volatility": 0.3169077352429899,
-    "sharpe": 1.138166270152976,
+    "annualized_volatility": 0.3169077352429906,
+    "sharpe": 1.1381662701529718,
     "max_drawdown": -0.36839481555333997,
     "observations": 2197
   },
@@ -90,8 +90,8 @@
     "total_return": 52.31968464614595,
     "annualized_return": 0.5782195771262117,
     "roi": 52.31968464614595,
-    "annualized_volatility": 0.33081161405023896,
-    "sharpe": 1.548351866335018,
+    "annualized_volatility": 0.33081161405023823,
+    "sharpe": 1.5483518663350178,
     "max_drawdown": -0.4713947816966022,
     "observations": 2197
   },
@@ -102,8 +102,8 @@
     "total_return": 6.622793414814559,
     "annualized_return": 0.2624849625665291,
     "roi": 6.622793414814559,
-    "annualized_volatility": 0.2823204149186449,
-    "sharpe": 0.966940435942591,
+    "annualized_volatility": 0.2823204149186448,
+    "sharpe": 0.9669404359425918,
     "max_drawdown": -0.4567812615512944,
     "observations": 2197
   },
@@ -114,8 +114,8 @@
     "total_return": 6.398009189942207,
     "annualized_return": 0.25815599949450974,
     "roi": 6.398009189942207,
-    "annualized_volatility": 0.27183781266728124,
-    "sharpe": 0.9809030307816191,
+    "annualized_volatility": 0.2718378126672812,
+    "sharpe": 0.98090303078162,
     "max_drawdown": -0.4470116878300847,
     "observations": 2197
   },
@@ -127,7 +127,7 @@
     "annualized_return": 0.4761619801079884,
     "roi": 28.77708186737621,
     "annualized_volatility": 0.43691276264256096,
-    "sharpe": 1.112102762305474,
+    "sharpe": 1.1121027623054758,
     "max_drawdown": -0.5785720240942249,
     "observations": 2197
   },
@@ -138,8 +138,8 @@
     "total_return": 38.92136884112348,
     "annualized_return": 0.5266689918644063,
     "roi": 38.92136884112348,
-    "annualized_volatility": 0.48392491425367984,
-    "sharpe": 1.1191851077859283,
+    "annualized_volatility": 0.48392491425367967,
+    "sharpe": 1.119185107785926,
     "max_drawdown": -0.6288814200901892,
     "observations": 2197
   }
