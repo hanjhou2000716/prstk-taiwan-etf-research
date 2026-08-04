@@ -75,7 +75,7 @@ def vix_switch(dates, prices, vix, threshold=25.0, name="vix_switch_00685L"):
 
 def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0.033,
                     max_ltv=0.60, margin_call=1.30, rollover=1.66,
-                    target_debt_ratio=0.30, dynamic=True):
+                    target_debt_ratio=0.30, dynamic=True, borrow_floor=None):
     """Daily marked-to-market collateral model.
 
     Borrowing is assumed to occur at the close when maintenance is above the
@@ -113,7 +113,10 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
             # Sell target assets first and use proceeds to repay debt. If the
             # target is also collateral, the denominator adjusts naturally.
             repair_target = max(rollover, margin_call)
-            needed = max(0.0, repair_target * debt - collateral_value)
+            # If the sold target asset is not eligible collateral, the basic
+            # repayment required to restore ratio R is debt - collateral/R.
+            # The collateral value is not increased by buying the target asset.
+            needed = max(0.0, debt - collateral_value / repair_target)
             sale = min(target_value, needed)
             if sale > 0:
                 target_units -= sale / target_prices[i]
@@ -121,7 +124,7 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
                 events["repay_events"] += 1
                 collateral_value, target_value = values(i)
                 maintenance = collateral_value / debt if debt > 0 else float("inf")
-        if dynamic and maintenance >= rollover:
+        if dynamic and maintenance >= (borrow_floor or rollover):
             max_debt = collateral_value * max_ltv
             desired = min(max_debt, collateral_value * target_debt_ratio)
             extra = max(0.0, desired - debt)
@@ -179,8 +182,11 @@ def horizon_metrics(rows, horizons=(20, 10, 5, 3, 1), risk_free=0.0,
 
 def write_rows(path: Path, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
-    fields = ["date", "strategy", "nav"]
+    fields = ["date", "strategy", "nav", "nav_gross", "nav_net", "cash", "debt",
+              "interest", "collateral_value", "maintenance", "gross_exposure",
+              "net_exposure", "turnover", "transaction_cost", "signal", "position",
+              "margin_call", "liquidation_event"]
     with path.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=fields)
+        w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         w.writeheader()
         w.writerows({k: row.get(k) for k in fields} for row in rows)

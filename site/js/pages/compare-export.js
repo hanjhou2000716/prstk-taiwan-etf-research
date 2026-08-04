@@ -1,9 +1,0 @@
-(function(){
-  const run=document.querySelector('#run');if(!run)return;
-  const period=document.querySelector('#period');
-  if(period&&!period.querySelector('option[value="20"]')){const option=document.createElement('option');option.value='20';option.textContent='近 20 年';period.appendChild(option)}
-  const button=document.createElement('button');button.type='button';button.className='button secondary';button.textContent='匯出比較結果';button.style.marginLeft='10px';run.insertAdjacentElement('afterend',button);
-  const sort=document.createElement('select');sort.className='input';sort.setAttribute('aria-label','排序指標');sort.style.marginLeft='10px';sort.innerHTML='<option value="">排序指標</option><option value="1">CAGR 由高至低</option><option value="2">波動由低至高</option><option value="3">Sharpe 由高至低</option><option value="5">最大回撤較小至大</option>';button.insertAdjacentElement('afterend',sort);
-  sort.addEventListener('change',()=>{const index=Number(sort.value);if(!index)return;const body=document.querySelector('#table');const rows=[...body.querySelectorAll('tr')];rows.sort((a,b)=>{const av=Number(a.children[index]?.textContent.replace('%',''))||0;const bv=Number(b.children[index]?.textContent.replace('%',''))||0;return index===2||index===1?av-bv:bv-av});rows.forEach(row=>body.appendChild(row))});
-  button.addEventListener('click',()=>{const table=[...document.querySelectorAll('#table tr')].map(row=>[...row.children].map(cell=>cell.textContent.trim()));const correlation=[...document.querySelectorAll('#corrBody tr')].map(row=>[...row.children].map(cell=>cell.textContent.trim()));const payload={generated_at:new Date().toISOString(),period:document.querySelector('#period')?.value,table,correlation};const link=document.createElement('a');link.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));link.download='prstk-strategy-comparison.json';link.click();URL.revokeObjectURL(link.href)});
-})();

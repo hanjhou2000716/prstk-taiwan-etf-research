@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-08-04T06:00:35.334066+00:00",
+  "generated_at": "2026-08-04T06:56:52.599707+00:00",
   "data_source": "artifacts",
-  "status": "passed",
+  "status": "warning",
   "publish_blocked": false,
   "checks": [
     {
       "file": "buy_hold_006208.csv",
-      "rows": 2197,
-      "start": "2017-03-30",
+      "rows": 3236,
+      "start": "2012-07-17",
       "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
@@ -16,7 +16,7 @@
     },
     {
       "file": "buy_hold_00631L.csv",
-      "rows": 2703,
+      "rows": 2863,
       "start": "2014-10-31",
       "end": "2026-08-04",
       "first_nav_is_one": true,
@@ -26,7 +26,7 @@
     },
     {
       "file": "buy_hold_00685L.csv",
-      "rows": 2197,
+      "rows": 2236,
       "start": "2017-03-30",
       "end": "2026-08-04",
       "first_nav_is_one": true,
@@ -125,11 +125,18 @@
       "duplicate_dates": false
     }
   ],
-  "warnings": [],
+  "warnings": [
+    {
+      "file": "pledge_00685L_buy_00685L.csv",
+      "date": "2025-04-10",
+      "issue": "單日 NAV 變動超過 25%",
+      "return": 0.27654968241830535
+    }
+  ],
   "failures": [],
   "summary": {
     "files_checked": 12,
-    "warnings": 0,
+    "warnings": 1,
     "failures": 0,
     "baseline_metrics_present": true
   }

@@ -1,5 +1,7 @@
 name: Deploy report to Pages
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions: {contents: read, pages: write, id-token: write}
 jobs:
@@ -7,6 +9,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Write deployment metadata
+        env:
+          SITE_COMMIT: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          manifest=json.loads(Path('site/data/manifest.json').read_text(encoding='utf-8'))
+          model=json.loads(Path('site/data/model-config.json').read_text(encoding='utf-8'))
+          payload={
+              'commit_sha': '${{ github.sha }}',
+              'data_end_date': manifest.get('data_end_date'),
+              'model_version': model.get('model_version') or manifest.get('model_version'),
+              'deployed_at': datetime.now(timezone.utc).isoformat()
+          }
+          Path('site/data/deployment.json').write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding='utf-8')
+          PY
       - run: |
           mkdir -p artifacts/reports
           mkdir -p artifacts/reports/assets

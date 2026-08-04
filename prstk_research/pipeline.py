@@ -54,19 +54,23 @@ def run(download=False):
     p050 = read_prices(processed / "0050.csv")
     p208, p685 = read_prices(processed / "006208.csv"), read_prices(processed / "00685L.csv")
     p631, vix = read_prices(processed / "00631L.csv"), read_vix(vix_processed)
-    dates, a, b = align(p208, p685)
+    pair_dates, pair_208, pair_685 = align(p208, p685)
+    dates208 = sorted(p208)
+    dates685 = sorted(p685)
+    values208 = [p208[d] for d in dates208]
+    values685 = [p685[d] for d in dates685]
     vix_values = []
     known = sorted(vix)
-    for d in dates:
+    for d in pair_dates:
         previous = [x for x in known if x <= d]
         vix_values.append(vix[previous[-1]] if previous else 25.0)
     terms = load_json(ROOT / "config/financing.json")
     rate, max_ltv = terms["annual_interest_rate"], terms["max_loan_to_collateral"]
     thresholds = terms["maintenance_ratio"]
-    dates631 = sorted(set(p631) & set(p208))
+    dates631 = sorted(p631)
     results, events = {}, {}
-    results["buy_hold_006208"] = series(dates, a, "buy_hold_006208")
-    results["buy_hold_00685L"] = series(dates, b, "buy_hold_00685L")
+    results["buy_hold_006208"] = series(dates208, values208, "buy_hold_006208")
+    results["buy_hold_00685L"] = series(dates685, values685, "buy_hold_00685L")
     results["buy_hold_00631L"] = series(dates631, [p631[d] for d in dates631], "buy_hold_00631L")
     proxy_dates = sorted(p050)
     proxy_values = [p050[d] for d in proxy_dates]
@@ -74,21 +78,24 @@ def run(download=False):
         proxy_dates, proxy_values, "synthetic_2x_proxy_00685L", cfg.get("synthetic_annual_drag", 0.0))
     results["synthetic_2x_proxy_00631L"] = synthetic_2x_proxy(
         proxy_dates, proxy_values, "synthetic_2x_proxy_00631L", cfg.get("synthetic_annual_drag", 0.0))
-    results["fixed_beta_50_cash_50_00685L"] = fixed_beta(dates, b)
-    results["ma200_switch_00685L"] = ma200_switch(dates, b)
-    results["vix_switch_00685L"] = vix_switch(dates, b, dict(zip(dates, vix_values)), cfg["vix_exit_threshold"])
+    results["fixed_beta_50_cash_50_00685L"] = fixed_beta(pair_dates, pair_685)
+    results["ma200_switch_00685L"] = ma200_switch(pair_dates, pair_685)
+    results["vix_switch_00685L"] = vix_switch(pair_dates, pair_685, dict(zip(pair_dates, vix_values)), cfg["vix_exit_threshold"])
 
-    rows, ev = pledge_strategy(dates, a, a, "pledge_006208_once", rate, max_ltv,
+    rows, ev = pledge_strategy(pair_dates, pair_208, pair_208, "pledge_006208_once", rate, max_ltv,
                                 thresholds["margin_call"], thresholds["rollover"], 0.30, False)
     results["pledge_006208_once"], events["pledge_006208_once"] = rows, ev
-    rows, ev = pledge_strategy(dates, a, a, "pledge_006208_dynamic", rate, max_ltv,
+    rows, ev = pledge_strategy(pair_dates, pair_208, pair_208, "pledge_006208_dynamic", rate, max_ltv,
                                 thresholds["margin_call"], thresholds["rollover"], 0.30, True)
     results["pledge_006208_dynamic"], events["pledge_006208_dynamic"] = rows, ev
-    rows, ev = pledge_strategy(dates, b, a, "pledge_00685L_buy_006208", rate, max_ltv,
-                                3.00, thresholds["rollover"], 0.20, True)
+    overrides = terms.get("strategy_overrides", {})
+    p8 = overrides["pledge_00685L_buy_006208"]
+    rows, ev = pledge_strategy(pair_dates, pair_685, pair_208, "pledge_00685L_buy_006208", rate, max_ltv,
+                                thresholds["margin_call"], thresholds["rollover"], p8["target_debt_ratio"], True, p8["internal_risk_buffer"])
     results["pledge_00685L_buy_006208"], events["pledge_00685L_buy_006208"] = rows, ev
-    rows, ev = pledge_strategy(dates, b, b, "pledge_00685L_buy_00685L", rate, max_ltv,
-                                4.00, thresholds["rollover"], 0.20, True)
+    p9 = overrides["pledge_00685L_buy_00685L"]
+    rows, ev = pledge_strategy(pair_dates, pair_685, pair_685, "pledge_00685L_buy_00685L", rate, max_ltv,
+                                thresholds["margin_call"], thresholds["rollover"], p9["target_debt_ratio"], True, p9["internal_risk_buffer"])
     results["pledge_00685L_buy_00685L"], events["pledge_00685L_buy_00685L"] = rows, ev
 
     metric_rows, horizon_rows = [], []
@@ -111,7 +118,7 @@ def run(download=False):
     (metrics_dir / "financing_model.json").write_text(json.dumps(financing, ensure_ascii=False, indent=2), encoding="utf-8")
     reconciliation = build_reconciliation(ROOT)
     write_broker_report(metric_rows, horizon_rows, end.isoformat())
-    print(json.dumps({"status": "ok" if not reconciliation["publish_blocked"] else "warning", "strategies": len(results), "rows": len(dates), "reconciliation": reconciliation["status"], "reports": "artifacts/reports/research_report.html"}, ensure_ascii=False))
+    print(json.dumps({"status": "ok" if not reconciliation["publish_blocked"] else "warning", "strategies": len(results), "rows": len(pair_dates), "full_history_rows": len(dates208), "reconciliation": reconciliation["status"], "reports": "artifacts/reports/research_report.html"}, ensure_ascii=False))
 
 def write_report(rows, report_date):
     body = "".join(f"<tr><td>{r['strategy']}</td><td>{r.get('total_return')}</td><td>{r.get('annualized_return')}</td><td>{r.get('sharpe')}</td><td>{r.get('max_drawdown')}</td></tr>" for r in rows)
