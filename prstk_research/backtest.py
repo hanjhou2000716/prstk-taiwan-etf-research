@@ -73,6 +73,36 @@ def vix_switch(dates, prices, vix, threshold=25.0, name="vix_switch_00685L"):
         out.append({"date": d, "strategy": name, "nav": nav})
     return out
 
+def apply_path_costs(rows, annual_management_fee=0.0, annual_tracking_difference=0.0,
+                     trading_cost_bps=0.0, turnover=0.0, trading_days=252):
+    """Apply disclosed daily path costs while preserving gross NAV.
+
+    This is deliberately separate from the strategy signal engine.  A future
+    event engine can provide measured turnover per trade; until then the
+    configured turnover is an explicit assumption rather than an invented
+    transaction history.
+    """
+    if not rows:
+        return rows
+    daily_drag = (annual_management_fee + annual_tracking_difference) / trading_days
+    daily_drag += (trading_cost_bps / 10000.0) * turnover / trading_days
+    gross_prev = float(rows[0].get("nav", 1.0) or 1.0)
+    net_prev = gross_prev
+    for row in rows:
+        gross = float(row.get("nav", 0.0) or 0.0)
+        if row is rows[0]:
+            net = gross
+        else:
+            gross_return = gross / gross_prev if gross_prev > 0 else 0.0
+            net = max(0.0, net_prev * gross_return * max(0.0, 1.0 - daily_drag))
+        row["nav_gross"] = gross
+        row["nav_net"] = net
+        row["nav"] = net
+        row["transaction_cost"] = max(0.0, gross - net) if row is rows[0] else max(0.0, net_prev * (gross / gross_prev if gross_prev > 0 else 0.0) - net)
+        row["cost_drag"] = max(0.0, gross - net)
+        gross_prev, net_prev = gross, net
+    return rows
+
 def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0.033,
                     max_ltv=0.60, margin_call=1.30, rollover=1.66,
                     target_debt_ratio=0.30, dynamic=True, borrow_floor=None):

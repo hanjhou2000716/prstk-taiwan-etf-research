@@ -7,5 +7,8 @@
   "vix_exit_threshold": 25.0,
   "download_pause_seconds": 0.25,
   "lookback_ma_days": 200,
-  "synthetic_annual_drag": 0.0
+  "synthetic_annual_drag": 0.0,
+  "annual_management_fee": 0.0,
+  "annual_tracking_difference": 0.0,
+  "assumed_annual_turnover": 0.0
 }

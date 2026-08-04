@@ -7,6 +7,7 @@ from .data import (download_month, download_vix, normalize, normalize_vix,
 from .backtest import (read_prices, read_vix, align, series, fixed_beta,
                        ma200_switch, vix_switch, pledge_strategy, metrics, horizon_metrics,
                        synthetic_2x_proxy, write_rows)
+from .backtest import apply_path_costs
 from .models import FinancingTerms, maintenance_ratio, max_loan, interest_due
 from .reconciliation import build_reconciliation
 
@@ -104,6 +105,11 @@ def run(download=False):
 
     metric_rows, horizon_rows = [], []
     for name, rows in results.items():
+        apply_path_costs(rows,
+                         annual_management_fee=cfg.get("annual_management_fee", 0.0),
+                         annual_tracking_difference=cfg.get("annual_tracking_difference", 0.0),
+                         trading_cost_bps=cfg.get("trading_cost_bps", 0.0),
+                         turnover=cfg.get("assumed_annual_turnover", 0.0))
         write_rows(back / f"{name}.csv", rows)
         metric_rows.append(dict(strategy=name, **metrics(rows, cfg["risk_free_rate"])))
         is_proxy = name.startswith("synthetic_2x_proxy_")
