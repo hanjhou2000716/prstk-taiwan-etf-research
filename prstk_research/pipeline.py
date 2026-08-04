@@ -8,6 +8,7 @@ from .backtest import (read_prices, read_vix, align, series, fixed_beta,
                        ma200_switch, vix_switch, pledge_strategy, metrics, horizon_metrics,
                        synthetic_2x_proxy, write_rows)
 from .models import FinancingTerms, maintenance_ratio, max_loan, interest_due
+from .reconciliation import build_reconciliation
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -108,8 +109,9 @@ def run(download=False):
                  "six_month_interest": interest_due(600000, FinancingTerms(**{k: terms[k] for k in ["annual_interest_rate", "max_loan_to_collateral", "interest_period_months"]})),
                  "maintenance_at_max_loan": maintenance_ratio(1000000, 600000)}}
     (metrics_dir / "financing_model.json").write_text(json.dumps(financing, ensure_ascii=False, indent=2), encoding="utf-8")
+    reconciliation = build_reconciliation(ROOT)
     write_broker_report(metric_rows, horizon_rows, end.isoformat())
-    print(json.dumps({"status": "ok", "strategies": len(results), "rows": len(dates), "reports": "artifacts/reports/research_report.html"}, ensure_ascii=False))
+    print(json.dumps({"status": "ok" if not reconciliation["publish_blocked"] else "warning", "strategies": len(results), "rows": len(dates), "reconciliation": reconciliation["status"], "reports": "artifacts/reports/research_report.html"}, ensure_ascii=False))
 
 def write_report(rows, report_date):
     body = "".join(f"<tr><td>{r['strategy']}</td><td>{r.get('total_return')}</td><td>{r.get('annualized_return')}</td><td>{r.get('sharpe')}</td><td>{r.get('max_drawdown')}</td></tr>" for r in rows)

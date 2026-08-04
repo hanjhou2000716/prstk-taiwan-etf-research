@@ -1,0 +1,9 @@
+{
+  "generated_at":"2026-08-04T00:00:00+08:00",
+  "data_end_date":"2026-08-03",
+  "pipeline_version":"0.1.0",
+  "model_version":"phase2-p0-2026.08.04",
+  "source_files":["TWSE official daily data","Cboe VIX history","site/data/backtests/*.csv"],
+  "data_caveat":"Published CSV snapshot; frontend calculations must retain Actual ETF and Synthetic Proxy labels.",
+  "hash_status":"source manifest available in pipeline artifacts; site snapshot hashes pending export"
+}

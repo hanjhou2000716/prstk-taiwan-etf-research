@@ -1,0 +1,12 @@
+{
+  "model_version":"phase2-p0-2026.08.04",
+  "trading_days_per_year":252,
+  "risk_free_rate":0.0,
+  "cash_yield":0.0,
+  "financing_rate":0.033,
+  "pledge_interest_rate":0.033,
+  "price_return_status":"adjusted_price_proxy; total_return_not verified",
+  "default_period_mode":"common_period",
+  "lookahead_policy":"signals use completed prior-day data and execute no earlier than next session",
+  "warning_return_threshold":0.25
+}

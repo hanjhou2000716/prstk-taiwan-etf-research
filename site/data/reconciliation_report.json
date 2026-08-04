@@ -1,0 +1,10 @@
+{
+  "generated_at":"2026-08-04T00:00:00+08:00",
+  "status":"not_run",
+  "publish_blocked":true,
+  "summary":{"files_checked":0,"warnings":0,"failures":0,"baseline_metrics_present":false},
+  "checks":[],
+  "warnings":[{"issue":"目前 workspace 沒有 artifacts/backtests 或原始下載資料，尚未能重新執行 reconciliation。"}],
+  "failures":[],
+  "next_action":"執行 Python research pipeline 後重新產生此報告；在此之前不得把新增結果標示為正式驗證。"
+}

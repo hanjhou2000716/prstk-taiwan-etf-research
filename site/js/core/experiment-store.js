@@ -1,0 +1,6 @@
+const KEY='prstk:experiments:v2';
+export function listExperiments(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
+export function saveExperiment(experiment){const items=listExperiments().filter(x=>x.experiment_id!==experiment.experiment_id);const next={...experiment,updated_at:new Date().toISOString()};localStorage.setItem(KEY,JSON.stringify([next,...items].slice(0,30)));return next}
+export function deleteExperiment(id){localStorage.setItem(KEY,JSON.stringify(listExperiments().filter(x=>x.experiment_id!==id)))}
+export function newExperiment(input={}){return {experiment_id:crypto.randomUUID(),name:input.name||'未命名研究實驗',created_at:new Date().toISOString(),updated_at:new Date().toISOString(),data_version:'site-snapshot-2026.08.04',model_version:'phase2-p0-2026.08.04',parameters:input.parameters||{},metrics:input.metrics||{},warnings:input.warnings||[],selected_charts:input.selected_charts||[]}}
+export function downloadJson(data,filename='prstk-experiment.json'){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href)}
