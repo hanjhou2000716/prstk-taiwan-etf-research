@@ -23,7 +23,9 @@
         current_maintenance:document.querySelector('#current')?.textContent,
         first_margin_call_day:document.querySelector('#firstCall')?.textContent,
         maximum_shortfall:document.querySelector('#shortfall')?.textContent,
-        worst_maintenance:document.querySelector('#worst')?.textContent
+        worst_maintenance:document.querySelector('#worst')?.textContent,
+        model_forced_liquidation_threshold:'110%',
+        note:'強制處分門檻為研究模型假設，非特定券商契約。'
       },
       matrix
     };
