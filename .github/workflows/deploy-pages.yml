@@ -15,6 +15,7 @@ jobs:
           cp site/strategies.html artifacts/reports/strategies.html
           cp site/compare.html artifacts/reports/compare.html
           cp site/stress-test.html artifacts/reports/stress-test.html
+          cp site/sensitivity.html artifacts/reports/sensitivity.html
           cp site/methodology.html artifacts/reports/methodology.html
           cp site/proposal.html artifacts/reports/proposal.html
           cp site/audit.html artifacts/reports/audit.html

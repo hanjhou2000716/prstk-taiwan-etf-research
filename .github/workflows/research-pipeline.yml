@@ -28,6 +28,7 @@ jobs:
           cp site/strategies.html pages/strategies.html
           cp site/compare.html pages/compare.html
           cp site/stress-test.html pages/stress-test.html
+          cp site/sensitivity.html pages/sensitivity.html
           cp site/methodology.html pages/methodology.html
           cp site/proposal.html pages/proposal.html
           cp site/audit.html pages/audit.html
