@@ -60,6 +60,10 @@ const pages = [
   "methodology.html",
   "audit.html",
   "strategies.html",
+  "builder.html",
+  "dashboard.html",
+  "horizons.html",
+  "proposal.html",
 ];
 const viewports = [
   { name: "mobile-320", width: 320, height: 780 },
