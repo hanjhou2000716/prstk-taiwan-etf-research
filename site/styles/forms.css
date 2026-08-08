@@ -1,0 +1,5 @@
+.field{margin-bottom:17px}
+.field label{color:var(--ds-muted);display:flex;font-size:12px;justify-content:space-between;margin-bottom:6px}
+.field input,.field select,.field textarea{background:var(--ds-surface);border:1px solid var(--ds-line-strong);border-radius:0;color:var(--ds-ink);width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--ds-ink);box-shadow:var(--focus-ring);outline:0}
+.field input[type=number],.field select{padding:9px 10px}

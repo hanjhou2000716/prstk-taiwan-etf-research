@@ -1,0 +1,7 @@
+.brand-pair{align-items:center;border:0;display:flex;flex-shrink:0;gap:10px;min-width:0}
+.brand-logo{display:block;height:30px;object-fit:contain;width:100px}
+.brand-logo-prstk,.brand-logo-sfce{width:100px}
+.brand-divider{color:var(--ds-line-strong);font-size:18px;font-weight:300;line-height:1}
+.brand-platform-name{border-left:1px solid var(--ds-line-strong);color:var(--ds-muted);font-size:12.5px;line-height:1;overflow:hidden;padding-left:16px;text-overflow:ellipsis;white-space:nowrap}
+.nav a.active{border-bottom:1px solid var(--ds-ink);color:var(--ds-ink)}
+.breadcrumb{align-items:center;color:var(--ds-muted);display:flex;font-size:12px;gap:10px;padding-top:22px}
