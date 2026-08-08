@@ -25,6 +25,21 @@ def main() -> None:
         for script in re.findall(r'<script[^>]+src="([^"]+)"', text):
             target = SITE / urlsplit(script).path
             assert target.exists(), f"missing script {script} in {name}"
+    navigation_path = SITE / "data" / "navigation.json"
+    navigation = json.loads(navigation_path.read_text(encoding="utf-8"))
+    assert navigation["brand"]["home"] == "index.html"
+    navigation_items = list(navigation["primary"])
+    navigation_items.extend(
+        item for group in navigation["groups"] for item in group["items"]
+    )
+    for item in navigation_items:
+        assert (SITE / item["href"]).exists(), f"navigation target missing: {item['href']}"
+    for path in sorted(SITE.glob("*.html")):
+        text = path.read_text(encoding="utf-8")
+        assert text.count("js/core/site-header.js") == 1, (
+            f"shared header missing or duplicated: {path.name}"
+        )
+        assert "legacy-header.js" not in text, f"legacy header still referenced: {path.name}"
     composer = (SITE / "composer.html").read_text(encoding="utf-8")
     assert re.search(r'js/pages/composer\.js\?v=[^"&]+', composer), "Composer script must use a versioned asset URL"
     for name in ["manifest.json", "strategy-catalog.json", "asset-catalog.json", "reconciliation_report.json"]:

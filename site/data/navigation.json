@@ -1,0 +1,45 @@
+{
+  "brand": {
+    "home": "index.html",
+    "ariaLabel": "PRStK 與 SFC.e 台灣 ETF 量化研究平台",
+    "platformName": "Taiwan ETF Quantitative Research Platform"
+  },
+  "primary": [
+    { "href": "index.html", "label": "研究總覽" },
+    { "href": "research-lab.html", "label": "策略實驗室" },
+    { "href": "compare.html", "label": "策略比較" },
+    { "href": "risk-lab.html", "label": "風險中心" },
+    { "href": "report.html", "label": "研究報告" }
+  ],
+  "groups": [
+    {
+      "label": "研究工具",
+      "eyebrow": "BUILD & ANALYZE",
+      "items": [
+        { "href": "composer.html", "label": "Portfolio Composer", "description": "組合配置與再平衡" },
+        { "href": "beta-lab.html", "label": "Beta Lab", "description": "Beta、Alpha 與相關性" },
+        { "href": "leverage-lab.html", "label": "Leverage Lab", "description": "槓桿差距與波動耗損" },
+        { "href": "financing-lab.html", "label": "Financing Lab", "description": "質押帳本與融資成本" },
+        { "href": "stress-test.html", "label": "Stress Test", "description": "維持率與壓力情境" }
+      ]
+    },
+    {
+      "label": "資料與審核",
+      "eyebrow": "EVIDENCE",
+      "items": [
+        { "href": "strategies.html", "label": "策略資料庫", "description": "策略狀態與資料類型" },
+        { "href": "sensitivity.html", "label": "參數敏感度", "description": "鄰近參數與穩健區域" },
+        { "href": "methodology.html", "label": "資料與方法", "description": "資料口徑與模型限制" },
+        { "href": "audit.html", "label": "研究審核", "description": "驗證層級與發布閘門" }
+      ]
+    }
+  ],
+  "secondary": [
+    { "href": "composer.html", "label": "Portfolio" },
+    { "href": "research-lab.html", "label": "Strategy" },
+    { "href": "beta-lab.html", "label": "Beta" },
+    { "href": "leverage-lab.html", "label": "Leverage" },
+    { "href": "financing-lab.html", "label": "Financing" },
+    { "href": "risk-lab.html", "label": "Risk" }
+  ]
+}
