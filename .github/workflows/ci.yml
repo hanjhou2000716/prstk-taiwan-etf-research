@@ -9,3 +9,10 @@ jobs:
         with: {python-version: '3.11'}
       - run: python -m pip install pytest
       - run: python -m pytest
+      - name: Validate site contracts
+        run: python scripts/validate_site.py
+      - name: Check JavaScript modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r file; do node --check "$file"; done < <(find site/js -name '*.js' -type f)
