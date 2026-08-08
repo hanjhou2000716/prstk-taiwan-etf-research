@@ -39,6 +39,9 @@ def main() -> None:
         assert rows, f"empty backtest: {strategy_id}"
         assert all(row.get("date") and row.get("nav") for row in rows), f"invalid backtest schema: {strategy_id}"
     assert not missing_csv, f"catalog strategies without backtest CSV: {missing_csv}"
+    catalog_ids = set(ids)
+    orphan_csv = sorted(path.stem for path in (SITE_DATA / "backtests").glob("*.csv") if path.stem not in catalog_ids)
+    assert not orphan_csv, f"backtest CSVs missing from strategy catalog: {orphan_csv}"
 
     reconciliation = load("reconciliation_report.json")
     layers = reconciliation.get("validation_layers", {})
