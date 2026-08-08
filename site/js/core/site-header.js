@@ -6,6 +6,16 @@ import {
 } from "./site-navigation.js";
 
 const header = document.querySelector("[data-site-header], .site-header");
+const designSystemUrl = new URL("../../styles/design-system.css", import.meta.url);
+
+function loadDesignSystem() {
+  if (document.querySelector("link[data-design-system]")) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = designSystemUrl.href;
+  link.dataset.designSystem = "true";
+  document.head.append(link);
+}
 
 function createBrand(config) {
   const brand = document.createElement("a");
@@ -99,6 +109,7 @@ function wireMenu(headerElement, menuButton, nav) {
 
 async function mountHeader() {
   if (!header) return;
+  loadDesignSystem();
   try {
     const config = await loadNavigation();
     const { inner, menuButton, nav } = createHeader(config);

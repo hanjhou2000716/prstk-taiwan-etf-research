@@ -1,0 +1,16 @@
+.reading-shell{margin-inline:auto;max-width:var(--ds-container-reading)}
+.research-shell{margin-inline:auto;max-width:var(--ds-container-research)}
+.data-shell{margin-inline:auto;max-width:var(--ds-container-data)}
+.section-stack{display:grid;gap:var(--ds-space-6)}
+.lab-workbench{
+  display:grid;
+  gap:var(--ds-space-5);
+  grid-template-columns:minmax(260px,300px) minmax(0,1fr);
+  align-items:start;
+}
+.lab-sidebar{position:sticky;top:calc(var(--header-height) + var(--ds-space-4))}
+.lab-results{min-width:0}
+.chart-grid--three{display:grid;gap:var(--ds-space-4);grid-template-columns:repeat(3,minmax(0,1fr))}
+.evidence-strip{display:flex;flex-wrap:wrap;gap:var(--ds-space-2)}
+.evidence-strip>*{flex:1 1 150px}
+.split-heading{align-items:baseline;display:flex;gap:var(--ds-space-4);justify-content:space-between}

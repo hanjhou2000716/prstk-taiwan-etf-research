@@ -1,0 +1,26 @@
+.button{align-items:center;display:inline-flex;gap:var(--ds-space-2);justify-content:center;min-height:42px;padding:10px 16px}
+.button--primary{background:var(--ds-ink);color:#fff}
+.button--secondary{background:transparent;color:var(--ds-ink)}
+.button--ghost{background:transparent;border-color:transparent;color:var(--ds-muted)}
+.button--danger{background:var(--risk-danger);border-color:var(--risk-danger);color:#fff}
+.button--block{width:100%}
+.button--icon{min-width:44px;padding:8px}
+.button:hover{transform:translateY(-1px)}
+.metric-card{background:var(--ds-surface);border:1px solid var(--ds-line);padding:var(--ds-space-4)}
+.metric-card__label{color:var(--ds-muted);font-size:11px;letter-spacing:.05em}
+.metric-card__value{display:block;font-size:24px;font-variant-numeric:tabular-nums;font-weight:500;letter-spacing:-.03em;margin-top:var(--ds-space-1)}
+.chart-card{background:var(--ds-surface);border:1px solid var(--ds-line);padding:var(--ds-space-5)}
+.chart-card__header{align-items:baseline;display:flex;gap:var(--ds-space-4);justify-content:space-between;margin-bottom:var(--ds-space-4)}
+.chart-card__header h2{font-size:18px;margin:0}
+.chart-card__header p{color:var(--ds-muted);font-size:12px;margin:0}
+.empty-state,.loading-state,.error-state{
+  border:1px dashed var(--ds-line-strong);
+  color:var(--ds-muted);
+  padding:var(--ds-space-6);
+  text-align:center;
+}
+.error-state{background:#fbf5f2;border-color:#c89a8b;color:#7d483d}
+.table-scroll{overflow-x:auto}
+.table-scroll table{min-width:680px}
+.form-card .button{width:auto}
+.form-card > .button{width:100%}
