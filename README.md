@@ -1,38 +1,62 @@
-# PRStK Taiwan ETF Research Platform
+# PRStK Leverage & Beta Lab
 
-可重現、可審計的台灣 ETF 研究專案，研究標的為 TWSE 006208 與 00685L。
+Taiwan ETF quantitative research platform for 006208, 00685L, 00631L,
+synthetic 2× proxies, cash, and pledge/financing scenarios.
 
-## 快速開始
+## What it does
+
+- Reproduces ETF strategy paths from TWSE data and explicit synthetic models.
+- Calculates return, volatility, Sharpe, Sortino, drawdown, VaR/CVaR and Beta metrics.
+- Compares Actual ETF and Synthetic Proxy data without mixing evidence classes.
+- Models daily-reset leverage and volatility drag.
+- Provides pledge ledger and maintenance/liquidation stress views.
+- Supports interactive Beta Lab, Leverage Lab, Financing Lab, Risk Lab, and Portfolio Composer.
+- Generates versioned CSV, JSON, validation, and research report artifacts.
+
+## Local setup
 
 ```powershell
-python -m prstk_research.pipeline run --download
+python -m pip install -e .
+pytest -q
+python scripts/validate_site.py
 ```
 
-若已有原始資料：
+Run the pipeline with existing raw data:
 
 ```powershell
 python -m prstk_research.pipeline run
 ```
 
-完整流程會：下載 TWSE 官方月資料與 Cboe VIX、保存原始資料與 SHA-256 manifest、清理及驗證價格、執行九種策略、計算績效指標，並產生 HTML 研究報告。預設自 2014 年起，足以支援 00631L 的近 10 年比較；20 年實際 ETF 資料仍會標示不可用。
+Download missing official source data first:
 
-## 目前明確不宣稱
+```powershell
+python -m prstk_research.pipeline run --download
+```
 
-本專案不會虛構回測結果。若官方端點無法下載，流程會回報失敗原因，不會以示意數字填充結果。配息、分割、反分割及其他公司行動目前保留資料結構；沒有可靠事件資料時，報告會標示為未納入。
+## Data and evidence rules
 
-## 產物
+The pipeline stores raw source files, normalized data, SHA-256 manifests,
+backtest rows, metrics, corporate-action status, and reconciliation reports.
+Adjusted price is not automatically Total Return. If explicit distribution data
+is incomplete, the Total Return field remains unavailable.
 
-- `data/raw/twse/`：原始 API 回應
-- `data/processed/`：標準化 CSV
-- `artifacts/validation/`：資料品質報告
-- `artifacts/backtests/`：策略淨值序列
-- `artifacts/metrics/`：指標表
-- `artifacts/reports/`：HTML 報告
+Risk-free rate is separate from borrowing rate, pledge interest, and cash yield.
+00685L collateral eligibility is currently unknown unless independently verified.
 
-## 資料來源
+## Website
 
-預設使用 TWSE OpenAPI/歷史日成交資料。程式保存請求 URL、下載時間與內容雜湊，讓每次研究都能追溯資料版本。
+The `site/` directory is the GitHub Pages build. `deploy-pages.yml` is the only
+Pages publisher. `research-pipeline.yml` updates the versioned data snapshot but
+does not overwrite interactive pages.
 
-## 模型邊界
+## Documentation
 
-質押模型以使用者提供的條件建模：年利率 3.3%、最高成數 60%、半年計息；維持率為擔保品市值/借款本金，追繳 130%、借新還舊 166%、退擔保 167%。這是研究假設，不是券商合約或投資建議。
+- [Architecture](docs/ARCHITECTURE.md)
+- [Quant Engine](docs/quant_engine.md)
+- [Data Dictionary](docs/DATA_DICTIONARY.md)
+- [Testing](docs/TESTING.md)
+- [Methodology](site/methodology.html)
+- [Audit](site/audit.html)
+
+This is a research system, not personalized financial advice or a guarantee of
+future returns.
