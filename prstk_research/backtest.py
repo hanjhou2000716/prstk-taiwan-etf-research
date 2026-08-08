@@ -127,9 +127,27 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
     events = {"margin_calls": 0, "borrow_events": 0, "repay_events": 0,
               "liquidation_events": 0, "ledger": []}
 
-    def ledger_event(event_date, event_type, amount=0.0, reason=""):
-        events["ledger"].append({"date": event_date, "action": event_type,
-                                  "amount": max(0.0, float(amount)), "reason": reason})
+    def ledger_event(event_date, event_type, amount=0.0, reason="", asset="portfolio",
+                     quantity=None, price=None, signal="", financing_cost=0.0,
+                     transaction_fee=0.0, tax=0.0, slippage=0.0):
+        gross_amount = max(0.0, float(amount))
+        events["ledger"].append({
+            "date": event_date,
+            "strategy": name,
+            "asset": asset,
+            "action": event_type,
+            "quantity": float(quantity) if quantity is not None else None,
+            "price": float(price) if price is not None else None,
+            "gross_amount": gross_amount,
+            "transaction_fee": max(0.0, float(transaction_fee)),
+            "tax": max(0.0, float(tax)),
+            "slippage": max(0.0, float(slippage)),
+            "financing_cost": max(0.0, float(financing_cost)),
+            "reason": reason,
+            "signal": signal,
+            # Keep the legacy amount field for existing report consumers.
+            "amount": gross_amount,
+        })
 
     def values(i):
         return collateral_units * collateral_prices[i], target_units * target_prices[i]
@@ -140,16 +158,22 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
     initial_ratio = 0.60 if not dynamic else target_debt_ratio
     debt = collateral_value * min(initial_ratio, max_ltv)
     target_units = debt / target_prices[0]
+    ledger_event(dates[0], "BUY", collateral_value, "initial collateral purchase",
+                 asset="collateral", quantity=collateral_units,
+                 price=collateral_prices[0], signal="initial")
     events["borrow_events"] += 1
-    ledger_event(dates[0], "BORROW", debt, "initial collateral advance")
-    ledger_event(dates[0], "BUY", debt, "initial target purchase")
+    ledger_event(dates[0], "BORROW", debt, "initial collateral advance",
+                 asset="financing", signal="initial")
+    ledger_event(dates[0], "BUY", debt, "initial target purchase", asset="target",
+                 quantity=target_units, price=target_prices[0], signal="initial")
     out = []
     for i, d in enumerate(dates):
         if i > 0:
             interest = debt * annual_rate / 252
             debt += interest
             accrued_interest += interest
-            ledger_event(d, "INTEREST", interest, "daily accrual")
+            ledger_event(d, "INTEREST", interest, "daily accrual", asset="financing",
+                         signal="daily accrual", financing_cost=interest)
         collateral_value, target_value = values(i)
         eligible_collateral_value = collateral_value * collateral_eligibility
         eligible_target_value = target_value * target_collateral_eligibility
@@ -178,7 +202,9 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
                 target_units -= sale / target_prices[i]
                 debt = max(0.0, debt - sale)
                 events["repay_events"] += 1
-                ledger_event(d, "REPAY", sale, "maintenance repair")
+                ledger_event(d, "REPAY", sale, "maintenance repair", asset="target",
+                             quantity=sale / target_prices[i], price=target_prices[i],
+                             signal="margin call")
                 collateral_value, target_value = values(i)
                 maintenance = collateral_value / debt if debt > 0 else float("inf")
                 eligible_collateral_value = collateral_value * collateral_eligibility
@@ -188,11 +214,16 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
                 required_additional_collateral = max(0.0, debt * margin_call - eligible_total_value)
         if debt > 0 and maintenance < forced_liquidation_ratio:
             liquidation_event = "forced_liquidation_threshold"
-            liquidation_proceeds = max(0.0, target_value * (1.0 - liquidation_haircut))
+            liquidated_units = target_units
+            liquidation_gross = max(0.0, target_value)
+            liquidation_proceeds = liquidation_gross * (1.0 - liquidation_haircut)
             debt = max(0.0, debt - liquidation_proceeds)
             target_units = 0.0
             events["liquidation_events"] += 1
-            ledger_event(d, "LIQUIDATION", liquidation_proceeds, "forced liquidation threshold")
+            ledger_event(d, "LIQUIDATION", liquidation_gross,
+                         "forced liquidation threshold", asset="target",
+                         quantity=liquidated_units, price=target_prices[i],
+                         signal="forced liquidation", slippage=liquidation_gross * liquidation_haircut)
         if dynamic and maintenance >= (borrow_floor or rollover):
             max_debt = collateral_value * max_ltv
             desired = min(max_debt, collateral_value * target_debt_ratio)
@@ -201,7 +232,11 @@ def pledge_strategy(dates, collateral_prices, target_prices, name, annual_rate=0
                 debt += extra
                 target_units += extra / target_prices[i]
                 events["borrow_events"] += 1
-                ledger_event(d, "BORROW", extra, "dynamic target debt rebalance")
+                ledger_event(d, "BORROW", extra, "dynamic target debt rebalance",
+                             asset="financing", signal="dynamic rebalance")
+                ledger_event(d, "BUY", extra, "dynamic target purchase", asset="target",
+                             quantity=extra / target_prices[i], price=target_prices[i],
+                             signal="dynamic rebalance")
         collateral_value, target_value = values(i)
         eligible_collateral_value = collateral_value * collateral_eligibility
         eligible_target_value = target_value * target_collateral_eligibility
