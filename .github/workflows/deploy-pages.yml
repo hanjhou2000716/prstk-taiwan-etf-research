@@ -67,6 +67,7 @@ jobs:
           cp site/horizons.html artifacts/reports/horizons.html
           cp site/builder.html artifacts/reports/builder.html
           cp site/styles.css artifacts/reports/styles.css
+          cp -r site/styles artifacts/reports/styles
           cp -r site/js artifacts/reports/js
           cp site/assets/*.png artifacts/reports/assets/
           cp site/report.html artifacts/reports/report.html
@@ -79,7 +80,7 @@ jobs:
         run: |
           set -euo pipefail
           base="https://hanjhou2000716.github.io/prstk-taiwan-etf-research"
-          for path in index.html composer.html research-lab.html beta-lab.html leverage-lab.html financing-lab.html risk-lab.html sensitivity.html compare.html stress-test.html report.html data/manifest.json data/backtests/buy_hold_006208.csv; do
+          for path in index.html composer.html research-lab.html beta-lab.html leverage-lab.html financing-lab.html risk-lab.html sensitivity.html compare.html stress-test.html report.html styles/design-system.css data/manifest.json data/backtests/buy_hold_006208.csv; do
             code=$(curl -L -sS -o /dev/null -w '%{http_code}' "$base/$path")
             test "$code" = "200"
           done
