@@ -1,4 +1,4 @@
-import { renderRiskMap } from "../charts/risk-map.js?v=20260808-home3";
+import { renderRiskMap } from "../charts/risk-map.js?v=20260808-home4";
 
 const $ = (id) => document.getElementById(id);
 const percent = (value) => Number.isFinite(Number(value)) ? (Number(value) * 100).toFixed(2) + "%" : "—";

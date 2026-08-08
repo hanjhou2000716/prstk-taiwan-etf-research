@@ -15,6 +15,8 @@
 @media(max-width:600px){
   .site-shell{padding-inline:18px}
   main{padding-bottom:var(--ds-space-8)}
+  .grid-2{grid-template-columns:minmax(0,1fr)}
+  .grid-2>*{min-width:0}
   .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .metric{min-width:0;padding:var(--ds-space-3)}
   .metric strong,.metric-card__value{font-size:20px}
