@@ -203,5 +203,8 @@ export function renderRiskMap(target, rows) {
     body.append(row);
   }
   table.append(body);
-  target.append(table);
+  const tableWrap = document.createElement("div");
+  tableWrap.className = "table-scroll";
+  tableWrap.append(table);
+  target.append(tableWrap);
 }

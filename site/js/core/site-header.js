@@ -8,7 +8,7 @@ import "./lab-workbench.js?v=20260808-lab1";
 import "../pages/compare-mobile.js?v=20260808-compare1";
 
 const header = document.querySelector("[data-site-header], .site-header");
-const designSystemUrl = new URL("../../styles/design-system.css", import.meta.url);
+const designSystemUrl = new URL("../../styles/design-system.css?v=20260808-design2", import.meta.url);
 
 function loadDesignSystem() {
   if (document.querySelector("link[data-design-system]")) return;

@@ -13,6 +13,22 @@ if (layout) {
   layout.dataset.labView = "summary";
   parameters?.setAttribute("data-lab-panel", "parameters");
   results?.setAttribute("data-lab-panel", "results");
+  parameters?.setAttribute("role", "dialog");
+  const isMobile = () => window.matchMedia("(max-width: 820px)").matches;
+  parameters?.setAttribute("aria-modal", String(isMobile()));
+  parameters?.setAttribute("aria-hidden", "false");
+  const parametersHeading = parameters?.querySelector("h2");
+  if (parameters && !parametersHeading?.id) parametersHeading?.setAttribute("id", "lab-parameters-title");
+  if (parametersHeading?.id) parameters?.setAttribute("aria-labelledby", parametersHeading.id);
+  if (parameters && !parameters.querySelector(".lab-parameters-close")) {
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.className = "button secondary lab-parameters-close";
+    closeButton.setAttribute("aria-label", "關閉參數設定");
+    closeButton.textContent = "關閉參數";
+    parameters.prepend(closeButton);
+    closeButton.addEventListener("click", () => activate("summary", "lab-summary"));
+  }
   summary?.setAttribute("id", "lab-summary");
   charts?.setAttribute("id", "lab-charts");
   if (risk && risk !== charts) risk.setAttribute("id", "lab-risk");
@@ -30,6 +46,10 @@ if (layout) {
 
   const activate = (view, targetId) => {
     layout.dataset.labView = view;
+    const parameterView = view === "parameters";
+    document.body.classList.toggle("lab-parameters-open", parameterView);
+    parameters?.setAttribute("aria-hidden", String(isMobile() && !parameterView));
+    parameters?.setAttribute("aria-modal", String(isMobile()));
     tabs.querySelectorAll("button").forEach((button) => {
       const selected = button.dataset.labView === view;
       button.setAttribute("aria-selected", String(selected));
@@ -38,7 +58,7 @@ if (layout) {
     if (view !== "parameters") {
       document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
-      parameters?.querySelector("input, select, button")?.focus({ preventScroll: true });
+      parameters?.querySelector("input, select, button:not(.lab-parameters-close)")?.focus({ preventScroll: true });
     }
   };
 
@@ -66,4 +86,15 @@ if (layout) {
 
   layout.before(tabs);
   parameters?.setAttribute("id", "lab-parameters");
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && layout.dataset.labView === "parameters") {
+      activate("summary", "lab-summary");
+      tabs.querySelector('[data-lab-view="summary"]')?.focus();
+    }
+  });
+  window.addEventListener("resize", () => {
+    parameters?.setAttribute("aria-modal", String(isMobile()));
+    parameters?.setAttribute("aria-hidden", String(isMobile() && layout.dataset.labView !== "parameters"));
+    if (!isMobile()) document.body.classList.remove("lab-parameters-open");
+  });
 }

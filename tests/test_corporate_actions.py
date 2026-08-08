@@ -62,3 +62,25 @@ def test_one_time_pledge_still_enforces_maintenance_and_counts_target_collateral
     assert any(entry["action"] == "REPAY" for entry in events["ledger"])
     assert rows[-1]["eligible_total_value"] == rows[-1]["collateral_value"] + rows[-1]["eligible_target_value"]
     assert rows[-1]["maintenance"] >= 1.30
+
+
+def test_pledge_ledger_contains_auditable_transaction_fields_and_liquidation():
+    _, events = pledge_strategy(
+        ["2020-01-01", "2020-01-02"],
+        [100.0, 40.0], [100.0, 100.0], "ledger",
+        annual_rate=0.0, margin_call=1.30, rollover=1.66,
+        target_debt_ratio=0.60, dynamic=False,
+        max_ltv=0.50, forced_liquidation_ratio=1.70, liquidation_haircut=0.05,
+        target_collateral_eligibility=0.0,
+    )
+    required = {
+        "date", "strategy", "asset", "action", "quantity", "price",
+        "gross_amount", "transaction_fee", "tax", "slippage",
+        "financing_cost", "reason", "signal",
+    }
+    assert events["liquidation_events"] == 1
+    assert {entry["action"] for entry in events["ledger"]} >= {"BUY", "BORROW", "REPAY", "LIQUIDATION"}
+    assert all(required <= set(entry) for entry in events["ledger"])
+    assert all(entry["gross_amount"] >= 0 for entry in events["ledger"])
+    liquidation = next(entry for entry in events["ledger"] if entry["action"] == "LIQUIDATION")
+    assert liquidation["slippage"] > 0

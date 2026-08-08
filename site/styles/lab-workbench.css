@@ -1,5 +1,9 @@
-/* Research Lab mobile workbench shell. Desktop keeps the existing two-column layout. */
+/* Shared mobile workbench shell. Desktop keeps the existing two-column layout. */
 .lab-mobile-tabs {
+  display: none;
+}
+
+.lab-parameters-close {
   display: none;
 }
 
@@ -7,31 +11,31 @@
   .lab-mobile-tabs {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-1);
+    gap: var(--ds-space-1);
     position: sticky;
     top: 0;
     z-index: 20;
-    margin: 0 0 var(--space-3);
-    padding: var(--space-1);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+    margin: 0 0 var(--ds-space-3);
+    padding: var(--ds-space-1);
+    border: 1px solid var(--ds-line);
+    border-radius: var(--ds-radius-md);
+    background: color-mix(in srgb, var(--ds-surface) 94%, transparent);
     backdrop-filter: blur(12px);
   }
 
   .lab-mobile-tab {
     min-height: 44px;
     border: 0;
-    border-radius: var(--radius-sm);
+    border-radius: var(--ds-radius-sm);
     background: transparent;
-    color: var(--color-muted);
+    color: var(--ds-muted);
     font: inherit;
     cursor: pointer;
   }
 
   .lab-mobile-tab[aria-selected="true"] {
-    background: var(--color-ink);
-    color: var(--color-surface);
+    background: var(--ds-ink);
+    color: var(--ds-surface);
   }
 
   .lab-layout[data-lab-shell] {
@@ -40,11 +44,36 @@
 
   .lab-layout[data-lab-shell] > [data-lab-panel="parameters"] {
     display: none;
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--ds-space-4);
   }
 
   .lab-layout[data-lab-shell][data-lab-view="parameters"] > [data-lab-panel="parameters"] {
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-line-strong);
+    bottom: 12px;
+    box-shadow: 0 22px 60px rgba(36, 36, 36, .2);
     display: block;
+    left: 12px;
+    max-height: calc(100dvh - 88px);
+    overflow: auto;
+    padding: var(--ds-space-5);
+    position: fixed;
+    right: 12px;
+    z-index: 140;
+  }
+
+  body.lab-parameters-open::after {
+    background: rgba(36, 36, 36, .28);
+    content: "";
+    inset: 0;
+    position: fixed;
+    z-index: 130;
+  }
+
+  .lab-parameters-close {
+    display: block;
+    margin: 0 0 var(--ds-space-4);
+    min-height: 44px;
   }
 
   .lab-layout[data-lab-shell][data-lab-view="parameters"] > [data-lab-panel="results"] {

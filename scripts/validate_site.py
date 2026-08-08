@@ -15,6 +15,7 @@ def main() -> None:
         "index.html", "composer.html", "research-lab.html", "beta-lab.html",
         "leverage-lab.html", "financing-lab.html", "risk-lab.html",
         "sensitivity.html", "compare.html", "stress-test.html", "report.html", "methodology.html", "audit.html",
+        "builder.html", "dashboard.html", "horizons.html", "proposal.html", "strategies.html",
     ]
     for name in required_pages:
         path = SITE / name
