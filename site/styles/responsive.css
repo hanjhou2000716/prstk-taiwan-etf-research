@@ -29,6 +29,10 @@
   .compare-strategy-card__metrics dt{color:var(--ds-muted);font-size:11px}
   .compare-strategy-card__metrics dd{font-variant-numeric:tabular-nums;margin:0}
   .compare-results-table{display:none}
+  .definition-list{grid-template-columns:1fr}
+  .definition-list dd{overflow-wrap:anywhere}
+  .risk-map-figure svg{min-width:0}
+  .risk-map-table{display:block;max-width:100%;overflow-x:auto}
 }
 
 @media(min-width:601px){

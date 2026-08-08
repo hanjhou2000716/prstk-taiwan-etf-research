@@ -18,6 +18,11 @@ const server = createServer(async (request, response) => {
   try {
     const requested = decodeURIComponent((request.url || "/").split("?")[0]);
     const relative = requested === "/" ? "index.html" : requested.replace(/^\/+/, "");
+    if (relative === "data/deployment.json") {
+      response.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+      response.end(JSON.stringify({ commit_sha: "visual-smoke", data_end_date: "local", model_version: "local", deployed_at: "local" }));
+      return;
+    }
     const file = normalize(join(root, relative));
     if (!file.startsWith(root)) throw new Error("path outside site");
     const content = await readFile(file);
