@@ -1,1 +1,71 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PRStK Parameter Sensitivity</title><link rel="stylesheet" href="styles.css"></head><body><header class="site-header"><div class="site-shell header-inner"><a class="brand-pair" href="index.html" aria-label="PRStK 與 SFC.e 台灣 ETF 研究平台"><img src="assets/PRStK-Remove.png" alt="PRStK" class="brand-logo"><span class="brand-divider" aria-hidden="true">|</span><img src="assets/SFC.e-removebg-preview.png" alt="SFC.e" class="brand-logo"><span class="brand-platform-name">Taiwan ETF Quantitative Research Platform</span></a><nav class="nav" aria-label="主要導覽"><a href="index.html">研究總覽</a><a href="composer.html">Portfolio Composer</a><a href="research-lab.html">策略實驗室</a><a href="beta-lab.html">Beta Lab</a><a href="leverage-lab.html">Leverage Lab</a><a href="risk-lab.html">Risk Lab</a><a class="active" href="sensitivity.html">Sensitivity</a><a href="compare.html">策略比較</a><a href="report.html">研究報告</a></nav></div></header><main class="site-shell"><div class="breadcrumb"><a href="index.html">研究總覽</a><span>/</span><span>Parameter Sensitivity</span></div><section class="hero"><p class="eyebrow">Parameter Sensitivity Lab</p><h1 class="display">See Stable Regions, Not Just Best Points</h1><p class="lead">目前提供資產權重 × 交易成本的 CAGR 敏感度分析；結果是歷史情境，不代表最適未來參數。</p></section><section class="section"><div class="form-card"><div class="field"><label for="strategy">研究資產序列</label><select id="strategy"></select></div><div class="field"><label for="rebalance">再平衡規則</label><select id="rebalance"><option value="buy_hold">Buy &amp; Hold</option><option value="monthly" selected>每月</option><option value="quarterly">每季</option></select></div><div class="field"><label for="riskFree">無風險利率（%）</label><input id="riskFree" type="number" value="0" step="0.1"></div><button id="run" class="button">重新計算敏感度</button></div></section><section class="section"><div id="status" class="note" aria-live="polite">載入資料中…</div><div class="section-title"><h2>CAGR Heatmap</h2><p>列：交易成本假設；欄：資產權重。空白不會補成 0。</p></div><div id="heatmap" class="chart chart-svg" role="img" aria-label="參數敏感度熱力圖"></div><div class="note" style="margin-top:16px"><strong>解讀：</strong>觀察鄰近參數區域是否穩健，不只挑選單一最高格；Actual／Synthetic 類型仍以策略 catalog 為準。</div></section><footer class="footer">@2026 PRStK Lab &amp; SFC.e. | All right reserved.</footer></main><script type="module" src="js/pages/sensitivity-lab.js"></script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>參數敏感度｜PRStK Leverage &amp; Beta Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-shell header-inner">
+      <a class="brand-pair" href="index.html" aria-label="PRStK 與 SFC.e 台灣 ETF 研究平台">
+        <img src="assets/PRStK-Remove.png" alt="PRStK" class="brand-logo">
+        <span class="brand-divider" aria-hidden="true">|</span>
+        <img src="assets/SFC.e-removebg-preview.png" alt="SFC.e" class="brand-logo">
+        <span class="brand-platform-name">Taiwan ETF Quantitative Research Platform</span>
+      </a>
+      <nav class="nav" aria-label="主要導覽">
+        <a href="index.html">研究總覽</a>
+        <a href="research-lab.html">策略實驗室</a>
+        <a href="beta-lab.html">Beta Lab</a>
+        <a href="leverage-lab.html">Leverage Lab</a>
+        <a href="risk-lab.html">Risk Lab</a>
+        <a class="active" href="sensitivity.html">敏感度</a>
+        <a href="compare.html">策略比較</a>
+        <a href="report.html">研究報告</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-shell">
+    <div class="breadcrumb"><a href="index.html">研究總覽</a><span>/</span><span>參數敏感度</span></div>
+    <section class="hero">
+      <p class="eyebrow">Parameter Sensitivity Lab</p>
+      <h1 class="display">看見穩定區域，而不只看最佳點</h1>
+      <p class="lead">以實際回測序列掃描配置權重與交易成本，並揭露鄰近參數是否穩健。這是歷史情境分析，不是未來報酬預測。</p>
+    </section>
+
+    <section class="section">
+      <div class="form-card grid-3">
+        <div class="field"><label for="strategy">研究策略</label><select id="strategy"></select></div>
+        <div class="field"><label for="metric">評估指標</label><select id="metric">
+          <option value="cagr">CAGR</option>
+          <option value="sharpe">Sharpe</option>
+          <option value="maxDrawdown">最大回撤</option>
+          <option value="annualizedVolatility">年化波動率</option>
+          <option value="totalReturn">總報酬</option>
+        </select></div>
+        <div class="field"><label for="rebalance">再平衡方式</label><select id="rebalance">
+          <option value="buy_hold">買入並持有</option>
+          <option value="monthly" selected>每月</option>
+          <option value="quarterly">每季</option>
+          <option value="yearly">每年</option>
+        </select></div>
+        <div class="field"><label for="riskFree">無風險利率（年化 %）</label><input id="riskFree" type="number" value="0" step="0.1" min="-20" max="50"></div>
+        <div class="field"><label for="cashYield">現金收益率（年化 %）</label><input id="cashYield" type="number" value="0" step="0.1" min="-20" max="50"></div>
+        <div class="field field-end"><button id="run" class="button" type="button">重新計算敏感度</button></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div id="status" class="note" aria-live="polite">正在載入可用回測資料……</div>
+      <div class="section-title"><h2 id="heatmapTitle">敏感度熱力圖</h2><p id="gridNote">熱力圖會在資料載入後顯示。</p></div>
+      <div id="heatmap" class="chart chart-svg" role="img" aria-label="參數敏感度熱力圖"></div>
+      <div class="note" style="margin-top:16px"><strong>解讀方式：</strong>穩定區域比單一最高格更重要。若最佳點與鄰近參數差異很大，平台會標示可能的曲線配適風險；缺少資料的格子保持空白。</div>
+    </section>
+    <footer class="footer">@2026 PRStK Lab &amp; SFC.e. | All right reserved.</footer>
+  </main>
+  <script type="module" src="js/pages/sensitivity-lab.js"></script>
+</body>
+</html>
