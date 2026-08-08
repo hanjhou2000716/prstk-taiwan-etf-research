@@ -1,8 +1,8 @@
 from __future__ import annotations
-import argparse, json
+import argparse, csv, json
 from datetime import date, datetime
 from pathlib import Path
-from .data import (download_month, download_vix, normalize, normalize_vix,
+from .data import (corporate_action_summary, download_month, download_vix, normalize, normalize_vix,
                    validate_csv, build_manifest, months)
 from .backtest import (read_prices, read_vix, align, series, fixed_beta,
                        ma200_switch, vix_switch, pledge_strategy, horizon_metrics,
@@ -42,13 +42,9 @@ def run(download=False):
             raise RuntimeError(f"No raw data for {symbol}. Run with --download.")
         normalize(symbol, sym_files, processed / f"{symbol}.csv", actions_config.get(symbol, []))
         actions = actions_config.get(symbol, [])
-        corporate_action_report[symbol] = {
-            "configured_actions": len(actions),
-            "split_actions": sum(a.get("action_type") == "split" for a in actions),
-            "distribution_actions": sum(a.get("action_type") in {"dividend", "distribution"} for a in actions),
-            "total_return_status": "available" if actions and all(a.get("action_type") in {"dividend", "distribution"} and a.get("per_share") is not None for a in actions) else "not_separately_verified",
-            "source": "config/corporate_actions.json",
-        }
+        with (processed / f"{symbol}.csv").open(encoding="utf-8", newline="") as stream:
+            normalized_rows = list(csv.DictReader(stream))
+        corporate_action_report[symbol] = corporate_action_summary(symbol, actions, normalized_rows)
         report = validate_csv(processed / f"{symbol}.csv")
         validation.mkdir(parents=True, exist_ok=True)
         (validation / f"{symbol}.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -100,19 +96,33 @@ def run(download=False):
     results["vix_switch_00685L"] = vix_switch(pair_dates, pair_685, dict(zip(pair_dates, vix_values)), cfg["vix_exit_threshold"])
 
     rows, ev = pledge_strategy(pair_dates, pair_208, pair_208, "pledge_006208_once", rate, max_ltv,
-                                thresholds["margin_call"], thresholds["rollover"], 0.30, False)
+                                thresholds["margin_call"], thresholds["rollover"], 0.30, False,
+                                collateral_eligibility=1.0, target_collateral_eligibility=1.0,
+                                forced_liquidation_ratio=terms["forced_liquidation_ratio"],
+                                liquidation_haircut=terms["liquidation_haircut"])
     results["pledge_006208_once"], events["pledge_006208_once"] = rows, ev
     rows, ev = pledge_strategy(pair_dates, pair_208, pair_208, "pledge_006208_dynamic", rate, max_ltv,
-                                thresholds["margin_call"], thresholds["rollover"], 0.30, True)
+                                thresholds["margin_call"], thresholds["rollover"], 0.30, True,
+                                collateral_eligibility=1.0, target_collateral_eligibility=1.0,
+                                forced_liquidation_ratio=terms["forced_liquidation_ratio"],
+                                liquidation_haircut=terms["liquidation_haircut"])
     results["pledge_006208_dynamic"], events["pledge_006208_dynamic"] = rows, ev
     overrides = terms.get("strategy_overrides", {})
     p8 = overrides["pledge_00685L_buy_006208"]
     rows, ev = pledge_strategy(pair_dates, pair_685, pair_208, "pledge_00685L_buy_006208", rate, max_ltv,
-                                thresholds["margin_call"], thresholds["rollover"], p8["target_debt_ratio"], True, p8["internal_risk_buffer"])
+                                thresholds["margin_call"], thresholds["rollover"], p8["target_debt_ratio"], True,
+                                borrow_floor=p8["recommended_minimum_maintenance"],
+                                collateral_eligibility=0.0, target_collateral_eligibility=1.0,
+                                forced_liquidation_ratio=terms["forced_liquidation_ratio"],
+                                liquidation_haircut=terms["liquidation_haircut"])
     results["pledge_00685L_buy_006208"], events["pledge_00685L_buy_006208"] = rows, ev
     p9 = overrides["pledge_00685L_buy_00685L"]
     rows, ev = pledge_strategy(pair_dates, pair_685, pair_685, "pledge_00685L_buy_00685L", rate, max_ltv,
-                                thresholds["margin_call"], thresholds["rollover"], p9["target_debt_ratio"], True, p9["internal_risk_buffer"])
+                                thresholds["margin_call"], thresholds["rollover"], p9["target_debt_ratio"], True,
+                                borrow_floor=p9["recommended_minimum_maintenance"],
+                                collateral_eligibility=0.0, target_collateral_eligibility=0.0,
+                                forced_liquidation_ratio=terms["forced_liquidation_ratio"],
+                                liquidation_haircut=terms["liquidation_haircut"])
     results["pledge_00685L_buy_00685L"], events["pledge_00685L_buy_00685L"] = rows, ev
 
     metric_rows, horizon_rows = [], []

@@ -1,33 +1,101 @@
 {
-  "generated_at": "2026-08-07T11:33:04.887826",
+  "generated_at": "2026-08-08T13:12:13.383450",
   "assets": {
     "0050": {
+      "symbol": "0050",
       "configured_actions": 1,
       "split_actions": 1,
       "distribution_actions": 0,
-      "total_return_status": "not_separately_verified",
-      "source": "config/corporate_actions.json"
+      "price_return": {
+        "field": "close",
+        "status": "available"
+      },
+      "adjusted_price_return": {
+        "field": "adjusted_close",
+        "status": "available",
+        "method": "split_adjusted_close"
+      },
+      "total_return": {
+        "field": "total_return_close",
+        "status": "unavailable",
+        "reason": "no_explicit_distribution_records"
+      },
+      "cash_distribution_field": "cash_dividend",
+      "split_field": "split_ratio",
+      "source": "config/corporate_actions.json",
+      "evidence_status": "unknown"
     },
     "006208": {
+      "symbol": "006208",
       "configured_actions": 0,
       "split_actions": 0,
       "distribution_actions": 0,
-      "total_return_status": "not_separately_verified",
-      "source": "config/corporate_actions.json"
+      "price_return": {
+        "field": "close",
+        "status": "available"
+      },
+      "adjusted_price_return": {
+        "field": "adjusted_close",
+        "status": "available",
+        "method": "split_adjusted_close"
+      },
+      "total_return": {
+        "field": "total_return_close",
+        "status": "unavailable",
+        "reason": "no_explicit_distribution_records"
+      },
+      "cash_distribution_field": "cash_dividend",
+      "split_field": "split_ratio",
+      "source": "config/corporate_actions.json",
+      "evidence_status": "unknown"
     },
     "00685L": {
+      "symbol": "00685L",
       "configured_actions": 1,
       "split_actions": 1,
       "distribution_actions": 0,
-      "total_return_status": "not_separately_verified",
-      "source": "config/corporate_actions.json"
+      "price_return": {
+        "field": "close",
+        "status": "available"
+      },
+      "adjusted_price_return": {
+        "field": "adjusted_close",
+        "status": "available",
+        "method": "split_adjusted_close"
+      },
+      "total_return": {
+        "field": "total_return_close",
+        "status": "unavailable",
+        "reason": "no_explicit_distribution_records"
+      },
+      "cash_distribution_field": "cash_dividend",
+      "split_field": "split_ratio",
+      "source": "config/corporate_actions.json",
+      "evidence_status": "unknown"
     },
     "00631L": {
+      "symbol": "00631L",
       "configured_actions": 1,
       "split_actions": 1,
       "distribution_actions": 0,
-      "total_return_status": "not_separately_verified",
-      "source": "config/corporate_actions.json"
+      "price_return": {
+        "field": "close",
+        "status": "available"
+      },
+      "adjusted_price_return": {
+        "field": "adjusted_close",
+        "status": "available",
+        "method": "split_adjusted_close"
+      },
+      "total_return": {
+        "field": "total_return_close",
+        "status": "unavailable",
+        "reason": "no_explicit_distribution_records"
+      },
+      "cash_distribution_field": "cash_dividend",
+      "split_field": "split_ratio",
+      "source": "config/corporate_actions.json",
+      "evidence_status": "unknown"
     }
   }
 }

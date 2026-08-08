@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-07T11:33:05.938043+00:00",
+  "generated_at": "2026-08-08T05:13:39.557580+00:00",
   "data_source": "artifacts",
-  "status": "warning",
+  "status": "passed",
   "publish_blocked": false,
   "formal_conclusions_blocked": true,
   "validation_layers": {
@@ -13,14 +13,14 @@
     "metric_validation": "not_run",
     "python_js_parity": "not_run",
     "broker_assumption_validation": "assumption_only",
-    "publish_readiness": "blocked"
+    "publish_readiness": "pending_required_layers"
   },
   "checks": [
     {
       "file": "buy_hold_006208.csv",
-      "rows": 3239,
+      "rows": 3236,
       "start": "2012-07-17",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -28,9 +28,9 @@
     },
     {
       "file": "buy_hold_00631L.csv",
-      "rows": 2866,
+      "rows": 2863,
       "start": "2014-10-31",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -38,9 +38,9 @@
     },
     {
       "file": "buy_hold_00685L.csv",
-      "rows": 2239,
+      "rows": 2236,
       "start": "2017-03-30",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -48,9 +48,9 @@
     },
     {
       "file": "fixed_beta_50_cash_50_00685L.csv",
-      "rows": 2200,
+      "rows": 2197,
       "start": "2017-03-30",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -58,9 +58,9 @@
     },
     {
       "file": "ma200_switch_00685L.csv",
-      "rows": 2200,
+      "rows": 2197,
       "start": "2017-03-30",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -68,9 +68,9 @@
     },
     {
       "file": "pledge_006208_dynamic.csv",
-      "rows": 2200,
+      "rows": 2197,
       "start": "2017-03-30",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -78,9 +78,9 @@
     },
     {
       "file": "pledge_006208_once.csv",
-      "rows": 2200,
+      "rows": 2197,
       "start": "2017-03-30",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -88,9 +88,9 @@
     },
     {
       "file": "pledge_00685L_buy_006208.csv",
-      "rows": 2200,
+      "rows": 2197,
       "start": "2017-03-30",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -98,9 +98,9 @@
     },
     {
       "file": "pledge_00685L_buy_00685L.csv",
-      "rows": 2200,
+      "rows": 2197,
       "start": "2017-03-30",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -108,9 +108,9 @@
     },
     {
       "file": "synthetic_2x_proxy_00631L.csv",
-      "rows": 4062,
+      "rows": 4059,
       "start": "2010-01-04",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -118,9 +118,9 @@
     },
     {
       "file": "synthetic_2x_proxy_00685L.csv",
-      "rows": 4062,
+      "rows": 4059,
       "start": "2010-01-04",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
@@ -128,29 +128,24 @@
     },
     {
       "file": "vix_switch_00685L.csv",
-      "rows": 2200,
+      "rows": 2197,
       "start": "2017-03-30",
-      "end": "2026-08-07",
+      "end": "2026-08-04",
       "first_nav_is_one": true,
       "finite_nav": true,
       "non_positive_dates": [],
       "duplicate_dates": false
     }
   ],
-  "warnings": [
-    {
-      "file": "pledge_00685L_buy_00685L.csv",
-      "date": "2025-04-10",
-      "issue": "單日 NAV 變動超過 25%",
-      "return": 0.27654968241830935
-    }
-  ],
+  "warnings": [],
   "failures": [],
   "summary": {
     "files_checked": 12,
-    "warnings": 1,
+    "warnings": 0,
     "failures": 0,
     "baseline_metrics_present": true,
-    "corporate_actions_present": true
+    "corporate_actions_present": true,
+    "total_return_available_assets": 0,
+    "corporate_action_assets": 4
   }
 }
