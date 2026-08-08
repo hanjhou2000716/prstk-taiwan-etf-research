@@ -1,18 +1,22 @@
-import { parseCsv, alignSeries, slicePeriod } from '../core/date-alignment.js';
+import { alignSeries, slicePeriod } from '../core/date-alignment.js';
 import { calculateMetrics, formatMetric } from '../core/metrics.js';
 import { listExperiments, saveExperiment, newExperiment, downloadJson } from '../core/experiment-store.js';
 import { lineChart, drawdownChart } from '../charts/svg-charts.js?v=20260808-chart1';
 import { buildPortfolioSeries, DEFAULT_ASSETS } from '../core/portfolio-engine.js';
+import { loadJson, loadStrategySeries } from '../core/data-loader.js';
 import './lab-share.js';
 import '../core/deployment-meta.js';
 
 const $ = id => document.getElementById(id);
-const catalog = await fetch('data/strategy-catalog.json').then(response => response.json());
-const manifest = await fetch('data/manifest.json').then(response => response.json()).catch(() => ({}));
+const catalog = await loadJson('data/strategy-catalog.json');
+const manifest = await loadJson('data/manifest.json').catch(() => ({}));
 const data = {};
-for (const strategy of catalog.strategies || []) {
-  const response = await fetch(`data/backtests/${strategy.strategy_id}.csv`);
-  if (response.ok) data[strategy.strategy_id] = parseCsv(await response.text()).map(row => ({ date: row.date, nav: Number(row.nav) })).filter(row => Number.isFinite(row.nav) && row.nav > 0);
+async function ensureData(ids) {
+  for (const id of ids) {
+    if (data[id]) continue;
+    const rows = await loadStrategySeries(id);
+    if (rows) data[id] = rows;
+  }
 }
 
 const percent = value => value == null ? '—' : formatMetric(value);
@@ -42,14 +46,15 @@ function populate() {
 
 function portfolioWeights() { return Object.fromEntries([...document.querySelectorAll('.asset-weight')].map(input => [input.dataset.asset, (Number(input.value) || 0) / 100])); }
 
-function run() {
+async function run() {
   const id = $('strategy').value; $('customPanel').style.display = id === 'custom_portfolio' ? 'block' : 'none';
   let rows = []; let displayName = ''; let implementationStatus = 'experimental'; let dataType = ''; let limitations = [];
   if (id === 'custom_portfolio') {
-    const weights = portfolioWeights(); const portfolio = buildPortfolioSeries(data, weights, { rebalancing: $('rebalance').value, costRate: (Number($('tradeCost').value) || 0) / 100 });
+    const weights = portfolioWeights(); await ensureData(Object.entries(weights).filter(([asset, weight]) => asset !== 'cash' && Number(weight) > 0).map(([asset]) => asset)); const portfolio = buildPortfolioSeries(data, weights, { rebalancing: $('rebalance').value, costRate: (Number($('tradeCost').value) || 0) / 100 });
     if (portfolio.invalidWeights?.length || portfolio.missingAssets?.length) { $('status').textContent = `組合無法執行：${[...(portfolio.invalidWeights || []), ...(portfolio.missingAssets || [])].join('、')}`; return; }
     rows = portfolio.rows; displayName = '自訂多資產組合'; dataType = 'actual / synthetic / cash'; limitations = ['自訂組合會依有效權重載入資料；缺少資料的非零資產會阻止運算。', '目前 Composer 不接受超過 100% 的槓桿曝險，也不支援放空。'];
   } else {
+    await ensureData([id]);
     const strategy = catalog.strategies.find(item => item.strategy_id === id); if (!strategy || !data[id]) { $('status').textContent = '此策略沒有可用回測序列。'; return; }
     const aligned = slicePeriod(alignSeries({ [id]: data[id] }, $('periodMode').value), { mode: $('period').value, startDate: $('period').value === 'custom' ? $('startDate').value : '', endDate: $('period').value === 'custom' ? $('endDate').value : '' });
     rows = aligned.rows.map(row => ({ date: row.date, nav: Number(row.values[id]?.nav) })).filter(row => Number.isFinite(row.nav)); displayName = strategy.display_name; implementationStatus = strategy.implementation_status; dataType = strategy.data_type; limitations = strategy.known_limitations || [];

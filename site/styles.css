@@ -186,3 +186,7 @@
   .site-header .brand-logo{height:26px;width:76px}
   .site-header .brand-divider{font-size:17px}
 }
+@media(max-width:600px){
+  .definition-list{grid-template-columns:1fr}
+  .definition-list dd{overflow-wrap:anywhere}
+}
