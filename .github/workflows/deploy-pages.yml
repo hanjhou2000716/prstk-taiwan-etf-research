@@ -22,7 +22,7 @@ jobs:
           for path in required:
               json.loads(path.read_text(encoding='utf-8'))
               print('valid JSON:', path)
-          pages = ['index.html','composer.html','research-lab.html','beta-lab.html','leverage-lab.html','financing-lab.html','risk-lab.html','compare.html','stress-test.html','report.html']
+          pages = ['index.html','composer.html','research-lab.html','beta-lab.html','leverage-lab.html','financing-lab.html','risk-lab.html','sensitivity.html','compare.html','stress-test.html','report.html']
           for name in pages:
               text = Path('site', name).read_text(encoding='utf-8')
               if '</html>' in text and text.split('</html>', 1)[1].strip():
@@ -79,7 +79,7 @@ jobs:
         run: |
           set -euo pipefail
           base="https://hanjhou2000716.github.io/prstk-taiwan-etf-research"
-          for path in index.html composer.html research-lab.html beta-lab.html leverage-lab.html financing-lab.html risk-lab.html compare.html stress-test.html report.html data/manifest.json data/backtests/buy_hold_006208.csv; do
+          for path in index.html composer.html research-lab.html beta-lab.html leverage-lab.html financing-lab.html risk-lab.html sensitivity.html compare.html stress-test.html report.html data/manifest.json data/backtests/buy_hold_006208.csv; do
             code=$(curl -L -sS -o /dev/null -w '%{http_code}' "$base/$path")
             test "$code" = "200"
           done
