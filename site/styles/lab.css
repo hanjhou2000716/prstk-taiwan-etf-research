@@ -1,0 +1,7 @@
+.lab-layout{align-items:start;display:grid;gap:18px;grid-template-columns:300px minmax(0,1fr)}
+.sticky-panel{position:sticky;top:94px}
+.definition-list{display:grid;font-size:13px;gap:8px 14px;grid-template-columns:110px 1fr}
+.definition-list dt{color:var(--ds-muted)}
+.definition-list dd{margin:0}
+.stack-list{display:grid;gap:8px}
+.stack-item{border:1px solid var(--ds-line);display:flex;gap:14px;justify-content:space-between;padding:10px 12px}
