@@ -24,3 +24,25 @@
 .table-scroll table{min-width:680px}
 .form-card .button{width:auto}
 .form-card > .button{width:100%}
+.hero-actions{display:flex;flex-wrap:wrap;gap:var(--ds-space-3);margin-top:var(--ds-space-5)}
+.hero-actions .button{min-width:150px}
+.risk-map-figure{margin:0;overflow-x:auto}
+.risk-map-figure svg{display:block;min-width:620px;width:100%}
+.risk-map-figure circle{cursor:pointer}
+.risk-map-figure circle:focus{outline:0;stroke:#242424;stroke-width:3}
+.risk-map-legend{display:flex;flex-wrap:wrap;gap:var(--ds-space-3);margin-top:var(--ds-space-3)}
+.risk-map-legend label{align-items:center;color:var(--ds-muted);display:inline-flex;font-size:12px;gap:6px}
+.risk-map-legend input{accent-color:var(--ds-accent)}
+.risk-map-table{border-collapse:collapse;font-size:12px;margin-top:var(--ds-space-5);width:100%}
+.risk-map-table th,.risk-map-table td{border-bottom:1px solid var(--ds-line);padding:8px;text-align:right;white-space:nowrap}
+.risk-map-table th:first-child,.risk-map-table td:first-child{text-align:left}
+.risk-map-table a{border:0}
+.research-steps{display:grid;gap:1px;grid-template-columns:repeat(5,1fr);background:var(--ds-line);border:1px solid var(--ds-line)}
+.research-step{background:var(--ds-surface);padding:var(--ds-space-4)}
+.research-step strong{display:block;font-size:13px}
+.research-step span{color:var(--ds-muted);display:block;font-size:11px;margin-top:var(--ds-space-1)}
+@media(max-width:600px){
+  .hero-actions{display:grid}
+  .hero-actions .button{width:100%}
+  .research-steps{grid-template-columns:1fr}
+}
