@@ -4,6 +4,7 @@ import {
   currentPage,
   loadNavigation,
 } from "./site-navigation.js";
+import "./lab-workbench.js?v=20260808-lab1";
 
 const header = document.querySelector("[data-site-header], .site-header");
 const designSystemUrl = new URL("../../styles/design-system.css", import.meta.url);

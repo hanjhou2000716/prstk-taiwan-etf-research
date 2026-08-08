@@ -1,0 +1,68 @@
+/* Research Lab mobile workbench shell. Desktop keeps the existing two-column layout. */
+.lab-mobile-tabs {
+  display: none;
+}
+
+@media (max-width: 820px) {
+  .lab-mobile-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-1);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin: 0 0 var(--space-3);
+    padding: var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .lab-mobile-tab {
+    min-height: 44px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-muted);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .lab-mobile-tab[aria-selected="true"] {
+    background: var(--color-ink);
+    color: var(--color-surface);
+  }
+
+  .lab-layout[data-lab-shell] {
+    display: block;
+  }
+
+  .lab-layout[data-lab-shell] > [data-lab-panel="parameters"] {
+    display: none;
+    margin-bottom: var(--space-4);
+  }
+
+  .lab-layout[data-lab-shell][data-lab-view="parameters"] > [data-lab-panel="parameters"] {
+    display: block;
+  }
+
+  .lab-layout[data-lab-shell][data-lab-view="parameters"] > [data-lab-panel="results"] {
+    display: none;
+  }
+
+  .lab-layout[data-lab-shell] [data-lab-panel="parameters"] .sticky-panel {
+    position: static;
+  }
+
+  .lab-layout[data-lab-shell] .chart-panel,
+  .lab-layout[data-lab-shell] .card {
+    scroll-margin-top: 76px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-mobile-tab {
+    scroll-behavior: auto;
+  }
+}
