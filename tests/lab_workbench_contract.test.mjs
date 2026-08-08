@@ -18,3 +18,11 @@ test("research lab includes the shared mobile workbench shell", () => {
   assert.match(css, /max-width: 820px/);
   assert.match(css, /data-lab-view=\"parameters\"/);
 });
+
+test("all primary labs expose a common workbench layout", () => {
+  for (const page of ["composer", "research-lab", "beta-lab", "leverage-lab", "financing-lab", "risk-lab"]) {
+    const html = read(`site/${page}.html`);
+    assert.match(html, /class="lab-layout/);
+    assert.match(html, /site-header\.js\?v=/);
+  }
+});
