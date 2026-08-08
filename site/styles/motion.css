@@ -1,0 +1,7 @@
+@media(prefers-reduced-motion:no-preference){
+  .card,.button,.nav-menu-link,.metric-card{transition:transform var(--ds-motion-standard) ease,background-color var(--ds-motion-fast) ease,border-color var(--ds-motion-fast) ease,box-shadow var(--ds-motion-standard) ease}
+  .card:hover,.metric-card:hover{transform:translateY(-2px)}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+}

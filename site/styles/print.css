@@ -1,0 +1,7 @@
+@media print{
+  .site-header,.menu-toggle,.nav,.lab-secondary-nav,.button,.toolbar{display:none!important}
+  body{background:#fff;color:#000}
+  .site-shell{max-width:none;padding:0}
+  .card,.chart-card,.metric,.form-card{box-shadow:none;break-inside:avoid}
+  a{border:0;text-decoration:none}
+}
