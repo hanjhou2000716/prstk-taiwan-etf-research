@@ -112,6 +112,63 @@ def apply_split_adjustments(rows: list[dict], actions: list[dict]) -> list[dict]
                 row["total_return_close"] = float(row["adjusted_close"]) * total_factor
     return rows
 
+
+def corporate_action_summary(symbol: str, actions: list[dict], rows: list[dict] | None = None) -> dict:
+    """Return an auditable return-series classification for one asset.
+
+    A split-adjusted close is not a total-return series.  Total return is marked
+    available only when every configured cash distribution has an amount and an
+    ex-date that is present in the normalized trading dates.  Missing evidence
+    remains explicit instead of being interpreted as zero distribution.
+    """
+    normalized_dates = {row.get("date") for row in (rows or [])}
+    split_actions = [action for action in actions if action.get("action_type") == "split"]
+    distribution_actions = [
+        action for action in actions
+        if action.get("action_type") in {"dividend", "distribution"}
+    ]
+    missing_amount = [
+        action for action in distribution_actions
+        if action.get("per_share") is None
+    ]
+    missing_date = [
+        action for action in distribution_actions
+        if action.get("ex_date", action.get("effective_date")) not in normalized_dates
+    ] if rows is not None else []
+    if not distribution_actions:
+        total_return_status = "unavailable"
+        total_return_reason = "no_explicit_distribution_records"
+    elif missing_amount:
+        total_return_status = "unavailable"
+        total_return_reason = "distribution_amount_missing"
+    elif missing_date:
+        total_return_status = "unavailable"
+        total_return_reason = "distribution_ex_date_not_in_trading_data"
+    else:
+        total_return_status = "available"
+        total_return_reason = "explicit_distribution_records_complete"
+    return {
+        "symbol": symbol,
+        "configured_actions": len(actions),
+        "split_actions": len(split_actions),
+        "distribution_actions": len(distribution_actions),
+        "price_return": {"field": "close", "status": "available"},
+        "adjusted_price_return": {
+            "field": "adjusted_close",
+            "status": "available" if rows is not None else "pending",
+            "method": "split_adjusted_close",
+        },
+        "total_return": {
+            "field": "total_return_close",
+            "status": total_return_status,
+            "reason": total_return_reason,
+        },
+        "cash_distribution_field": "cash_dividend",
+        "split_field": "split_ratio",
+        "source": "config/corporate_actions.json",
+        "evidence_status": "verified" if total_return_status == "available" else "unknown",
+    }
+
 def normalize(symbol: str, files: list[Path], out_path: Path, actions: list[dict] | None = None) -> int:
     rows = [dict(r, symbol=symbol) for p in files for r in parse_twse_json(p)]
     rows.sort(key=lambda r: r["date"])

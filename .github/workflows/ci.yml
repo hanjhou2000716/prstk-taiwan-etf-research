@@ -16,3 +16,5 @@ jobs:
         run: |
           set -euo pipefail
           while IFS= read -r file; do node --check "$file"; done < <(find site/js -name '*.js' -type f)
+      - name: Run frontend financial fixtures
+        run: node --test tests/frontend_metrics.test.mjs
