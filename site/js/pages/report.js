@@ -4,3 +4,4 @@ const catalog=await fetch('data/strategy-catalog.json').then(r=>r.json()),manife
 
 document.querySelector('#metrics').closest('table').querySelector('thead tr').insertAdjacentHTML('beforeend','<th>CVaR 95%</th>');
 import '../core/deployment-meta.js';
+import './report-evidence.js';
