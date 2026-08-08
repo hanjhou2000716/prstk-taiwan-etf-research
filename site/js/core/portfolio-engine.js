@@ -30,19 +30,19 @@ export function buildPortfolioSeries(assetSeries, weights, {
   const entries = Object.entries(weights).filter(([id]) => id !== 'cash');
   const invalidWeights = entries.filter(([, weight]) => Number(weight) < 0).map(([id]) => id);
   if (invalidWeights.length) {
-    return { rows: [], coverage: { rows: [], start: null, end: null, missing: 0 }, missingAssets: [], invalidWeights };
+    return { rows: [], coverage: { rows: [], start: null, end: null, missing: 0 }, missingAssets: [], invalidWeights, ledger: [] };
   }
   const requested = entries.filter(([, weight]) => Number(weight) !== 0);
   const requestedWeight = requested.reduce((sum, [, weight]) => sum + (Number(weight) || 0), 0);
   const requestedCash = Number(weights.cash) || 0;
   if (requestedWeight + requestedCash > 1 + 1e-9) {
-    return { rows: [], coverage: { rows: [], start: null, end: null, missing: 0 }, missingAssets: [], invalidWeights: ['leverage_requires_financing_engine'] };
+    return { rows: [], coverage: { rows: [], start: null, end: null, missing: 0 }, missingAssets: [], invalidWeights: ['leverage_requires_financing_engine'], ledger: [] };
   }
   const missingAssets = requested.filter(([id]) => !assetSeries[id]?.length).map(([id]) => id);
-  if (missingAssets.length) return { rows: [], coverage: { rows: [], start: null, end: null, missing: 0 }, missingAssets };
+  if (missingAssets.length) return { rows: [], coverage: { rows: [], start: null, end: null, missing: 0 }, missingAssets, ledger: [] };
   const active = Object.fromEntries(requested.map(([id]) => [id, assetSeries[id]]));
   const aligned = alignSeries(active, 'common_period');
-  if (aligned.rows.length < 2) return { rows: [], coverage: aligned, missingAssets: [] };
+  if (aligned.rows.length < 2) return { rows: [], coverage: aligned, missingAssets: [], ledger: [] };
 
   const assetWeights = Object.fromEntries(requested.map(([id, weight]) => [id, Number(weight) || 0]));
   // Unallocated capital remains cash. Borrowing/leverage is deliberately
@@ -58,7 +58,7 @@ export function buildPortfolioSeries(assetSeries, weights, {
   }));
   const initialValues = Object.fromEntries(requested.map(([id]) => [id, units[id] * Number(aligned.rows[0].values[id].nav)]));
   let nav = Object.values(initialValues).reduce((sum, value) => sum + value, 0) + cash;
-  if (!Number.isFinite(nav) || nav <= 0) return { rows: [], coverage: aligned, missingAssets: [], invalidWeights: ['non_positive_initial_nav'] };
+  if (!Number.isFinite(nav) || nav <= 0) return { rows: [], coverage: aligned, missingAssets: [], invalidWeights: ['non_positive_initial_nav'], ledger: [] };
   const initialExposure = exposure(initialValues, cash, nav);
   const out = [{ date: dates[0], nav: 1, nav_gross: 1, nav_net: 1, cash, turnover: 0, transaction_cost: 0, rebalanced: false, ...initialExposure }];
 

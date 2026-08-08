@@ -31,3 +31,9 @@ test('composer does not silently accept leverage or short weights', () => {
   assert.deepEqual(buildPortfolioSeries(assets, { asset: 1.1, cash: 0 }).invalidWeights, ['leverage_requires_financing_engine']);
   assert.deepEqual(buildPortfolioSeries(assets, { asset: -0.1, cash: 1.1 }).invalidWeights, ['asset']);
 });
+
+test('empty asset allocation returns a safe empty result', () => {
+  const result = buildPortfolioSeries({ asset: series([1, 1.1]) }, { asset: 0, cash: 1 });
+  assert.deepEqual(result.rows, []);
+  assert.deepEqual(result.ledger, []);
+});

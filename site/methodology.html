@@ -1,1 +1,89 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PRStK 資料與方法</title><link rel="stylesheet" href="styles.css"></head><body><header class="site-header"><div class="site-shell header-inner"><a class="brand-pair" href="index.html" aria-label="PRStK 與 SFC.e 台灣 ETF 研究平台"><img src="assets/PRStK-Remove.png" alt="PRStK" class="brand-logo"><span class="brand-divider">|</span><img src="assets/SFC.e-removebg-preview.png" alt="SFC.e" class="brand-logo"><span class="brand-platform-name">Taiwan ETF Quantitative Research Platform</span></a><nav class="nav" aria-label="主選單"><a href="index.html">總覽</a><a href="research-lab.html">研究實驗室</a><a href="strategies.html">策略資料庫</a><a href="compare.html">策略比較</a><a href="stress-test.html">壓力測試</a><a href="report.html">研究報告</a><a class="active" href="methodology.html">資料與方法</a><a href="audit.html">研究審核</a></nav></div></header><main class="site-shell"><div class="breadcrumb"><a href="index.html">總覽</a><span>/</span><span>資料與方法</span></div><section class="hero"><p class="eyebrow">Data & Methodology</p><h1 class="display">每個數字都要知道自己從哪裡來。</h1><p class="lead">平台把資料、策略、模型、指標與限制分開保存，Actual ETF 與 Synthetic Proxy 不混用。</p></section><section class="section"><div id="content" class="grid-3"></div></section><section class="section"><div class="note">目前 Price Return／Adjusted Price Return 與 Total Return 的資料狀態分開標示；缺少配息資料時不自動假設為零。Synthetic 2X Proxy 是以 0050 調整後價格每日重置的模型，不是歷史實際產品。</div></section><footer class="footer">@2026 PRStK Lab &amp; SFC.e. | All right reserved.</footer></main><script type="module">const[m,a,c]=await Promise.all([fetch('data/manifest.json').then(r=>r.json()),fetch('data/asset-catalog.json').then(r=>r.json()),fetch('data/strategy-catalog.json').then(r=>r.json())]);const cards=[['資料版本',m.pipeline_version,'來源：'+m.source_files.join('、')],['資料截止',m.data_end_date,'模型版本：'+m.model_version],['資產口徑',a.assets.map(x=>x.symbol).join('、'),'Actual ETF 與 Synthetic Proxy 已分開'],['策略狀態',c.strategies.filter(x=>x.implementation_status==='verified').length+' 個 verified','其餘策略保留狀態標籤與限制'],['日期對齊','交易日期 key','共同期間／各自完整資料可切換'],['前視偏誤','訊號延後執行','使用完成的前一交易日資料']];document.querySelector('#content').innerHTML=cards.map(x=>`<article class="card"><h3>${x[0]}</h3><strong>${x[1]}</strong><p style="margin-top:8px">${x[2]}</p></article>`).join('');</script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PRStK 資料與方法</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-shell header-inner">
+      <a class="brand-pair" href="index.html" aria-label="PRStK 與 SFC.e 台灣 ETF 研究平台">
+        <img src="assets/PRStK-Remove.png" alt="PRStK" class="brand-logo">
+        <span class="brand-divider" aria-hidden="true">|</span>
+        <img src="assets/SFC.e-removebg-preview.png" alt="SFC.e" class="brand-logo">
+        <span class="brand-platform-name">Taiwan ETF Quantitative Research Platform</span>
+      </a>
+      <nav class="nav" aria-label="主選單">
+        <a href="index.html">總覽</a>
+        <a href="research-lab.html">研究實驗室</a>
+        <a href="strategies.html">策略資料庫</a>
+        <a href="compare.html">策略比較</a>
+        <a href="stress-test.html">壓力測試</a>
+        <a href="report.html">研究報告</a>
+        <a class="active" href="methodology.html">資料與方法</a>
+        <a href="audit.html">研究審核</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-shell">
+    <div class="breadcrumb"><a href="index.html">總覽</a><span>/</span><span>資料與方法</span></div>
+    <section class="hero">
+      <p class="eyebrow">Data &amp; Methodology</p>
+      <h1 class="display">每個數字都要知道自己從哪裡來。</h1>
+      <p class="lead">平台把資料、策略、模型、指標與限制分開保存，Actual ETF 與 Synthetic Proxy 不混用。</p>
+    </section>
+
+    <section class="section">
+      <div id="content" class="grid-3" aria-live="polite">
+        <div class="note">正在讀取資料版本與方法摘要……</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="note">
+        目前 Price Return、Adjusted Price Return 與 Total Return 的資料狀態分開標示；缺少配息資料時不自動假設為零。Synthetic 2X Proxy 是以 0050 調整後價格每日重置的模型，不是歷史實際產品。
+      </div>
+    </section>
+
+    <footer class="footer">@2026 PRStK Lab &amp; SFC.e. | All right reserved.</footer>
+  </main>
+
+  <script type="module">
+    const [manifest, assetCatalog, strategyCatalog] = await Promise.all([
+      fetch('data/manifest.json').then(response => response.json()),
+      fetch('data/asset-catalog.json').then(response => response.json()),
+      fetch('data/strategy-catalog.json').then(response => response.json()),
+    ]);
+
+    const sourceFiles = Array.isArray(manifest.files)
+      ? manifest.files.map(file => file.path).filter(Boolean)
+      : [];
+    const cards = [
+      ['資料版本', manifest.pipeline_version || '未提供', `來源檔案 ${sourceFiles.length} 個`],
+      ['資料截止', manifest.data_end_date || '未提供', `模型版本：${manifest.model_version || '未提供'}`],
+      ['資產口徑', (assetCatalog.assets || []).map(asset => asset.symbol).join('、') || '未提供', 'Actual ETF 與 Synthetic Proxy 已分開'],
+      ['策略狀態', `${(strategyCatalog.strategies || []).filter(strategy => strategy.implementation_status === 'verified').length} 個 verified`, '其餘策略保留狀態標籤與限制'],
+      ['日期對齊', '交易日期 key', '共同期間／各自完整資料可切換'],
+      ['前視偏誤', '訊號延後執行', '使用完成的前一交易日資料'],
+    ];
+
+    const content = document.querySelector('#content');
+    content.replaceChildren(...cards.map(([title, value, note]) => {
+      const article = document.createElement('article');
+      article.className = 'card';
+      const heading = document.createElement('h3');
+      heading.textContent = title;
+      const strong = document.createElement('strong');
+      strong.textContent = value;
+      const paragraph = document.createElement('p');
+      paragraph.style.marginTop = '8px';
+      paragraph.textContent = note;
+      article.append(heading, strong, paragraph);
+      return article;
+    }));
+  </script>
+</body>
+</html>
