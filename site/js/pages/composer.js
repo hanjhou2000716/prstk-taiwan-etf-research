@@ -2,6 +2,7 @@ import { parseCsv } from '../core/date-alignment.js';
 import { buildPortfolioSeries } from '../core/portfolio-engine.js';
 import { calculateMetrics, formatMetric } from '../core/metrics.js';
 import { lineChart } from '../charts/svg-charts.js';
+import { aggregateWeights } from '../core/weight-input.js';
 
 const $ = id => document.getElementById(id);
 const catalog = await fetch('data/strategy-catalog.json').then(response => response.json());
@@ -49,10 +50,10 @@ function addAsset() {
 }
 
 function run() {
-  const weights = Object.fromEntries([...document.querySelectorAll('.composer-row')].map(row => [
-    row.querySelector('select').value,
-    (Number(row.querySelector('input').value) || 0) / 100,
-  ]));
+  const weights = aggregateWeights([...document.querySelectorAll('.composer-row')].map(row => ({
+    id: row.querySelector('select').value,
+    weight: (Number(row.querySelector('input').value) || 0) / 100,
+  })));
   weights.cash = (Number($('cash').value) || 0) / 100;
 
   const total = Object.values(weights).reduce((sum, value) => sum + value, 0);
