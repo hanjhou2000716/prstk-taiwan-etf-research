@@ -4,8 +4,10 @@ if (layout) {
   const parameters = layout.querySelector("aside");
   const results = layout.querySelector(":scope > section");
   const summary = layout.querySelector(".metric-grid")?.closest(".card");
-  const charts = document.getElementById("equity")?.closest(".chart-panel");
-  const risk = document.getElementById("dd")?.closest(".chart-panel");
+  const chartPanels = [...layout.querySelectorAll(".chart-panel")];
+  const charts = chartPanels[0];
+  const risk = chartPanels[1] || chartPanels[0];
+  const riskTarget = risk === charts ? "lab-charts" : "lab-risk";
 
   layout.dataset.labShell = "true";
   layout.dataset.labView = "summary";
@@ -13,15 +15,16 @@ if (layout) {
   results?.setAttribute("data-lab-panel", "results");
   summary?.setAttribute("id", "lab-summary");
   charts?.setAttribute("id", "lab-charts");
-  risk?.setAttribute("id", "lab-risk");
+  if (risk && risk !== charts) risk.setAttribute("id", "lab-risk");
 
   const tabs = document.createElement("nav");
   tabs.className = "lab-mobile-tabs";
+  tabs.setAttribute("role", "tablist");
   tabs.setAttribute("aria-label", "研究工作台區塊");
   const items = [
     ["summary", "摘要", "lab-summary"],
     ["charts", "圖表", "lab-charts"],
-    ["risk", "風險", "lab-risk"],
+    ["risk", "風險", riskTarget],
     ["parameters", "參數", "lab-parameters"],
   ];
 
