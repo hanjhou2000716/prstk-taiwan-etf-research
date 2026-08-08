@@ -22,6 +22,7 @@
   .metric strong,.metric-card__value{font-size:20px}
   .chart-card{padding:var(--ds-space-3)}
   .split-heading{align-items:flex-start;flex-direction:column;gap:var(--ds-space-2)}
+  .section-title>p{min-width:0;overflow-wrap:anywhere;word-break:break-word}
   .button--block{min-height:48px}
   .table-scroll{margin-inline:-18px;padding-inline:18px}
   .compare-mobile-cards{display:grid;gap:var(--ds-space-3);margin-bottom:var(--ds-space-4)}
