@@ -1,7 +1,7 @@
 import { parseCsv, alignSeries, slicePeriod } from '../core/date-alignment.js';
 import { calculateMetrics, formatMetric } from '../core/metrics.js';
 import { listExperiments, saveExperiment, newExperiment, downloadJson } from '../core/experiment-store.js';
-import { lineChart, drawdownChart } from '../charts/svg-charts.js';
+import { lineChart, drawdownChart } from '../charts/svg-charts.js?v=20260808-chart1';
 import { buildPortfolioSeries, DEFAULT_ASSETS } from '../core/portfolio-engine.js';
 import './lab-share.js';
 import '../core/deployment-meta.js';

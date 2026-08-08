@@ -1,6 +1,6 @@
 import { parseCsv } from '../core/date-alignment.js';
 import { formatMetric } from '../core/metrics.js';
-import { lineChart } from '../charts/svg-charts.js';
+import { lineChart } from '../charts/svg-charts.js?v=20260808-chart1';
 
 const $ = id => document.getElementById(id);
 const numericFields = new Set([
