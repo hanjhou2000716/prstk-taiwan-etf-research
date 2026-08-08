@@ -20,4 +20,17 @@
   .split-heading{align-items:flex-start;flex-direction:column;gap:var(--ds-space-2)}
   .button--block{min-height:48px}
   .table-scroll{margin-inline:-18px;padding-inline:18px}
+  .compare-mobile-cards{display:grid;gap:var(--ds-space-3);margin-bottom:var(--ds-space-4)}
+  .compare-strategy-card{background:var(--ds-surface);border:1px solid var(--ds-line);padding:var(--ds-space-4)}
+  .compare-strategy-card__heading{align-items:flex-start;display:flex;gap:var(--ds-space-3);justify-content:space-between}
+  .compare-strategy-card h3{font-size:16px;margin:0}
+  .compare-strategy-card__period{color:var(--ds-muted);font-size:12px;margin:var(--ds-space-2) 0 var(--ds-space-3)}
+  .compare-strategy-card__metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ds-space-2) var(--ds-space-4);margin:0}
+  .compare-strategy-card__metrics dt{color:var(--ds-muted);font-size:11px}
+  .compare-strategy-card__metrics dd{font-variant-numeric:tabular-nums;margin:0}
+  .compare-results-table{display:none}
+}
+
+@media(min-width:601px){
+  .compare-mobile-cards{display:none}
 }
