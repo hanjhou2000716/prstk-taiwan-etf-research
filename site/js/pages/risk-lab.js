@@ -1,7 +1,7 @@
 import { parseCsv } from '../core/date-alignment.js';
 import { calculateMetrics, drawdownEpisodes, formatMetric } from '../core/metrics.js';
 import { rollingRisk, crisisMetrics } from '../core/risk-engine.js';
-import { lineChart } from '../charts/svg-charts.js';
+import { lineChart } from '../charts/svg-charts.js?v=20260808-chart1';
 
 const $ = id => document.getElementById(id);
 const catalog = await fetch('data/strategy-catalog.json').then(response => response.json());

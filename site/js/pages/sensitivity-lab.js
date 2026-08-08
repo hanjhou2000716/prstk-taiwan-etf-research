@@ -2,7 +2,7 @@ import { parseCsv } from '../core/date-alignment.js';
 import { calculateMetrics, formatMetric } from '../core/metrics.js';
 import { buildPortfolioSeries } from '../core/portfolio-engine.js';
 import { evaluateGrid, neighborRobustness, numericRange, robustnessSummary } from '../core/robustness-engine.js';
-import { heatmap } from '../charts/svg-charts.js';
+import { heatmap } from '../charts/svg-charts.js?v=20260808-chart1';
 
 const $ = id => document.getElementById(id);
 const catalog = await fetch('data/strategy-catalog.json').then(response => response.json());

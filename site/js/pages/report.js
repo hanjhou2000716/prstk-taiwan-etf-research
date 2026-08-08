@@ -1,6 +1,6 @@
 import { parseCsv } from '../core/date-alignment.js';
 import { calculateMetrics, formatMetric, monthlyReturns, returnDistribution } from '../core/metrics.js';
-import { lineChart, drawdownChart, heatmap } from '../charts/svg-charts.js';
+import { lineChart, drawdownChart, heatmap } from '../charts/svg-charts.js?v=20260808-chart1';
 import './horizon-panel.js';
 import './report-evidence.js';
 import '../core/deployment-meta.js';
