@@ -6,6 +6,8 @@
   .chart-grid--three{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:820px){
+  .grid-2{grid-template-columns:minmax(0,1fr)}
+  .grid-2>*{min-width:0}
   .lab-workbench{grid-template-columns:1fr}
   .lab-sidebar{position:static}
   .chart-grid--three{grid-template-columns:1fr}
@@ -29,6 +31,10 @@
   .compare-strategy-card__metrics dt{color:var(--ds-muted);font-size:11px}
   .compare-strategy-card__metrics dd{font-variant-numeric:tabular-nums;margin:0}
   .compare-results-table{display:none}
+  .definition-list{grid-template-columns:1fr}
+  .definition-list dd{overflow-wrap:anywhere}
+  .risk-map-figure svg{min-width:0}
+  .risk-map-table{display:block;max-width:100%;overflow-x:auto}
 }
 
 @media(min-width:601px){
