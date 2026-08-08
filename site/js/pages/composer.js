@@ -1,5 +1,76 @@
-import{parseCsv}from'../core/date-alignment.js';import{buildPortfolioSeries}from'../core/portfolio-engine.js';import{calculateMetrics,formatMetric}from'../core/metrics.js';import{lineChart}from'../charts/svg-charts.js';
-const $=id=>document.getElementById(id),catalog=await fetch('data/strategy-catalog.json').then(r=>r.json()),data={};for(const strategy of catalog.strategies){const response=await fetch(`data/backtests/${strategy.strategy_id}.csv`);if(response.ok)data[strategy.strategy_id]=parseCsv(await response.text()).map(row=>({date:row.date,nav:Number(row.nav)})).filter(row=>Number.isFinite(row.nav))}const assets=catalog.strategies.filter(s=>data[s.strategy_id]);
-function addAsset(){if(document.querySelectorAll('.composer-row').length>=10)return;const row=document.createElement('div');row.className='composer-row';const select=document.createElement('select');select.setAttribute('aria-label','資產');assets.forEach(asset=>{const option=document.createElement('option');option.value=asset.strategy_id;option.textContent=asset.display_name;select.append(option)});const weight=document.createElement('input');weight.type='number';weight.value='0';weight.min='-100';weight.max='300';weight.step='5';weight.setAttribute('aria-label','權重百分比');row.append(select,weight);$('assets').append(row)}
-function run(){const weights=Object.fromEntries([...document.querySelectorAll('.composer-row')].map(row=>[row.querySelector('select').value,(Number(row.querySelector('input').value)||0)/100]));weights.cash=(Number($('cash').value)||0)/100;const total=Object.values(weights).reduce((sum,value)=>sum+value,0);$('weightTotal').textContent=`權重合計 ${(total*100).toFixed(1)}% · ${total<1?'剩餘視為未配置現金':total>1?'超過 100% 代表槓桿曝險':'完全配置'}`;const result=buildPortfolioSeries(data,weights,{cashYield:(Number($('cashYield').value)||0)/100,rebalancing:$('rebalance').value,costRate:(Number($('cost').value)||0)/10000,rebalanceBand:(Number($('band').value)||0)/100});if(result.missingAssets?.length){$('status').textContent=`資料不足：${result.missingAssets.join('、')}`;return}const metrics=calculateMetrics(result.rows);$('status').textContent=`${metrics.start} 至 ${metrics.end} · ${metrics.observations} 個交易日 · 再平衡 ${result.rows.filter(row=>row.rebalanced).length} 次`;$('cagr').textContent=formatMetric(metrics.cagr,'percent');$('drawdown').textContent=formatMetric(metrics.maxDrawdown,'percent');$('turnover').textContent=formatMetric(result.rows.reduce((sum,row)=>sum+row.turnover,0),'money');$('ending').textContent=formatMetric(metrics.endingWealth,'number');lineChart('#composerChart',[{name:'Portfolio NAV',values:result.rows.map(row=>({value:row.nav}))}])}
-addAsset();addAsset();$('add').addEventListener('click',addAsset);$('run').addEventListener('click',run);run();
+import { parseCsv } from '../core/date-alignment.js';
+import { buildPortfolioSeries } from '../core/portfolio-engine.js';
+import { calculateMetrics, formatMetric } from '../core/metrics.js';
+import { lineChart } from '../charts/svg-charts.js';
+
+const $ = id => document.getElementById(id);
+const catalog = await fetch('data/strategy-catalog.json').then(response => response.json());
+const data = {};
+for (const strategy of catalog.strategies) {
+  const response = await fetch(`data/backtests/${strategy.strategy_id}.csv`);
+  if (!response.ok) continue;
+  data[strategy.strategy_id] = parseCsv(await response.text())
+    .map(row => ({ date: row.date, nav: Number(row.nav) }))
+    .filter(row => Number.isFinite(row.nav));
+}
+const assets = catalog.strategies.filter(strategy => data[strategy.strategy_id]);
+
+function addAsset() {
+  if (document.querySelectorAll('.composer-row').length >= 10) return;
+  const row = document.createElement('div');
+  row.className = 'composer-row';
+  const select = document.createElement('select');
+  select.setAttribute('aria-label', '資產');
+  assets.forEach(asset => {
+    const option = document.createElement('option');
+    option.value = asset.strategy_id;
+    option.textContent = asset.display_name;
+    select.append(option);
+  });
+  const weight = document.createElement('input');
+  weight.type = 'number';
+  weight.value = '0';
+  weight.min = '0';
+  weight.max = '100';
+  weight.step = '5';
+  weight.setAttribute('aria-label', '權重百分比');
+  row.append(select, weight);
+  $('assets').append(row);
+}
+
+function run() {
+  const weights = Object.fromEntries([...document.querySelectorAll('.composer-row')].map(row => [
+    row.querySelector('select').value,
+    (Number(row.querySelector('input').value) || 0) / 100,
+  ]));
+  weights.cash = (Number($('cash').value) || 0) / 100;
+  const total = Object.values(weights).reduce((sum, value) => sum + value, 0);
+  $('weightTotal').textContent = `權重合計 ${(total * 100).toFixed(1)}% · ${total < 1 ? '不足部分自動視為現金' : total > 1 ? '超過 100% 需要融資模型' : '完全配置'}`;
+  const result = buildPortfolioSeries(data, weights, {
+    cashYield: (Number($('cashYield').value) || 0) / 100,
+    rebalancing: $('rebalance').value,
+    costRate: (Number($('cost').value) || 0) / 10000,
+    rebalanceBand: (Number($('band').value) || 0) / 100,
+  });
+  if (result.missingAssets?.length) {
+    $('status').textContent = `資料不足：${result.missingAssets.join('、')}`;
+    return;
+  }
+  if (result.invalidWeights?.length) {
+    $('status').textContent = '參數無法執行：槓桿曝險需先接上融資模型，且不支援未建模的負權重。';
+    return;
+  }
+  const metrics = calculateMetrics(result.rows);
+  $('status').textContent = `${metrics.start} 至 ${metrics.end} · ${metrics.observations} 個交易日 · 再平衡 ${result.rows.filter(row => row.rebalanced).length} 次 · 交易事件 ${result.ledger.length} 筆`;
+  $('cagr').textContent = formatMetric(metrics.cagr, 'percent');
+  $('drawdown').textContent = formatMetric(metrics.maxDrawdown, 'percent');
+  $('turnover').textContent = formatMetric(result.rows.reduce((sum, row) => sum + row.turnover, 0), 'money');
+  $('ending').textContent = formatMetric(metrics.endingWealth, 'number');
+  lineChart('#composerChart', [{ name: 'Portfolio NAV', values: result.rows.map(row => ({ value: row.nav })) }]);
+}
+
+addAsset();
+addAsset();
+$('add').addEventListener('click', addAsset);
+$('run').addEventListener('click', run);
+run();

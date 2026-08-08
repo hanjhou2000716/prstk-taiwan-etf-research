@@ -30,6 +30,12 @@ Pledge strategy events also include a transaction ledger with `date`,
 `INTEREST`, `REPAY`, and `LIQUIDATION`. It is an audit trail for the research
 model, not a broker execution statement.
 
+Portfolio Composer returns the same type of ledger in `result.ledger`, with
+asset, quantity, price, gross amount, transaction fee, signal, and reason for
+each initial allocation or rebalance. Composer rejects leverage and short
+weights until a matching financing/short-cost model is supplied; it does not
+silently convert those unsupported positions into fake NAV.
+
 ## Return-series classification
 
 `close` is raw price return, `adjusted_close` is a split-adjusted price-return
