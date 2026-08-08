@@ -1,7 +1,7 @@
 import { parseCsv } from '../core/date-alignment.js';
 import { buildPortfolioSeries } from '../core/portfolio-engine.js';
 import { calculateMetrics, formatMetric } from '../core/metrics.js';
-import { lineChart } from '../charts/svg-charts.js';
+import { lineChart } from '../charts/svg-charts.js?v=20260808-chart1';
 import { aggregateWeights } from '../core/weight-input.js';
 
 const $ = id => document.getElementById(id);
