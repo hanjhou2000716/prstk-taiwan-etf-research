@@ -22,7 +22,7 @@ jobs:
           for path in required:
               json.loads(path.read_text(encoding='utf-8'))
               print('valid JSON:', path)
-          pages = ['index.html','research-lab.html','compare.html','stress-test.html','report.html']
+          pages = ['index.html','research-lab.html','beta-lab.html','compare.html','stress-test.html','report.html']
           for name in pages:
               text = Path('site', name).read_text(encoding='utf-8')
               if '</html>' in text and text.split('</html>', 1)[1].strip():
@@ -51,6 +51,7 @@ jobs:
           mkdir -p artifacts/reports/assets
           cp site/index.html artifacts/reports/index.html
           cp site/research-lab.html artifacts/reports/research-lab.html
+          cp site/beta-lab.html artifacts/reports/beta-lab.html
           cp site/strategies.html artifacts/reports/strategies.html
           cp site/compare.html artifacts/reports/compare.html
           cp site/stress-test.html artifacts/reports/stress-test.html
@@ -74,7 +75,7 @@ jobs:
         run: |
           set -euo pipefail
           base="https://hanjhou2000716.github.io/prstk-taiwan-etf-research"
-          for path in index.html research-lab.html compare.html stress-test.html report.html data/manifest.json data/backtests/buy_hold_006208.csv; do
+          for path in index.html research-lab.html beta-lab.html compare.html stress-test.html report.html data/manifest.json data/backtests/buy_hold_006208.csv; do
             code=$(curl -L -sS -o /dev/null -w '%{http_code}' "$base/$path")
             test "$code" = "200"
           done
