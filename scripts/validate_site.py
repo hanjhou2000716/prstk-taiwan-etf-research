@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from urllib.parse import urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,8 +23,10 @@ def main() -> None:
         assert text.count("</html>") == 1, f"invalid html end: {name}"
         assert not text.split("</html>", 1)[1].strip(), f"trailing html content: {name}"
         for script in re.findall(r'<script[^>]+src="([^"]+)"', text):
-            target = SITE / script
+            target = SITE / urlsplit(script).path
             assert target.exists(), f"missing script {script} in {name}"
+    composer = (SITE / "composer.html").read_text(encoding="utf-8")
+    assert re.search(r'js/pages/composer\.js\?v=[^"&]+', composer), "Composer script must use a versioned asset URL"
     for name in ["manifest.json", "strategy-catalog.json", "asset-catalog.json", "reconciliation_report.json"]:
         json.loads((SITE / "data" / name).read_text(encoding="utf-8"))
     reconciliation = json.loads((SITE / "data" / "reconciliation_report.json").read_text(encoding="utf-8"))
