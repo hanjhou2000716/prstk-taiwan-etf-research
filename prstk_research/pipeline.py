@@ -5,11 +5,13 @@ from pathlib import Path
 from .data import (download_month, download_vix, normalize, normalize_vix,
                    validate_csv, build_manifest, months)
 from .backtest import (read_prices, read_vix, align, series, fixed_beta,
-                       ma200_switch, vix_switch, pledge_strategy, metrics, horizon_metrics,
+                       ma200_switch, vix_switch, pledge_strategy, horizon_metrics,
                        synthetic_2x_proxy, write_rows)
 from .backtest import apply_path_costs
 from .models import FinancingTerms, maintenance_ratio, max_loan, interest_due
 from .reconciliation import build_reconciliation
+from .engine.metrics import calculate_metrics as canonical_metrics
+from .engine.beta import calculate_beta_metrics
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -121,7 +123,10 @@ def run(download=False):
                          trading_cost_bps=cfg.get("trading_cost_bps", 0.0),
                          turnover=cfg.get("assumed_annual_turnover", 0.0))
         write_rows(back / f"{name}.csv", rows)
-        metric_rows.append(dict(strategy=name, **metrics(rows, cfg["risk_free_rate"])))
+        canonical = canonical_metrics(rows, risk_free_rate=cfg["risk_free_rate"])
+        benchmark = results.get("buy_hold_006208", [])
+        beta = calculate_beta_metrics(rows, benchmark, risk_free_rate=cfg["risk_free_rate"]) if benchmark else {"status": "unavailable"}
+        metric_rows.append(dict(strategy=name, **canonical, **{f"beta_{key}": value for key, value in beta.items() if key not in {"status", "start", "end", "observations"}}))
         is_proxy = name.startswith("synthetic_2x_proxy_")
         horizon_rows.extend(dict(strategy=name, **x) for x in horizon_metrics(
             rows, risk_free=cfg["risk_free_rate"],

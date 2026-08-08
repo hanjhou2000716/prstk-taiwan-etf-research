@@ -1,6 +1,7 @@
 from __future__ import annotations
 import csv, math
 from pathlib import Path
+from .engine.metrics import calculate_metrics as canonical_metrics
 
 def read_prices(path: Path, field: str = "adjusted_close") -> dict[str, float]:
     with path.open(encoding="utf-8") as f:
@@ -239,7 +240,7 @@ def horizon_metrics(rows, horizons=(20, 10, 5, 3, 1), risk_free=0.0,
             window = rows[-(observations + 1):]
             output.append({"horizon_years": years, "status": "available", "data_type": data_type,
                            **({"proxy_basis": proxy_basis} if proxy_basis else {}),
-                           **metrics(window, risk_free)})
+                           **canonical_metrics(window, risk_free_rate=risk_free)})
     return output
 
 def write_rows(path: Path, rows):
