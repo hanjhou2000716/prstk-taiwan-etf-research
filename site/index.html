@@ -1,1 +1,97 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PRStK Leverage &amp; Beta Lab</title><link rel="stylesheet" href="styles.css"></head><body><header class="site-header"><div class="site-shell header-inner"><a class="brand-pair" href="index.html" aria-label="PRStK 與 SFC.e 台灣 ETF 研究平台"><img src="assets/PRStK-Remove.png" alt="PRStK" class="brand-logo"><span class="brand-divider" aria-hidden="true">|</span><img src="assets/SFC.e-removebg-preview.png" alt="SFC.e" class="brand-logo"><span class="brand-platform-name">Taiwan ETF Quantitative Research Platform</span></a><nav class="nav" aria-label="主要導覽"><a class="active" href="index.html">研究總覽</a><a href="composer.html">Portfolio Composer</a><a href="research-lab.html">策略實驗室</a><a href="beta-lab.html">Beta Lab</a><a href="leverage-lab.html">Leverage Lab</a><a href="financing-lab.html">Financing Lab</a><a href="risk-lab.html">Risk Lab</a><a href="compare.html">策略比較</a><a href="report.html">研究報告</a><a href="audit.html">研究審核</a></nav></div></header><main class="site-shell"><section class="hero hero-grid"><div><p class="eyebrow">PRStK Leverage &amp; Beta Lab</p><h1 class="display">Explore Return.<br>Measure Beta.<br>Stress Leverage.</h1><p class="lead">台灣 ETF、正二、合成代理、質押與風險的可追溯量化研究平台。</p></div><div class="hero-note"><strong>研究原則</strong><p>先確認資料口徑，再比較報酬與風險；Actual ETF、Synthetic Proxy 與研究模型假設不混合標示。</p><a class="button" href="composer.html">開始建立實驗</a></div></section><section class="section"><div class="section-title"><h2>研究狀態</h2><p>資料與模型版本會隨部署保存</p></div><div class="metric-grid"><div class="metric"><small>最新資料日期</small><strong id="dataDate">—</strong></div><div class="metric"><small>模型版本</small><strong id="modelVersion">—</strong></div><div class="metric"><small>Verified 策略</small><strong id="verified">—</strong></div><div class="metric"><small>Experimental／Synthetic</small><strong id="experimental">—</strong></div><div class="metric"><small>資料健康</small><strong id="quality">—</strong></div></div></section><section class="section"><div class="section-title"><h2>研究工作區</h2><p>每個工作區都讀取相同的版本化資料</p></div><div class="grid-3"><a class="card card-link" href="composer.html"><h3>Portfolio Composer</h3><p>2–10 資產、Buy &amp; Hold、再平衡、現金收益與交易成本。</p><span class="arrow">→</span></a><a class="card card-link" href="beta-lab.html"><h3>Beta Lab</h3><p>Beta、Alpha、R²、Correlation、Tracking Error 與 Rolling Beta。</p><span class="arrow">→</span></a><a class="card card-link" href="leverage-lab.html"><h3>Leverage Lab</h3><p>理論每日重置槓桿、Actual gap、capture ratio 與 volatility drag。</p><span class="arrow">→</span></a><a class="card card-link" href="financing-lab.html"><h3>Financing Lab</h3><p>逐日質押帳本、借款、利息、維持率、追繳與清算事件。</p><span class="arrow">→</span></a><a class="card card-link" href="risk-lab.html"><h3>Risk Lab</h3><p>滾動風險、Top 10 drawdowns 與自訂歷史危機區間。</p><span class="arrow">→</span></a><a class="card card-link" href="compare.html"><h3>策略比較</h3><p>公平共同期間、完整歷史、相關性與分組 scorecard。</p><span class="arrow">→</span></a></div></section><section class="section"><div class="section-title"><h2>Beta × CAGR × Drawdown Snapshot</h2><p>這是研究描述，不是單一最佳策略推薦；Synthetic 不跨組排名。</p></div><div id="riskMap" class="stack-list"><p class="hint">載入基準資料中…</p></div></section><section class="section"><div class="note"><strong>Audit 狀態</strong><br><span id="warning">載入驗證狀態中…</span><br><a href="audit.html">查看資料、模型與發布審核 →</a></div></section><footer class="footer">@2026 PRStK Lab &amp; SFC.e. | All right reserved.</footer></main><script type="module" src="js/pages/overview.js"></script><script type="module" src="js/core/site-header.js?v=20260808-nav1"></script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PRStK Leverage &amp; Beta Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header" data-site-header></header>
+  <main class="site-shell">
+    <section class="hero hero-grid">
+      <div>
+        <p class="eyebrow">PRStK Leverage &amp; Beta Lab</p>
+        <h1 class="display">研究報酬、Beta、槓桿與融資風險。</h1>
+        <p class="lead">探索台灣 ETF 的報酬路徑，理解正二的波動耗損，並在同一套可追溯模型中檢查質押壓力。</p>
+        <div class="hero-actions">
+          <a class="button button--primary" href="research-lab.html">開始研究實驗</a>
+          <a class="button button--secondary" href="strategies.html">查看策略資料庫</a>
+        </div>
+      </div>
+      <aside class="hero-note">
+        <strong>研究原則</strong>
+        <p>先確認資料口徑，再比較報酬與風險。Actual ETF、Synthetic Proxy 與研究模型假設分開顯示，不把歷史模型當作投資保證。</p>
+        <a href="methodology.html">閱讀資料與方法 →</a>
+      </aside>
+    </section>
+
+    <section class="section" aria-labelledby="research-status-title">
+      <div class="section-title">
+        <h2 id="research-status-title">研究狀態</h2>
+        <p>資料、模型與驗證狀態會隨部署保存</p>
+      </div>
+      <div class="metric-grid">
+        <div class="metric"><small>最新資料日期</small><strong id="dataDate">—</strong></div>
+        <div class="metric"><small>模型版本</small><strong id="modelVersion">—</strong></div>
+        <div class="metric"><small>Verified 策略</small><strong id="verified">—</strong></div>
+        <div class="metric"><small>Experimental／Synthetic</small><strong id="experimental">—</strong></div>
+        <div class="metric"><small>資料健康</small><strong id="quality">—</strong></div>
+      </div>
+      <div class="risk-map-legend evidence-strip" aria-label="資料證據類型">
+        <label class="chip"><input type="checkbox" data-risk-filter value="actual_etf" checked> Actual ETF</label>
+        <label class="chip"><input type="checkbox" data-risk-filter value="synthetic_proxy" checked> Synthetic Proxy</label>
+        <label class="chip"><input type="checkbox" data-risk-filter value="experimental" checked> Experimental</label>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="risk-map-heading">
+      <div class="section-title">
+        <h2 id="risk-map-heading">Beta × CAGR × Drawdown</h2>
+        <p>圓點越大，歷史最大回撤幅度越深；點擊策略可進入研究實驗室</p>
+      </div>
+      <div id="riskMap" class="risk-map" aria-live="polite"></div>
+    </section>
+
+    <section class="section" aria-labelledby="workspace-heading">
+      <div class="section-title">
+        <h2 id="workspace-heading">研究工作區</h2>
+        <p>每個工作區讀取相同的版本化資料</p>
+      </div>
+      <div class="grid-3">
+        <a class="card card-link" href="composer.html"><h3>Portfolio Composer</h3><p>配置 2–10 個資產、現金收益、再平衡與交易成本。</p><span class="arrow">→</span></a>
+        <a class="card card-link" href="beta-lab.html"><h3>Beta Lab</h3><p>檢視 Beta、Alpha、R²、相關性與 Rolling Beta。</p><span class="arrow">→</span></a>
+        <a class="card card-link" href="leverage-lab.html"><h3>Leverage Lab</h3><p>比較理論槓桿、實際 ETF、捕捉率與波動耗損。</p><span class="arrow">→</span></a>
+        <a class="card card-link" href="financing-lab.html"><h3>Financing Lab</h3><p>追蹤借款、利息、維持率、追繳與清算事件。</p><span class="arrow">→</span></a>
+        <a class="card card-link" href="risk-lab.html"><h3>Risk Lab</h3><p>分析回撤、CVaR、Rolling Risk 與歷史危機區間。</p><span class="arrow">→</span></a>
+        <a class="card card-link" href="compare.html"><h3>策略比較</h3><p>使用共同期間比較績效、風險、相關性與研究分數。</p><span class="arrow">→</span></a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="workflow-heading">
+      <div class="section-title">
+        <h2 id="workflow-heading">研究流程</h2>
+        <p>從問題到可審核結果</p>
+      </div>
+      <div class="research-steps">
+        <div class="research-step"><strong>01 選擇策略</strong><span>Actual、Synthetic 或自訂組合</span></div>
+        <div class="research-step"><strong>02 調整假設</strong><span>期間、成本、再平衡與風險參數</span></div>
+        <div class="research-step"><strong>03 執行回測</strong><span>取得可重算的 NAV 與交易事件</span></div>
+        <div class="research-step"><strong>04 分析風險</strong><span>Beta、回撤、槓桿與質押壓力</span></div>
+        <div class="research-step"><strong>05 保存證據</strong><span>版本、資料、參數與研究報告</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="note">
+        <strong>Audit 狀態：</strong><span id="warning">讀取研究驗證狀態中…</span>
+        <br><a href="audit.html">查看資料、模型與發布審核 →</a>
+      </div>
+    </section>
+
+    <footer class="footer">@2026 PRStK Lab &amp; SFC.e. | All right reserved.</footer>
+  </main>
+    <script type="module" src="js/pages/overview.js?v=20260808-home3"></script>
+  <script type="module" src="js/core/site-header.js?v=20260808-nav1"></script>
+</body>
+</html>
