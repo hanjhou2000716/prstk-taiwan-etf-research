@@ -35,6 +35,33 @@ document.querySelector('#metrics').innerHTML = rows.map(([id, series]) => {
 }).join('');
 document.querySelector('#metrics').closest('table').querySelector('thead tr').insertAdjacentHTML('beforeend', '<th>CVaR 95%</th>');
 
+// Render catalog-controlled values as text nodes. This keeps report exports and
+// the visible table safe even when a future data catalog contains markup-like text.
+const metricsBody = document.querySelector('#metrics');
+metricsBody.replaceChildren(...rows.map(([id, series]) => {
+  const strategy = catalog.strategies.find(item => item.strategy_id === id);
+  const metrics = calculateMetrics(series);
+  const distribution = returnDistribution(series);
+  const values = [
+    strategy?.display_name || id,
+    statusLabel(strategy?.implementation_status),
+    percent(metrics.cagr),
+    percent(metrics.totalReturn),
+    percent(metrics.annualizedVolatility),
+    metrics.sharpe == null ? '—' : metrics.sharpe.toFixed(2),
+    metrics.sortino == null ? '—' : metrics.sortino.toFixed(2),
+    percent(metrics.maxDrawdown),
+    percent(distribution.cvar95),
+  ];
+  const row = document.createElement('tr');
+  values.forEach(value => {
+    const cell = document.createElement('td');
+    cell.textContent = String(value);
+    row.append(cell);
+  });
+  return row;
+}));
+
 const controls = document.createElement('div');
 controls.className = 'toolbar';
 controls.style.marginTop = '18px';
