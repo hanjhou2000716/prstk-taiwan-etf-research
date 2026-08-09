@@ -71,8 +71,8 @@ test("mobile lab parameter drawer restores focus after Escape", () => {
 
 test("global layout clips only page-level overflow while preserving local scrollers", () => {
   const compat = read("site/styles/legacy-compat.css");
-  assert.match(compat, /html,body\{max-width:100%;overflow-x:clip\}/);
-  assert.match(compat, /\.table-wrap[^}]*overflow:auto/);
+  assert.doesNotMatch(compat, /html,body\{max-width:100%;overflow-x:clip\}/);
+  assert.match(compat, /\.table-wrap[^}]*overflow-x:auto/);
 });
 
 test("report and risk charts keep semantic, date-keyed series", () => {

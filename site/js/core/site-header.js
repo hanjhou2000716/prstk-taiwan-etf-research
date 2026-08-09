@@ -65,7 +65,7 @@ function createHeader(config) {
   menuButton.setAttribute("aria-label", "開啟主選單");
   menuButton.setAttribute("aria-expanded", "false");
   menuButton.setAttribute("aria-controls", "site-navigation");
-  menuButton.innerHTML = "<span class=\"menu-icon\" aria-hidden=\"true\">☰</span><span>選單</span>";
+  menuButton.innerHTML = "<span class=\"menu-icon\" aria-hidden=\"true\">☰</span>";
   inner.append(menuButton);
 
   const nav = createNavigation(config, page);
