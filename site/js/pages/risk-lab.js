@@ -42,9 +42,9 @@ function render() {
   $('crisisDrawdown').textContent = pct(crisis.maxDrawdown);
   $('crisisVol').textContent = pct(crisis.volatility);
   lineChart('#rolling', [
-    { name: 'Rolling CAGR', values: rolling.map(row => ({ value: row.cagr })) },
-    { name: 'Rolling Volatility', values: rolling.map(row => ({ value: row.volatility })) },
-  ], { percent: true });
+    { name: 'Rolling CAGR', type: 'rolling-cagr', unit: 'percent', values: rolling.map(row => ({ date: row.date, value: row.cagr })) },
+    { name: 'Rolling Volatility', type: 'rolling-volatility', unit: 'percent', values: rolling.map(row => ({ date: row.date, value: row.volatility })) },
+  ], { percent: true, capabilities: { logScale: false, table: true, range: true } });
   $('episodes').replaceChildren(...episodes.slice(0, 10).map((event, index) => {
     const item = document.createElement('div');
     item.className = 'stack-item';

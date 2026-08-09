@@ -67,3 +67,14 @@ test("mobile lab parameter drawer restores focus after Escape", () => {
   assert.match(workbench, /preventScroll: true/);
   assert.match(workbench, /event\.key === "Escape"/);
 });
+
+test("report and risk charts keep semantic, date-keyed series", () => {
+  const report = read("site/js/pages/report.js");
+  const lab = read("site/js/pages/research-lab.js");
+  const risk = read("site/js/pages/risk-lab.js");
+  assert.match(report, /type: 'strategy-nav'/);
+  assert.match(report, /date: row\.date/);
+  assert.match(lab, /unit: 'nav'/);
+  assert.match(risk, /type: 'rolling-cagr'/);
+  assert.match(risk, /type: 'rolling-volatility'/);
+});
