@@ -85,3 +85,12 @@ test("report metrics are finalized through text nodes", () => {
   assert.match(report, /metricsBody\.replaceChildren/);
   assert.match(report, /cell\.textContent = String\(value\)/);
 });
+
+test("stress path chart names every risk threshold", () => {
+  const stress = read("site/js/pages/stress-test.js");
+  assert.match(stress, /type: 'maintenance-ratio'/);
+  assert.match(stress, /type: 'margin-call-threshold'/);
+  assert.match(stress, /type: 'rollover-threshold'/);
+  assert.match(stress, /type: 'liquidation-threshold'/);
+  assert.match(stress, /renderMatrix/);
+});
