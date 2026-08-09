@@ -18,7 +18,9 @@ function finite(value) {
 function normalizedSeries(series) {
   return (Array.isArray(series) ? series : []).map((item, index) => ({
     sourceIndex: index,
-    name: item?.name || `Series ${index + 1}`,
+    name: item?.name || item?.strategyName || item?.strategyId || `研究序列 ${index + 1}`,
+    type: item?.type || "strategy",
+    unit: item?.unit || "value",
     values: (Array.isArray(item?.values) ? item.values : []).map((point, pointIndex) => ({
       date: point?.date || String(pointIndex + 1),
       value: Number(point?.value),
@@ -80,12 +82,15 @@ function addDataTable(root, series, percent) {
     toggle.setAttribute("aria-expanded", String(!table.hidden));
     toggle.textContent = table.hidden ? "顯示資料表" : "隱藏資料表";
   });
-  root.append(toggle, table);
+  const details = document.createElement("div");
+  details.className = "chart-details";
+  details.append(toggle, table);
+  root.append(details);
 }
 
 function renderLine(root, allSeries, options, state) {
   const series = allSeries.filter((_, index) => !state.hidden.has(index));
-  const width = Math.max(420, root.clientWidth || 640);
+  const width = Math.max(240, Math.floor(root.clientWidth || 640));
   const height = options.height || 320;
   const pad = { left: 54, right: 18, top: 22, bottom: 32 };
   const innerW = width - pad.left - pad.right;
@@ -95,7 +100,8 @@ function renderLine(root, allSeries, options, state) {
   const end = Math.min(maxLength, Math.max(start + 2, state.end));
   const windowSeries = series.map((item) => ({ ...item, values: item.values.slice(start, end) }));
   const values = windowSeries.flatMap((item) => item.values.map((point) => point.value)).filter(finite);
-  root.querySelector(".chart-plot")?.remove();
+  const stage = root.querySelector(".chart-stage") || root;
+  stage.querySelector(".chart-plot")?.remove();
   if (!values.length) return;
   const logScale = state.scale === "log" && values.every((value) => value > 0);
   const transform = (value) => logScale ? Math.log(value) : value;
@@ -174,29 +180,38 @@ function renderLine(root, allSeries, options, state) {
   overlay.addEventListener("focus", (event) => showPoint({ clientX: event.clientX || 0, clientY: event.clientY || 0 }));
   overlay.addEventListener("pointerleave", () => { tooltip.hidden = true; crosshair.setAttribute("visibility", "hidden"); });
   plot.append(svg, tooltip);
-  root.append(plot);
+  stage.append(plot);
 }
 
 export function clearChart(target) {
   const root = element(target);
-  if (root) root.replaceChildren();
+  if (root) {
+    root.__chartCleanup?.();
+    root.__chartCleanup = null;
+    root.replaceChildren();
+  }
   return root;
 }
 
-export function lineChart(target, inputSeries, { percent = false, height = 320, colors = DEFAULT_COLORS, ariaLabel = "時間序列圖" } = {}) {
+export function lineChart(target, inputSeries, { percent = false, height = 320, colors = DEFAULT_COLORS, ariaLabel = "時間序列圖", capabilities = {} } = {}) {
   const root = clearChart(target);
   if (!root) return;
   const series = normalizedSeries(inputSeries);
-  root.classList.add("chart-interactive");
+  root.classList.add("chart-interactive", "chart-shell");
   addDescription(root, ariaLabel, "可用圖例切換序列，並使用日期游標查看資料。");
+  const chartCapabilities = { range: true, logScale: true, legend: true, table: true, tooltip: true, ...capabilities };
   const controls = document.createElement("div");
   controls.className = "chart-controls";
   const scaleButton = button("切換對數尺度");
   const zoomButton = button("放大最近區間");
   const resetButton = button("重設範圍");
   controls.append(scaleButton, zoomButton, resetButton);
+  scaleButton.hidden = !chartCapabilities.logScale;
+  zoomButton.hidden = !chartCapabilities.range;
+  resetButton.hidden = !chartCapabilities.range;
   const legend = document.createElement("div");
   legend.className = "chart-legend";
+  legend.hidden = !chartCapabilities.legend;
   const state = { hidden: new Set(), start: 0, end: Math.max(2, ...series.map((item) => item.values.length)), scale: "linear" };
   series.forEach((item, index) => {
     const toggle = button(item.name, "chart-legend__item");
@@ -225,9 +240,15 @@ export function lineChart(target, inputSeries, { percent = false, height = 320, 
     state.end = Math.max(2, ...series.map((item) => item.values.length));
     renderLine(root, series, { percent, height, colors, ariaLabel }, state);
   });
-  root.append(controls, legend);
-  addDataTable(root, series, percent);
-  renderLine(root, series, { percent, height, colors, ariaLabel }, state);
+  const stage = document.createElement("div");
+  stage.className = "chart-stage";
+  root.append(controls, legend, stage);
+  if (chartCapabilities.table) addDataTable(root, series, percent);
+  const render = () => renderLine(root, series, { percent, height, colors, ariaLabel }, state);
+  render();
+  const observer = typeof ResizeObserver === "function" ? new ResizeObserver(render) : null;
+  observer?.observe(root);
+  root.__chartCleanup = () => observer?.disconnect();
   return root.querySelector("svg");
 }
 
@@ -243,7 +264,7 @@ export function drawdownChart(target, rows, options = {}) {
 export function heatmap(target, matrix, { labels = [], columns = [], height = 260 } = {}) {
   const root = clearChart(target);
   if (!root) return;
-  const width = Math.max(500, root.clientWidth || 700);
+  const width = Math.max(260, Math.floor(root.clientWidth || 700));
   const left = 90;
   const top = 26;
   const cellW = (width - left - 12) / Math.max(1, columns.length);
@@ -286,6 +307,9 @@ export function heatmap(target, matrix, { labels = [], columns = [], height = 26
     });
   });
   plot.append(svg, tooltip);
-  root.append(plot);
+  const stage = document.createElement("div");
+  stage.className = "chart-stage";
+  stage.append(plot);
+  root.append(stage);
   return svg;
 }

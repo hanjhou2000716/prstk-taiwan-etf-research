@@ -8,10 +8,10 @@ import "./lab-workbench.js?v=20260808-lab1";
 import "../pages/compare-mobile.js?v=20260808-compare1";
 
 const header = document.querySelector("[data-site-header], .site-header");
-const designSystemUrl = new URL("../../styles/design-system.css?v=20260808-design2", import.meta.url);
+const designSystemUrl = new URL("../../styles/design-system.css?v=20260809-ui1", import.meta.url);
 
 function loadDesignSystem() {
-  if (document.querySelector("link[data-design-system]")) return;
+  if (document.querySelector("link[data-design-system], link[href*='styles/design-system.css']")) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = designSystemUrl.href;
@@ -42,7 +42,13 @@ function createBrand(config) {
 
   const name = document.createElement("span");
   name.className = "brand-platform-name";
-  name.textContent = config.platformName;
+  const desktopName = document.createElement("span");
+  desktopName.className = "brand-platform-name-desktop";
+  desktopName.textContent = config.platformName;
+  const mobileName = document.createElement("span");
+  mobileName.className = "brand-platform-name-mobile";
+  mobileName.textContent = config.mobilePlatformName || config.platformName;
+  name.append(desktopName, mobileName);
   brand.append(prstk, divider, sfce, name);
   return brand;
 }
@@ -59,7 +65,7 @@ function createHeader(config) {
   menuButton.setAttribute("aria-label", "開啟主選單");
   menuButton.setAttribute("aria-expanded", "false");
   menuButton.setAttribute("aria-controls", "site-navigation");
-  menuButton.innerHTML = "<span aria-hidden=\"true\">☰</span><span>選單</span>";
+  menuButton.innerHTML = "<span class=\"menu-icon\" aria-hidden=\"true\">☰</span><span>選單</span>";
   inner.append(menuButton);
 
   const nav = createNavigation(config, page);
@@ -69,6 +75,7 @@ function createHeader(config) {
 
 function closeMenu(menuButton, nav) {
   nav.classList.remove("open");
+  nav.querySelectorAll("details[open]").forEach((details) => { details.open = false; });
   document.body.classList.remove("nav-open");
   menuButton.setAttribute("aria-expanded", "false");
   menuButton.setAttribute("aria-label", "開啟主選單");
@@ -79,7 +86,7 @@ function openMenu(menuButton, nav) {
   document.body.classList.add("nav-open");
   menuButton.setAttribute("aria-expanded", "true");
   menuButton.setAttribute("aria-label", "關閉主選單");
-  nav.querySelector("a")?.focus();
+  nav.querySelector("a, summary")?.focus();
 }
 
 function wireMenu(headerElement, menuButton, nav) {
@@ -98,14 +105,10 @@ function wireMenu(headerElement, menuButton, nav) {
     }
   });
   document.addEventListener("click", (event) => {
-    if (!headerElement.contains(event.target) && nav.classList.contains("open")) {
-      closeMenu(menuButton, nav);
-    }
+    if (!headerElement.contains(event.target) && nav.classList.contains("open")) closeMenu(menuButton, nav);
   });
   window.addEventListener("resize", () => {
-    if (window.innerWidth > 820 && nav.classList.contains("open")) {
-      closeMenu(menuButton, nav);
-    }
+    if (window.innerWidth > 820 && nav.classList.contains("open")) closeMenu(menuButton, nav);
   });
 }
 
@@ -117,14 +120,7 @@ async function mountHeader() {
     const { inner, menuButton, nav } = createHeader(config);
     header.replaceChildren(inner);
     wireMenu(header, menuButton, nav);
-    const labPages = new Set([
-      "composer.html",
-      "research-lab.html",
-      "beta-lab.html",
-      "leverage-lab.html",
-      "financing-lab.html",
-      "risk-lab.html",
-    ]);
+    const labPages = new Set(["composer.html", "research-lab.html", "beta-lab.html", "leverage-lab.html", "financing-lab.html", "risk-lab.html"]);
     if (labPages.has(currentPage())) {
       const main = document.querySelector("main");
       const secondary = createSecondaryNavigation(config);

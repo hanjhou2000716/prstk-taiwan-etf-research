@@ -36,7 +36,7 @@
   .compare-results-table{display:none}
   .definition-list{grid-template-columns:1fr}
   .definition-list dd{overflow-wrap:anywhere}
-  .risk-map-figure svg{min-width:0}
+  .risk-map-figure{overflow:hidden}
   .risk-map-table{display:block;max-width:100%;overflow-x:auto}
 }
 
