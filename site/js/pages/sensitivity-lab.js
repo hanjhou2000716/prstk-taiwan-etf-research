@@ -50,16 +50,32 @@ function buildGrid() {
 }
 
 function renderSummary(grid, metric) {
+  const target = $('status');
+  target.replaceChildren();
   const summary = robustnessSummary(grid);
   const neighbors = neighborRobustness(grid);
   if (summary.status === 'unavailable') {
-    $('status').textContent = '目前設定沒有足夠的有效回測結果，請檢查資料期間與策略。';
+    target.textContent = '資料不足，無法建立此參數網格。';
     return;
   }
   const definition = metricDefinitions[metric];
-  const best = grid.best ? `${(grid.best.x * 100).toFixed(0)}% 權重、${(grid.best.y * 10000).toFixed(1)} bps 成本，${definition.label} ${definition.format(grid.best.value)}` : '無';
-  const warning = summary.potentialCurveFitting ? '鄰近參數沒有形成穩定區域，可能存在參數敏感或曲線配適風險。' : '最佳點周邊仍有可觀測的穩定區域，請搭配樣本外驗證解讀。';
-  $('status').innerHTML = `<strong>${definition.label} 敏感度</strong>　有效格數 ${summary.validCount}　中位數 ${definition.format(summary.median)}<br>最佳格：${best}<br><span class="status ${summary.potentialCurveFitting ? 'warn' : 'good'}">${warning}</span>${neighbors.average == null ? '' : `<br>最佳點與鄰近格平均差距：${definition.format(neighbors.gapToBest)}`}`;
+  const title = document.createElement('strong');
+  title.textContent = `${definition.label} 敏感度摘要`;
+  const summaryLine = document.createElement('div');
+  summaryLine.textContent = `有效格數 ${summary.validCount}；中位數 ${definition.format(summary.median)}`;
+  const bestLine = document.createElement('div');
+  bestLine.textContent = grid.best
+    ? `最佳格：權重 ${(grid.best.x * 100).toFixed(0)}%；成本 ${(grid.best.y * 10000).toFixed(1)} bps；${definition.label} ${definition.format(grid.best.value)}`
+    : '最佳格：—';
+  const warning = document.createElement('span');
+  warning.className = `status ${summary.potentialCurveFitting ? 'warn' : 'good'}`;
+  warning.textContent = summary.potentialCurveFitting ? '鄰近參數差異較大，可能存在曲線擬合。' : '鄰近參數表現相對穩健。';
+  target.append(title, summaryLine, bestLine, warning);
+  if (neighbors.average != null) {
+    const neighborLine = document.createElement('div');
+    neighborLine.textContent = `最佳點與鄰近格平均差距：${definition.format(neighbors.gapToBest)}`;
+    target.append(neighborLine);
+  }
 }
 
 function render() {
@@ -71,8 +87,8 @@ function render() {
     height: 360,
   });
   const definition = metricDefinitions[metric];
-  $('heatmapTitle').textContent = `${definition.label}：資產權重 × 交易成本`;
-  $('gridNote').textContent = `X 軸為 ${$('strategy').selectedOptions[0]?.textContent || $('strategy').value} 的配置權重；Y 軸為單次換手成本假設。空白格代表資料不足或模型未產生有效結果，不代表零報酬。`;
+  $('heatmapTitle').textContent = `${definition.label} 參數敏感度`;
+  $('gridNote').textContent = 'X 軸為資產權重，Y 軸為交易成本；結果僅代表歷史模型情境。';
 }
 
 $('run').addEventListener('click', render);
