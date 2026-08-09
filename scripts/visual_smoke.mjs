@@ -105,7 +105,7 @@ for (const viewport of viewports) {
         return stage.getBoundingClientRect().bottom <= shell.getBoundingClientRect().bottom + 1;
       }),
     }));
-    if (!state.title || state.bodyWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || errors.length) {
+    if (!state.title || state.scrollWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || errors.length) {
       failures.push({ page: pageName, viewport: viewport.name, state, errors });
     }
     if (viewport.width > 820) {
