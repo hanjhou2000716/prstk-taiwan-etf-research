@@ -60,7 +60,7 @@ function selectedRows() {
 function renderCharts() {
   const selected = selectedRows();
   if (!selected.length) return;
-  lineChart('#equity', selected.map(([id, series]) => ({ name: id, values: series.map(row => ({ value: row.nav })) })));
+  lineChart('#equity', selected.map(([id, series]) => ({ name: id, type: 'strategy-nav', unit: 'nav', values: series.map(row => ({ date: row.date, value: row.nav })) })), { capabilities: { logScale: false, table: true, range: true } });
   drawdownChart('#drawdown', selected[0][1]);
   const series = selected[0][1];
   const months = monthlyReturns(series);
