@@ -62,16 +62,16 @@ function render() {
   $('liquidations').textContent = events.filter(row => row.liquidation_event).length;
 
   lineChart('#ledger', [
-    { name: 'Debt', values: rows.map(row => ({ value: row.debt })) },
-    { name: 'Collateral', values: rows.map(row => ({ value: row.collateral_value })) },
-    { name: 'Eligible Collateral', values: rows.map(row => ({ value: Number.isFinite(row.eligible_total_value) ? row.eligible_total_value : row.eligible_collateral_value })) },
-    { name: 'Net Equity', values: rows.map(row => ({ value: row.net_equity })) },
-  ]);
+    { name: 'Debt', type: 'debt', unit: 'money', values: rows.map(row => ({ date: row.date, value: row.debt })) },
+    { name: 'Collateral', type: 'collateral', unit: 'money', values: rows.map(row => ({ date: row.date, value: row.collateral_value })) },
+    { name: 'Eligible Collateral', type: 'eligible-collateral', unit: 'money', values: rows.map(row => ({ date: row.date, value: Number.isFinite(row.eligible_total_value) ? row.eligible_total_value : row.eligible_collateral_value })) },
+    { name: 'Net Equity', type: 'net-equity', unit: 'money', values: rows.map(row => ({ date: row.date, value: row.net_equity })) },
+  ], { capabilities: { logScale: false, table: true, range: true } });
   lineChart('#maintenanceChart', [
-    { name: 'Maintenance Ratio', values: rows.map(row => ({ value: row.maintenance })) },
-    { name: `Margin Call ${pct(marginCall)}`, values: rows.map(() => ({ value: marginCall })) },
-    { name: `Forced Liquidation ${pct(liquidation)}`, values: rows.map(() => ({ value: liquidation })) },
-  ]);
+    { name: 'Maintenance Ratio', type: 'maintenance-ratio', unit: 'ratio', values: rows.map(row => ({ date: row.date, value: row.maintenance })) },
+    { name: `Margin Call ${pct(marginCall)}`, type: 'margin-call-threshold', unit: 'ratio', values: rows.map(row => ({ date: row.date, value: marginCall })) },
+    { name: `Forced Liquidation ${pct(liquidation)}`, type: 'liquidation-threshold', unit: 'ratio', values: rows.map(row => ({ date: row.date, value: liquidation })) },
+  ], { capabilities: { logScale: false, table: true, range: true } });
   $('events').replaceChildren(...events.slice(-20).reverse().map(row => {
     const item = document.createElement('div');
     item.className = 'stack-item';

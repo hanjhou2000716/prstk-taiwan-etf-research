@@ -46,3 +46,24 @@ test("brand exposes desktop and mobile platform names", () => {
   assert.equal(navigation.brand.platformName, "Leverage & Beta Platform");
   assert.equal(navigation.brand.mobilePlatformName, "L&B Platform");
 });
+
+test("lab charts expose semantic series metadata and disable invalid log scales", () => {
+  const beta = read("site/js/pages/beta-lab.js");
+  const composer = read("site/js/pages/composer.js");
+  const financing = read("site/js/pages/financing-lab.js");
+  const chart = read("site/js/charts/svg-charts.js");
+  assert.match(beta, /type: 'beta'/);
+  assert.match(beta, /logScale: false/);
+  assert.match(composer, /type: 'portfolio'/);
+  assert.match(composer, /unit: 'nav'/);
+  assert.match(financing, /type: 'maintenance-ratio'/);
+  assert.match(financing, /type: 'margin-call-threshold'/);
+  assert.match(chart, /export function drawdownChart/);
+});
+
+test("mobile lab parameter drawer restores focus after Escape", () => {
+  const workbench = read("site/js/core/lab-workbench.js");
+  assert.match(workbench, /lastFocusedElement/);
+  assert.match(workbench, /preventScroll: true/);
+  assert.match(workbench, /event\.key === "Escape"/);
+});

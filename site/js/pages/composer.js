@@ -105,7 +105,7 @@ function run() {
   $('drawdown').textContent = formatMetric(metrics.maxDrawdown, 'percent');
   $('turnover').textContent = formatMetric(result.rows.reduce((sum, row) => sum + row.turnover, 0), 'money');
   $('ending').textContent = formatMetric(metrics.endingWealth, 'number');
-  lineChart('#composerChart', [{ name: 'Portfolio NAV', values: result.rows.map(row => ({ value: row.nav })) }]);
+  lineChart('#composerChart', [{ name: 'Portfolio NAV', type: 'portfolio', unit: 'nav', values: result.rows.map(row => ({ date: row.date, value: row.nav })) }], { capabilities: { logScale: false, table: true, range: true } });
 }
 
 addAsset();

@@ -25,7 +25,7 @@ function render() {
   $('status').textContent = beta.status === 'available' ? `共同期間：${beta.start} 至 ${beta.end}，${beta.observations} 個觀測值。` : `資料不足：${beta.reason}`;
   $('beta').textContent = number(beta.beta); $('alpha').textContent = percent(beta.alpha); $('r2').textContent = percent(beta.rSquared); $('correlation').textContent = number(beta.correlation); $('tracking').textContent = percent(beta.trackingError); $('informationRatio').textContent = number(beta.informationRatio); $('upCapture').textContent = percent(beta.upCapture); $('downCapture').textContent = percent(beta.downCapture); $('cagr').textContent = percent(metrics.cagr); $('drawdown').textContent = percent(metrics.maxDrawdown);
   const rolling = rollingBeta(rows, benchmark, Number($('window').value) || 60);
-  lineChart('#rolling', [{ name: 'Rolling Beta', values: rolling.map(point => ({ date: point.date, value: point.value })) }], { percent: false });
+  lineChart('#rolling', [{ name: 'Rolling Beta', type: 'beta', unit: 'beta', values: rolling.map(point => ({ date: point.date, value: point.value })) }], { percent: false, capabilities: { logScale: false, table: true, range: true } });
   $('coverage').textContent = `資料截止日：${manifest.data_end_date || '未提供'}；Actual 與 Synthetic 仍依策略目錄分開解讀。`;
 }
 
