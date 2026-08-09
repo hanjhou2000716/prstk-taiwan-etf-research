@@ -7,12 +7,12 @@ export function listExperiments() {
 export function saveExperiment(experiment) {
   const items = listExperiments().filter(item => item.experiment_id !== experiment.experiment_id);
   const next = { ...experiment, updated_at: new Date().toISOString() };
-  localStorage.setItem(KEY, JSON.stringify([next, ...items].slice(0, 30)));
+  try { localStorage.setItem(KEY, JSON.stringify([next, ...items].slice(0, 30))); } catch { return experiment; }
   return next;
 }
 
 export function deleteExperiment(id) {
-  localStorage.setItem(KEY, JSON.stringify(listExperiments().filter(item => item.experiment_id !== id)));
+  try { localStorage.setItem(KEY, JSON.stringify(listExperiments().filter(item => item.experiment_id !== id))); } catch { /* local storage may be unavailable */ }
 }
 
 export function newExperiment(input = {}) {
@@ -35,10 +35,11 @@ export function cloneExperiment(experiment, name) {
 }
 
 export function downloadJson(data, filename = 'prstk-experiment.json') {
+  const safeName = String(filename).replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'prstk-experiment.json';
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const anchor = document.createElement('a');
   anchor.href = URL.createObjectURL(blob);
-  anchor.download = filename;
+  anchor.download = safeName;
   anchor.click();
   URL.revokeObjectURL(anchor.href);
 }
