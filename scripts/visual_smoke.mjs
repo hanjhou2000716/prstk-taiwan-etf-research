@@ -66,10 +66,14 @@ const pages = [
   "proposal.html",
 ];
 const viewports = [
-  { name: "mobile-320", width: 320, height: 780 },
+  { name: "desktop-1920", width: 1920, height: 1080 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+  { name: "desktop-1280", width: 1280, height: 800 },
+  { name: "tablet-1024", width: 1024, height: 768 },
+  { name: "tablet-768", width: 768, height: 1024 },
+  { name: "mobile-430", width: 430, height: 932 },
   { name: "mobile-390", width: 390, height: 844 },
-  { name: "tablet-768", width: 768, height: 900 },
-  { name: "desktop-1440", width: 1440, height: 1000 },
+  { name: "mobile-360", width: 360, height: 800 },
 ];
 const failures = [];
 
@@ -81,8 +85,8 @@ for (const viewport of viewports) {
     const errors = [];
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
     page.on("pageerror", (error) => errors.push(error.message));
-    await page.goto(`http://127.0.0.1:${port}/${pageName}`, { waitUntil: "domcontentloaded", timeout: 15000 });
-    await page.waitForTimeout(500);
+    await page.goto(`http://127.0.0.1:${port}/${pageName}`, { waitUntil: "networkidle", timeout: 20000 });
+    await page.waitForTimeout(300);
     const state = await page.evaluate(() => ({
       title: document.title,
       viewport: window.innerWidth,
@@ -101,7 +105,7 @@ for (const viewport of viewports) {
         return stage.getBoundingClientRect().bottom <= shell.getBoundingClientRect().bottom + 1;
       }),
     }));
-    if (!state.title || state.bodyWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || errors.length) {
+    if (!state.title || state.scrollWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || errors.length) {
       failures.push({ page: pageName, viewport: viewport.name, state, errors });
     }
     if (viewport.width > 820) {
@@ -146,8 +150,12 @@ for (const viewport of viewports) {
         failures.push({ page: pageName, viewport: viewport.name, interaction: "parameter sheet", sheetState });
       }
       await page.locator(".lab-parameters-close").click({ timeout: 5000 });
-      const sheetClosed = await page.evaluate(() => !document.body.classList.contains("lab-parameters-open"));
-      if (!sheetClosed) failures.push({ page: pageName, viewport: viewport.name, interaction: "parameter sheet close" });
+      const sheetClosed = await page.evaluate(() => ({
+        closed: !document.body.classList.contains("lab-parameters-open"),
+        focusId: document.activeElement?.id || "",
+      }));
+      if (!sheetClosed.closed) failures.push({ page: pageName, viewport: viewport.name, interaction: "parameter sheet close" });
+      if (sheetClosed.focusId !== "lab-tab-parameters") failures.push({ page: pageName, viewport: viewport.name, interaction: "parameter sheet focus restore", sheetClosed });
     }
     await page.screenshot({ path: `artifacts/ui-smoke/${viewport.name}-${pageName.replace(".html", "")}.png`, fullPage: true });
     await page.close();

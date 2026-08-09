@@ -68,6 +68,12 @@ test("mobile lab parameter drawer restores focus after Escape", () => {
   assert.match(workbench, /event\.key === "Escape"/);
 });
 
+test("global layout clips only page-level overflow while preserving local scrollers", () => {
+  const compat = read("site/styles/legacy-compat.css");
+  assert.match(compat, /html,body\{max-width:100%;overflow-x:clip\}/);
+  assert.match(compat, /\.table-wrap[^}]*overflow:auto/);
+});
+
 test("report and risk charts keep semantic, date-keyed series", () => {
   const report = read("site/js/pages/report.js");
   const lab = read("site/js/pages/research-lab.js");
