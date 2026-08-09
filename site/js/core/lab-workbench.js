@@ -80,8 +80,8 @@ if (layout) {
     button.setAttribute("aria-selected", String(index === 0));
     button.tabIndex = index === 0 ? 0 : -1;
     button.textContent = label;
-    button.addEventListener("click", () => {
-      if (view === "parameters") lastFocusedElement = document.activeElement;
+    button.addEventListener("click", (event) => {
+      if (view === "parameters") lastFocusedElement = event.currentTarget;
       activate(view, targetId);
     });
     button.addEventListener("keydown", (event) => {
