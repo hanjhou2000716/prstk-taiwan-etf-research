@@ -336,5 +336,14 @@ export function heatmap(target, matrix, { labels = [], columns = [], height = 26
   stage.className = "chart-stage";
   stage.append(plot);
   root.append(stage);
+  let lastWidth = width;
+  const observer = typeof ResizeObserver === "function" ? new ResizeObserver(() => {
+    const nextWidth = Math.max(260, Math.floor(root.clientWidth || 700));
+    if (Math.abs(nextWidth - lastWidth) < 1) return;
+    lastWidth = nextWidth;
+    heatmap(target, matrix, { labels, columns, height });
+  }) : null;
+  observer?.observe(root);
+  root.__chartCleanup = () => observer?.disconnect();
   return svg;
 }
