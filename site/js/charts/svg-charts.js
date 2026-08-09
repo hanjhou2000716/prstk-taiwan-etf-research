@@ -21,6 +21,7 @@ function normalizedSeries(series) {
     name: item?.name || item?.strategyName || item?.strategyId || `研究序列 ${index + 1}`,
     type: item?.type || "strategy",
     unit: item?.unit || "value",
+    benchmark: Boolean(item?.benchmark || item?.type === "benchmark"),
     values: (Array.isArray(item?.values) ? item.values : []).map((point, pointIndex) => ({
       date: point?.date || String(pointIndex + 1),
       value: Number(point?.value),
@@ -168,12 +169,36 @@ function renderLine(root, allSeries, options, state) {
     const dateLine = document.createElement("strong");
     dateLine.textContent = date;
     tooltip.append(dateLine);
+    const formatValue = (item, value) => {
+      if (!finite(value)) return "—";
+      if (options.percent || item.unit === "percent" || item.type === "drawdown") return `${(value * 100).toFixed(2)}%`;
+      return value.toFixed(4);
+    };
+    const primary = windowSeries.find((item) => !item.benchmark) || windowSeries[0];
+    const benchmark = windowSeries.find((item) => item.benchmark);
     windowSeries.forEach((item) => {
       const line = document.createElement("span");
       const value = item.values[index]?.value;
-      line.textContent = `${item.name}：${finite(value) ? (options.percent ? `${(value * 100).toFixed(2)}%` : value.toFixed(4)) : "—"}`;
+      line.textContent = `${item.name}：${formatValue(item, value)}`;
       tooltip.append(line);
     });
+    if (primary && primary.unit === "nav") {
+      const value = primary.values[index]?.value;
+      if (finite(value)) {
+        const returnLine = document.createElement("span");
+        returnLine.textContent = `累積報酬：${((value - 1) * 100).toFixed(2)}%`;
+        tooltip.append(returnLine);
+      }
+    }
+    if (benchmark && primary) {
+      const strategyValue = primary.values[index]?.value;
+      const benchmarkValue = benchmark.values[index]?.value;
+      if (finite(strategyValue) && finite(benchmarkValue) && benchmarkValue !== 0) {
+        const excessLine = document.createElement("span");
+        excessLine.textContent = `相對 ${benchmark.name}：${(((strategyValue / benchmarkValue) - 1) * 100).toFixed(2)}%`;
+        tooltip.append(excessLine);
+      }
+    }
     tooltip.hidden = false;
   };
   overlay.addEventListener("pointermove", showPoint);

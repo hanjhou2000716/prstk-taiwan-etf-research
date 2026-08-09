@@ -47,6 +47,7 @@ const browser = await chromium.launch({
 await mkdir("artifacts/ui-smoke", { recursive: true });
 const pages = [
   "index.html",
+  /* TEMP */
   "composer.html",
   "research-lab.html",
   "beta-lab.html",
@@ -75,18 +76,20 @@ const viewports = [
   { name: "mobile-390", width: 390, height: 844 },
   { name: "mobile-360", width: 360, height: 800 },
 ];
+const selectedPages = process.env.PRSTK_SMOKE_PAGES ? pages.filter((page) => process.env.PRSTK_SMOKE_PAGES.split(",").includes(page)) : pages;
+const selectedViewports = process.env.PRSTK_SMOKE_VIEWPORTS ? viewports.filter((viewport) => process.env.PRSTK_SMOKE_VIEWPORTS.split(",").includes(viewport.name)) : viewports;
 const failures = [];
 
-for (const viewport of viewports) {
+for (const viewport of selectedViewports) {
   const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
-  for (const pageName of pages) {
+  for (const pageName of selectedPages) {
     console.log(`smoke: ${viewport.name} ${pageName}`);
     const page = await context.newPage();
     const errors = [];
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
     page.on("pageerror", (error) => errors.push(error.message));
-    await page.goto(`http://127.0.0.1:${port}/${pageName}`, { waitUntil: "networkidle", timeout: 20000 });
-    await page.waitForTimeout(300);
+    await page.goto(`http://127.0.0.1:${port}/${pageName}`, { waitUntil: "domcontentloaded", timeout: 20000 });
+    await page.waitForTimeout(500);
     const state = await page.evaluate(() => ({
       title: document.title,
       viewport: window.innerWidth,

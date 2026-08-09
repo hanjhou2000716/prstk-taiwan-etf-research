@@ -7,22 +7,7 @@
     <link rel="stylesheet" href="styles/design-system.css?v=20260808-ds2">
   </head>
   <body>
-    <header class="site-header">
-      <div class="site-shell header-inner">
-        <a class="brand-pair" href="index.html" aria-label="PRStK 與 SFC.e 台灣 ETF 研究平台">
-          <img src="assets/PRStK-Remove.png" alt="PRStK" class="brand-logo">
-          <span class="brand-divider" aria-hidden="true">|</span>
-          <img src="assets/SFC.e-removebg-preview.png" alt="SFC.e" class="brand-logo">
-          <span class="brand-platform-name">Taiwan ETF Quantitative Research Platform</span>
-        </a>
-        <nav class="nav" aria-label="主要導覽">
-          <a href="index.html">研究總覽</a>
-          <a href="research-lab.html">策略實驗室</a>
-          <a href="horizons.html" class="active" aria-current="page">長期視窗</a>
-          <a href="report.html">研究報告</a>
-        </nav>
-      </div>
-    </header>
+    <header class="site-header" data-site-header></header>
     <main class="site-shell">
       <div class="breadcrumb"><a href="index.html">研究總覽</a><span>/</span><span>長期視窗</span></div>
       <section class="hero fade-in">
@@ -68,5 +53,5 @@
         .catch(() => { rows.innerHTML = '<tr><td colspan="6">資料目前不可用。</td></tr>'; });
     </script>
     <script type="module" src="js/core/site-header.js?v=20260808-nav2"></script>
-  </body>
+  <script type="module" src="js/core/legacy-archive.js?v=20260809-archive1"></script></body>
 </html>

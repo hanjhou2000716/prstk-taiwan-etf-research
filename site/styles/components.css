@@ -48,6 +48,10 @@
 .risk-map-figure circle{cursor:pointer}
 .risk-map-figure circle:focus{outline:0;stroke:#242424;stroke-width:3}
 .risk-map-legend{display:flex;flex-wrap:wrap;gap:var(--ds-space-3);margin-top:var(--ds-space-3)}
+.legacy-archive-banner{align-items:center;background:var(--ds-accent-soft);border:1px solid var(--ds-line);display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--ds-space-5);padding:12px 14px}
+.legacy-archive-banner strong{color:var(--ds-ink);font-size:12px}
+.legacy-archive-banner span{color:var(--ds-muted);font-size:12px}
+.legacy-archive-banner a{font-size:12px}
 .risk-map-legend label{align-items:center;color:var(--ds-muted);display:inline-flex;font-size:12px;gap:6px}
 .risk-map-legend input{accent-color:var(--ds-accent)}
 .risk-map-table{border-collapse:collapse;font-size:12px;margin-top:var(--ds-space-5);width:100%}
