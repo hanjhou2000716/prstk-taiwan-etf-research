@@ -21,12 +21,12 @@
 .chart-legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--ds-space-2)}
 .chart-legend__item{border-left:3px solid var(--chart-color);padding-left:8px}
 .chart-legend__item[aria-pressed="false"]{border-left-color:var(--ds-line);opacity:.55;text-decoration:line-through}
-.chart-plot{position:relative;width:100%}
+.chart-plot{min-height:inherit;position:relative;width:100%}
 .chart-plot svg{display:block;height:auto;overflow:visible;width:100%}
 .chart-tooltip{background:rgba(36,36,34,.94);color:#fff;display:grid;gap:3px;left:12px;max-width:min(280px,calc(100% - 24px));padding:8px 10px;pointer-events:none;position:absolute;top:12px;z-index:2}
 .chart-tooltip span{font-size:11px}
 .chart-tooltip--heatmap{bottom:8px;left:8px;right:auto;top:auto}
-.chart-data-table{border-collapse:collapse;font-size:12px;margin-top:var(--ds-space-3);max-height:260px;overflow:auto;width:100%}
+.chart-data-table{border-collapse:collapse;font-size:12px;margin-top:var(--ds-space-3);width:100%}
 .chart-data-table caption{text-align:left}
 .chart-data-table th,.chart-data-table td{border-bottom:1px solid var(--ds-line);padding:6px;text-align:right;white-space:nowrap}
 .chart-data-table th:first-child,.chart-data-table td:first-child{text-align:left}
@@ -43,8 +43,8 @@
 .form-card > .button{width:100%}
 .hero-actions{display:flex;flex-wrap:wrap;gap:var(--ds-space-3);margin-top:var(--ds-space-5)}
 .hero-actions .button{min-width:150px}
-.risk-map-figure{margin:0;overflow-x:auto}
-.risk-map-figure svg{display:block;min-width:620px;width:100%}
+.risk-map-figure{margin:0;min-width:0;overflow:hidden}
+.risk-map-figure svg{display:block;height:auto;max-width:100%;width:100%}
 .risk-map-figure circle{cursor:pointer}
 .risk-map-figure circle:focus{outline:0;stroke:#242424;stroke-width:3}
 .risk-map-legend{display:flex;flex-wrap:wrap;gap:var(--ds-space-3);margin-top:var(--ds-space-3)}

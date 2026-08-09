@@ -90,12 +90,26 @@ for (const viewport of viewports) {
       scrollWidth: document.documentElement.scrollWidth,
       bodyWidth: document.body.scrollWidth,
       navLinks: document.querySelectorAll(".site-header .nav a").length,
+      primaryNavLinks: document.querySelectorAll(".site-header .nav > a").length,
+      navGroups: document.querySelectorAll(".site-header .nav > .nav-menu").length,
       chartCount: document.querySelectorAll(".chart-plot svg, #riskMap svg").length,
       hasMenu: Boolean(document.querySelector(".menu-toggle")),
       hasLabTabs: Boolean(document.querySelector(".lab-mobile-tabs")),
+      chartBounds: [...document.querySelectorAll(".chart-shell")].map((shell) => {
+        const stage = shell.querySelector(".chart-stage");
+        if (!stage) return true;
+        return stage.getBoundingClientRect().bottom <= shell.getBoundingClientRect().bottom + 1;
+      }),
     }));
-    if (!state.title || state.bodyWidth > state.viewport + 1 || errors.length) {
+    if (!state.title || state.bodyWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || errors.length) {
       failures.push({ page: pageName, viewport: viewport.name, state, errors });
+    }
+    if (viewport.width > 820) {
+      for (const summary of await page.locator(".site-header .nav-menu > summary").all()) {
+        await summary.click();
+        const isOpen = await summary.evaluate((element) => element.parentElement?.open === true);
+        if (!isOpen) failures.push({ page: pageName, viewport: viewport.name, interaction: "navigation group toggle" });
+      }
     }
     if (viewport.width <= 820 && state.hasMenu) {
       const menuButton = page.locator(".menu-toggle");

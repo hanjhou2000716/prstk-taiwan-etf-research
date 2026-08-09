@@ -41,6 +41,8 @@ function strategyHref(strategyId) {
 }
 
 export function renderRiskMap(target, rows) {
+  target.__riskMapCleanup?.();
+  target.__riskMapCleanup = null;
   target.replaceChildren();
   const validRows = finiteRows(rows);
   if (!validRows.length) {
@@ -51,7 +53,7 @@ export function renderRiskMap(target, rows) {
     return;
   }
 
-  const width = Math.max(620, target.clientWidth || 820);
+  const width = Math.max(320, Math.floor(target.clientWidth || 820));
   const height = 390;
   const pad = { left: 62, right: 24, top: 24, bottom: 48 };
   const innerWidth = width - pad.left - pad.right;
@@ -207,4 +209,7 @@ export function renderRiskMap(target, rows) {
   tableWrap.className = "table-scroll";
   tableWrap.append(table);
   target.append(tableWrap);
+  const observer = typeof ResizeObserver === "function" ? new ResizeObserver(() => renderRiskMap(target, rows)) : null;
+  observer?.observe(target);
+  target.__riskMapCleanup = () => observer?.disconnect();
 }

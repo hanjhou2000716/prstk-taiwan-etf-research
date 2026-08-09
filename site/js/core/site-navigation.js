@@ -43,6 +43,8 @@ function groupNode(group, page) {
   const summary = document.createElement("summary");
   summary.textContent = group.label;
   summary.setAttribute("aria-label", group.label + "選單");
+  summary.setAttribute("aria-expanded", "false");
+  details.addEventListener("toggle", () => summary.setAttribute("aria-expanded", String(details.open)));
   details.append(summary);
 
   const panel = document.createElement("div");

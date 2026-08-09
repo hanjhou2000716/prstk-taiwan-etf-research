@@ -1,36 +1,39 @@
 {
   "brand": {
     "home": "index.html",
-    "ariaLabel": "PRStK 與 SFC.e 台灣 ETF 量化研究平台",
-    "platformName": "Taiwan ETF Quantitative Research Platform"
+    "ariaLabel": "PRStK 與 SFC.e Leverage & Beta Platform",
+    "platformName": "Leverage & Beta Platform",
+    "mobilePlatformName": "L&B Platform"
   },
   "primary": [
-    { "href": "index.html", "label": "研究總覽" },
-    { "href": "research-lab.html", "label": "策略實驗室" },
-    { "href": "compare.html", "label": "策略比較" },
-    { "href": "risk-lab.html", "label": "風險中心" },
-    { "href": "report.html", "label": "研究報告" }
+    { "href": "index.html", "label": "研究總覽" }
   ],
   "groups": [
     {
-      "label": "研究工具",
+      "id": "research-lab",
+      "label": "研究實驗室",
       "eyebrow": "BUILD & ANALYZE",
       "items": [
-        { "href": "composer.html", "label": "Portfolio Composer", "description": "組合配置與再平衡" },
-        { "href": "beta-lab.html", "label": "Beta Lab", "description": "Beta、Alpha 與相關性" },
-        { "href": "leverage-lab.html", "label": "Leverage Lab", "description": "槓桿差距與波動耗損" },
-        { "href": "financing-lab.html", "label": "Financing Lab", "description": "質押帳本與融資成本" },
-        { "href": "stress-test.html", "label": "Stress Test", "description": "維持率與壓力情境" }
+        { "href": "research-lab.html", "label": "策略實驗室", "description": "調整參數並執行策略回測" },
+        { "href": "composer.html", "label": "Portfolio Composer", "description": "組合資產、權重與再平衡" },
+        { "href": "beta-lab.html", "label": "Beta Lab", "description": "分析 Beta、Alpha 與 Rolling Beta" },
+        { "href": "leverage-lab.html", "label": "Leverage Lab", "description": "拆解槓桿捕捉率與波動耗損" },
+        { "href": "financing-lab.html", "label": "Financing Lab", "description": "檢查質押帳本與維持率" },
+        { "href": "risk-lab.html", "label": "Risk Lab", "description": "分析回撤、危機與尾端風險" },
+        { "href": "stress-test.html", "label": "壓力測試", "description": "模擬跌幅、LTV 與清算情境" }
       ]
     },
     {
-      "label": "資料與審核",
-      "eyebrow": "EVIDENCE",
+      "id": "research-center",
+      "label": "研究中心",
+      "eyebrow": "EVIDENCE & REPORTS",
       "items": [
-        { "href": "strategies.html", "label": "策略資料庫", "description": "策略狀態與資料類型" },
-        { "href": "sensitivity.html", "label": "參數敏感度", "description": "鄰近參數與穩健區域" },
-        { "href": "methodology.html", "label": "資料與方法", "description": "資料口徑與模型限制" },
-        { "href": "audit.html", "label": "研究審核", "description": "驗證層級與發布閘門" }
+        { "href": "compare.html", "label": "策略比較", "description": "以共同期間比較多個策略" },
+        { "href": "strategies.html", "label": "策略資料庫", "description": "查看實作狀態與資料限制" },
+        { "href": "sensitivity.html", "label": "敏感度分析", "description": "檢查參數穩健區域" },
+        { "href": "report.html", "label": "研究報告", "description": "查看圖表、績效與研究限制" },
+        { "href": "methodology.html", "label": "資料與方法", "description": "了解資料口徑與模型假設" },
+        { "href": "audit.html", "label": "研究審核", "description": "追蹤驗證狀態與發布閘門" }
       ]
     }
   ],
