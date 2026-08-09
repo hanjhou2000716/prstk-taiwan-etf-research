@@ -44,6 +44,8 @@ if (layout) {
     ["parameters", "參數", "lab-parameters"],
   ];
 
+  let lastFocusedElement = null;
+
   const activate = (view, targetId) => {
     layout.dataset.labView = view;
     const parameterView = view === "parameters";
@@ -73,7 +75,10 @@ if (layout) {
     button.setAttribute("aria-selected", String(index === 0));
     button.tabIndex = index === 0 ? 0 : -1;
     button.textContent = label;
-    button.addEventListener("click", () => activate(view, targetId));
+    button.addEventListener("click", () => {
+      if (view === "parameters") lastFocusedElement = document.activeElement;
+      activate(view, targetId);
+    });
     button.addEventListener("keydown", (event) => {
       if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
       event.preventDefault();
@@ -89,7 +94,8 @@ if (layout) {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && layout.dataset.labView === "parameters") {
       activate("summary", "lab-summary");
-      tabs.querySelector('[data-lab-view="summary"]')?.focus();
+      (lastFocusedElement instanceof HTMLElement ? lastFocusedElement : tabs.querySelector('[data-lab-view="summary"]'))?.focus({ preventScroll: true });
+      lastFocusedElement = null;
     }
   });
   window.addEventListener("resize", () => {
