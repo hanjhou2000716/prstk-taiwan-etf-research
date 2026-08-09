@@ -1,4 +1,4 @@
-.table-wrap{background:var(--ds-surface);border:1px solid var(--ds-line);overflow:auto}
+.table-wrap{background:var(--ds-surface);border:1px solid var(--ds-line);max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;width:100%}
 .data-table{border-collapse:collapse;font-size:13px;width:100%}
 .data-table th,.data-table td{border-bottom:1px solid var(--ds-line);padding:12px 14px;text-align:right;white-space:nowrap}
 .data-table th:first-child,.data-table td:first-child{text-align:left}
