@@ -11,6 +11,8 @@ jobs:
       - run: python -m pytest
       - name: Validate site contracts
         run: python scripts/validate_site.py
+      - name: Validate publish contract
+        run: python scripts/validate_publish_contract.py
       - name: Validate research contracts
         run: python scripts/validate_research_contracts.py
       - name: Check JavaScript modules
