@@ -78,3 +78,10 @@ test("report and risk charts keep semantic, date-keyed series", () => {
   assert.match(risk, /type: 'rolling-cagr'/);
   assert.match(risk, /type: 'rolling-volatility'/);
 });
+
+test("report metrics are finalized through text nodes", () => {
+  const report = read("site/js/pages/report.js");
+  assert.match(report, /const metricsBody = document\.querySelector\('#metrics'\)/);
+  assert.match(report, /metricsBody\.replaceChildren/);
+  assert.match(report, /cell\.textContent = String\(value\)/);
+});
