@@ -49,5 +49,5 @@ test("global overflow is not used as a blanket page mask", () => {
   const legacy = read("site/styles/legacy-compat.css");
   assert.doesNotMatch(base, /body\{[^}]*overflow-x/);
   assert.doesNotMatch(legacy, /html,body\{max-width:100%;overflow-x/);
-  assert.match(read("site/styles/tables.css"), /overflow:auto/);
+  assert.match(read("site/styles/tables.css"), /overflow-x:auto/);
 });
