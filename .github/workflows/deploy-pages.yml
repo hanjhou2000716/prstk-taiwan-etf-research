@@ -28,6 +28,8 @@ jobs:
               if '</html>' in text and text.split('</html>', 1)[1].strip():
                   raise SystemExit(f'invalid trailing content after </html>: {name}')
           PY
+      - name: Validate publish contract
+        run: python scripts/validate_publish_contract.py
       - name: Write deployment metadata
         env:
           SITE_COMMIT: ${{ github.sha }}
