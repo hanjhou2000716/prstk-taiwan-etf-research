@@ -85,8 +85,8 @@ for (const viewport of viewports) {
     const errors = [];
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
     page.on("pageerror", (error) => errors.push(error.message));
-    await page.goto(`http://127.0.0.1:${port}/${pageName}`, { waitUntil: "domcontentloaded", timeout: 15000 });
-    await page.waitForTimeout(500);
+    await page.goto(`http://127.0.0.1:${port}/${pageName}`, { waitUntil: "networkidle", timeout: 20000 });
+    await page.waitForTimeout(300);
     const state = await page.evaluate(() => ({
       title: document.title,
       viewport: window.innerWidth,
