@@ -6,6 +6,8 @@ Every public page provides a semantic header placeholder. `site/js/core/site-hea
 
 The drawer supports keyboard focus, Escape to close, outside-click close, `aria-expanded`, `aria-controls`, and focus restoration. No page should recreate the brand through CSS pseudo-elements.
 
+The header contract is a single flex row on desktop: brand, flexible space, and navigation. At mobile widths the brand remains one row with `L&B Platform` and an icon-only 44px menu button. The two first-level research groups are generated from `site/data/navigation.json`; individual pages do not own a second navigation tree.
+
 ## Research workbench
 
 Research pages use one of two shared shells:
@@ -18,6 +20,8 @@ Research pages use one of two shared shells:
 ## Chart contract
 
 `site/js/charts/svg-charts.js` is the shared chart adapter. Pages pass already aligned rows and metric results to `lineChart`, `drawdownChart`, or `heatmap`. The adapter provides legend state, scale toggle, recent-window zoom, crosshair tooltip, and an accessible data table. It does not calculate portfolio returns or invent missing values.
+
+Chart resize is owned by the shared adapter through `ResizeObserver`. Page modules must not redraw charts from a global `window.resize` listener. Every series should provide a semantic name, type, and unit. Tooltips expose the date, value, cumulative return where applicable, and benchmark excess when a benchmark series is present.
 
 ## Data and state
 
@@ -36,3 +40,11 @@ Research pages use one of two shared shells:
 | Compare | Common-period comparison and canonical comparison table |
 | Report | Research narrative and chart presentation |
 | Audit / Methodology | Sources, model assumptions, validation state, and limitations |
+
+## Legacy route policy
+
+`builder.html`, `dashboard.html`, `horizons.html`, and `proposal.html` are historical compatibility routes, not a second product surface. They display an archive notice with a link to the current Research Lab, Compare, or Methodology destination. New features belong only on current routes.
+
+## Runtime safety
+
+Data-driven labels are inserted with DOM text nodes rather than string-interpolated HTML. Experiment storage is local-only, handles unavailable storage without breaking the page, limits serialized share state, and sanitizes download filenames. Research results remain blocked when reconciliation evidence is incomplete.

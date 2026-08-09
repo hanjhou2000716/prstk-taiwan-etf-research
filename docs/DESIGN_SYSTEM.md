@@ -22,6 +22,8 @@ The public site uses a low-saturation editorial research visual language: warm p
 - Use tabular numerals for metrics and two decimal places for percentages in presentation code.
 - Keep research data tables available behind chart controls for keyboard and screen-reader users.
 - Honor `prefers-reduced-motion`; transitions should explain state changes, not decorate every interaction.
+- Keep local overflow ownership explicit: tables and horizontal lab tabs may scroll within their own containers; `body` and `html` must not hide layout defects with a blanket overflow mask.
+- Use status text together with color so Verified, Experimental, Synthetic, Warning, and Blocked states remain understandable without color vision.
 
 ## Responsive behavior
 
