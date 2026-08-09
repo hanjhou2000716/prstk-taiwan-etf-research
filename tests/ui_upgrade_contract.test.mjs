@@ -64,6 +64,7 @@ test("lab charts expose semantic series metadata and disable invalid log scales"
 test("mobile lab parameter drawer restores focus after Escape", () => {
   const workbench = read("site/js/core/lab-workbench.js");
   assert.match(workbench, /lastFocusedElement/);
+  assert.match(workbench, /lastFocusedElement = event\.currentTarget/);
   assert.match(workbench, /preventScroll: true/);
   assert.match(workbench, /event\.key === "Escape"/);
 });
