@@ -66,10 +66,14 @@ const pages = [
   "proposal.html",
 ];
 const viewports = [
-  { name: "mobile-320", width: 320, height: 780 },
+  { name: "desktop-1920", width: 1920, height: 1080 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+  { name: "desktop-1280", width: 1280, height: 800 },
+  { name: "tablet-1024", width: 1024, height: 768 },
+  { name: "tablet-768", width: 768, height: 1024 },
+  { name: "mobile-430", width: 430, height: 932 },
   { name: "mobile-390", width: 390, height: 844 },
-  { name: "tablet-768", width: 768, height: 900 },
-  { name: "desktop-1440", width: 1440, height: 1000 },
+  { name: "mobile-360", width: 360, height: 800 },
 ];
 const failures = [];
 
@@ -146,8 +150,12 @@ for (const viewport of viewports) {
         failures.push({ page: pageName, viewport: viewport.name, interaction: "parameter sheet", sheetState });
       }
       await page.locator(".lab-parameters-close").click({ timeout: 5000 });
-      const sheetClosed = await page.evaluate(() => !document.body.classList.contains("lab-parameters-open"));
-      if (!sheetClosed) failures.push({ page: pageName, viewport: viewport.name, interaction: "parameter sheet close" });
+      const sheetClosed = await page.evaluate(() => ({
+        closed: !document.body.classList.contains("lab-parameters-open"),
+        focusId: document.activeElement?.id || "",
+      }));
+      if (!sheetClosed.closed) failures.push({ page: pageName, viewport: viewport.name, interaction: "parameter sheet close" });
+      if (sheetClosed.focusId !== "lab-tab-parameters") failures.push({ page: pageName, viewport: viewport.name, interaction: "parameter sheet focus restore", sheetClosed });
     }
     await page.screenshot({ path: `artifacts/ui-smoke/${viewport.name}-${pageName.replace(".html", "")}.png`, fullPage: true });
     await page.close();

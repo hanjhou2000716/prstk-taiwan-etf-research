@@ -27,7 +27,12 @@ if (layout) {
     closeButton.setAttribute("aria-label", "關閉參數設定");
     closeButton.textContent = "關閉參數";
     parameters.prepend(closeButton);
-    closeButton.addEventListener("click", () => activate("summary", "lab-summary"));
+    closeButton.addEventListener("click", () => {
+      const returnFocus = lastFocusedElement;
+      activate("summary", "lab-summary");
+      (returnFocus instanceof HTMLElement ? returnFocus : document.getElementById("lab-tab-summary"))?.focus({ preventScroll: true });
+      lastFocusedElement = null;
+    });
   }
   summary?.setAttribute("id", "lab-summary");
   charts?.setAttribute("id", "lab-charts");
