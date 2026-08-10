@@ -11,13 +11,23 @@
     "formula_note": "maintenance_ratio = eligible_collateral_market_value / debt_principal",
     "forced_liquidation_ratio": 1.1,
     "liquidation_haircut": 0.05,
+    "collateral_assets": {
+      "006208": {
+        "eligibility": "verified",
+        "eligible_fraction": 1.0
+      },
+      "00685L": {
+        "eligibility": "unknown",
+        "eligible_fraction": 0.0
+      }
+    },
     "strategy_overrides": {
       "pledge_00685L_buy_006208": {
-        "internal_risk_buffer": 3.0,
+        "recommended_minimum_maintenance": 3.0,
         "target_debt_ratio": 0.2
       },
       "pledge_00685L_buy_00685L": {
-        "internal_risk_buffer": 4.0,
+        "recommended_minimum_maintenance": 4.0,
         "target_debt_ratio": 0.2
       }
     }
