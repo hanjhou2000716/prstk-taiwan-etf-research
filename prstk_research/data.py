@@ -3,9 +3,9 @@ from __future__ import annotations
 import calendar, csv, hashlib, json, ssl, time
 from datetime import date, datetime
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urljoin
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_opener, urlopen
 
 try:
     import certifi
@@ -13,9 +13,134 @@ try:
 except ImportError:
     TLS_CONTEXT = ssl.create_default_context()
 
-URL = "https://www.twse.com.tw/exchangeReport/STOCK_DAY"
+TWSE_ENDPOINTS = (
+    "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY",
+    "https://www.twse.com.tw/exchangeReport/STOCK_DAY",
+)
+URL = TWSE_ENDPOINTS[0]
 CBOE_VIX_URL = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
 HEADERS = {"User-Agent": "PRStK-Research/0.1 (+research; contact unavailable)"}
+RETRYABLE_HTTP_CODES = frozenset({429, 500, 502, 503, 504})
+REDIRECT_CODES = frozenset({301, 302, 303, 307, 308})
+MAX_ATTEMPTS = 5
+MAX_REDIRECTS = 3
+
+
+class _NoRedirectHandler(HTTPRedirectHandler):
+    """Expose redirects to the bounded downloader instead of following forever."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def _twse_opener():
+    return build_opener(
+        _NoRedirectHandler(),
+        HTTPSHandler(context=TLS_CONTEXT),
+    )
+
+
+def _request_url(endpoint: str, params: str) -> str:
+    separator = "&" if "?" in endpoint else "?"
+    return f"{endpoint}{separator}{params}"
+
+
+def _redirect_target(current_url: str, location: str, params: str) -> str:
+    target = urljoin(current_url, location)
+    if "?" not in target:
+        target = _request_url(target, params)
+    return target
+
+
+def _validate_twse_payload(payload: bytes, source_url: str) -> dict:
+    try:
+        document = json.loads(payload.decode("utf-8-sig"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"TWSE response is not valid JSON: {source_url}; error={exc}") from exc
+    if not isinstance(document, dict):
+        raise RuntimeError(f"TWSE response must be a JSON object: {source_url}")
+    if document.get("stat") != "OK":
+        raise RuntimeError(
+            f"TWSE response status is not OK: {source_url}; stat={document.get('stat')!r}"
+        )
+    if not isinstance(document.get("data"), list):
+        raise RuntimeError(f"TWSE response data must be a list: {source_url}")
+    return document
+
+
+def _download_endpoint(
+    endpoint: str,
+    params: str,
+    symbol: str,
+    year: int,
+    month: int,
+    *,
+    opener=None,
+    sleep=time.sleep,
+) -> bytes:
+    """Download one official endpoint with bounded redirects and retries."""
+    opener = opener or _twse_opener()
+    last_error = None
+    for attempt in range(MAX_ATTEMPTS):
+        current_url = _request_url(endpoint, params)
+        visited = set()
+        redirects = 0
+        redirect_chain = []
+        try:
+            while True:
+                if current_url in visited:
+                    chain = " -> ".join(redirect_chain + [current_url])
+                    raise RuntimeError(
+                        f"TWSE redirect loop for {symbol} {year:04d}-{month:02d}: {chain}"
+                    )
+                if redirects > MAX_REDIRECTS:
+                    chain = " -> ".join(redirect_chain)
+                    raise RuntimeError(
+                        f"TWSE redirect limit exceeded for {symbol} {year:04d}-{month:02d}: {chain}"
+                    )
+                visited.add(current_url)
+                request = Request(current_url, headers=HEADERS)
+                try:
+                    with opener.open(request, timeout=30) as response:
+                        status = response.getcode() if hasattr(response, "getcode") else getattr(response, "status", None)
+                        if status not in (None, 200):
+                            raise RuntimeError(
+                                f"TWSE response HTTP status is not successful: {current_url}; status={status}"
+                            )
+                        payload = response.read()
+                except HTTPError as exc:
+                    code = getattr(exc, "code", None)
+                    if code in REDIRECT_CODES:
+                        location = exc.headers.get("Location") if exc.headers else None
+                        if not location:
+                            raise RuntimeError(
+                                f"TWSE redirect missing Location for {symbol} {year:04d}-{month:02d}: "
+                                f"status={code}; url={current_url}"
+                            ) from exc
+                        next_url = _redirect_target(current_url, location, params)
+                        redirect_chain.append(f"{current_url} [{code}] {next_url}")
+                        redirects += 1
+                        current_url = next_url
+                        continue
+                    if code in RETRYABLE_HTTP_CODES:
+                        raise
+                    raise RuntimeError(
+                        f"TWSE download failed for {symbol} {year:04d}-{month:02d}: "
+                        f"status={code}; url={current_url}"
+                    ) from exc
+                except URLError:
+                    raise
+                _validate_twse_payload(payload, current_url)
+                return payload
+        except (HTTPError, URLError, RuntimeError) as exc:
+            last_error = exc
+            if attempt == MAX_ATTEMPTS - 1:
+                break
+            sleep(2 ** attempt)
+    raise RuntimeError(
+        f"TWSE endpoint failed for {symbol} {year:04d}-{month:02d}: {endpoint}; "
+        f"attempts={MAX_ATTEMPTS}; last_error={last_error}"
+    ) from last_error
 
 def sha256(path: Path) -> str:
     h = hashlib.sha256()
@@ -23,34 +148,43 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: f.read(1024 * 1024), b""): h.update(chunk)
     return h.hexdigest()
 
-def download_month(symbol: str, year: int, month: int, raw_dir: Path, pause: float = .25) -> Path:
+def download_month(
+    symbol: str,
+    year: int,
+    month: int,
+    raw_dir: Path,
+    pause: float = .25,
+    *,
+    opener=None,
+    sleep=time.sleep,
+) -> Path:
     raw_dir.mkdir(parents=True, exist_ok=True)
     path = raw_dir / f"{symbol}_{year:04d}-{month:02d}.json"
     if path.exists(): return path
     params = urlencode({"date": f"{year:04d}{month:02d}01", "stockNo": symbol, "response": "json"})
-    req = Request(f"{URL}?{params}", headers=HEADERS)
-    payload = None
-    last_error = None
-    # TWSE's CDN can briefly return 307/429 during long historical pulls.
-    # Retry the same official URL instead of silently substituting another source.
-    for attempt in range(5):
+    errors = []
+    for endpoint in TWSE_ENDPOINTS:
         try:
-            with urlopen(req, timeout=30, context=TLS_CONTEXT) as response:
-                payload = response.read()
-            break
-        except (HTTPError, URLError) as exc:
-            last_error = exc
-            code = getattr(exc, "code", None)
-            if code not in {307, 429, 500, 502, 503, 504} and not isinstance(exc, URLError):
-                raise
-            if attempt == 4:
-                raise RuntimeError(f"TWSE download failed after retries: {req.full_url}; last_error={exc}") from exc
-            time.sleep(2 ** attempt)
-    if payload is None:
-        raise RuntimeError(f"TWSE download returned no payload: {req.full_url}; last_error={last_error}")
-    path.write_bytes(payload)
-    time.sleep(pause)
-    return path
+            payload = _download_endpoint(
+                endpoint,
+                params,
+                symbol,
+                year,
+                month,
+                opener=opener,
+                sleep=sleep,
+            )
+            # _download_endpoint validates before returning. Keep the write as
+            # the final operation so malformed/error responses never become raw data.
+            path.write_bytes(payload)
+            time.sleep(pause)
+            return path
+        except RuntimeError as exc:
+            errors.append(f"{endpoint}: {exc}")
+    raise RuntimeError(
+        f"TWSE download failed for {symbol} {year:04d}-{month:02d}; "
+        f"official_endpoints={' | '.join(errors)}"
+    ) from None
 
 def parse_twse_json(path: Path) -> list[dict]:
     obj = json.loads(path.read_text(encoding="utf-8-sig"))
