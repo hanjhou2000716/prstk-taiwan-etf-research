@@ -50,6 +50,7 @@ def test_rwd_payload_is_validated_and_written(tmp_path):
     assert path.exists()
     assert json.loads(path.read_text(encoding="utf-8"))["stat"] == "OK"
     assert "/rwd/zh/afterTrading/STOCK_DAY?" in opener.urls[0]
+    assert "stockNo=0050&date=20100601&response=json" in opener.urls[0]
 
 
 def test_308_redirect_is_followed_once_and_does_not_loop(tmp_path):

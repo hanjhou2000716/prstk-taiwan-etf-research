@@ -15,6 +15,24 @@ from .engine.beta import calculate_beta_metrics
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
+def download_start_date(global_start: date, listing: date | None) -> date:
+    """Choose the first month the TWSE monthly report can represent.
+
+    Some newly listed ETFs have a listing date inside a month for which the
+    official STOCK_DAY monthly report returns no rows.  Do not manufacture a
+    partial month: begin with the next complete month while preserving the
+    actual listing date in the instrument metadata.
+    """
+    if listing is None:
+        return global_start
+    start = max(global_start, listing)
+    if listing > global_start and listing.day > 1:
+        if start.month == 12:
+            return date(start.year + 1, 1, 1)
+        return date(start.year, start.month + 1, 1)
+    return start
+
 def load_json(p):
     return json.loads(p.read_text(encoding="utf-8"))
 
@@ -31,7 +49,8 @@ def run(download=False):
     corporate_action_report = {}
     for symbol in ("0050", "006208", "00685L", "00631L"):
         listing = instruments.get(symbol, {}).get("listing_date") or {"006208": "2012-06-22"}.get(symbol)
-        symbol_start = max(start, date.fromisoformat(listing)) if listing else start
+        listing_date = date.fromisoformat(listing) if listing else None
+        symbol_start = download_start_date(start, listing_date)
         if download:
             all_files.extend(download_month(symbol, y, m, raw, cfg["download_pause_seconds"])
                              for y, m in months(symbol_start, end))

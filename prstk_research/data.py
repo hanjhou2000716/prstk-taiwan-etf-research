@@ -19,7 +19,13 @@ TWSE_ENDPOINTS = (
 )
 URL = TWSE_ENDPOINTS[0]
 CBOE_VIX_URL = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
-HEADERS = {"User-Agent": "PRStK-Research/0.1 (+research; contact unavailable)"}
+HEADERS = {
+    "User-Agent": "PRStK-Research/0.1 (+research; contact unavailable)",
+    # Match the normal browser/curl request accepted by the TWSE CDN.  With
+    # no explicit Accept header the CDN can return a same-URL 308 for some
+    # historical cache keys instead of the JSON response.
+    "Accept": "*/*",
+}
 RETRYABLE_HTTP_CODES = frozenset({429, 500, 502, 503, 504})
 REDIRECT_CODES = frozenset({301, 302, 303, 307, 308})
 MAX_ATTEMPTS = 5
@@ -161,7 +167,10 @@ def download_month(
     raw_dir.mkdir(parents=True, exist_ok=True)
     path = raw_dir / f"{symbol}_{year:04d}-{month:02d}.json"
     if path.exists(): return path
-    params = urlencode({"date": f"{year:04d}{month:02d}01", "stockNo": symbol, "response": "json"})
+    # Keep the order used by the current TWSE CDN cache key.  The equivalent
+    # date-first query intermittently returns a same-URL 308 from the CDN for
+    # older months, while this official parameter order returns JSON directly.
+    params = urlencode({"stockNo": symbol, "date": f"{year:04d}{month:02d}01", "response": "json"})
     errors = []
     for endpoint in TWSE_ENDPOINTS:
         try:

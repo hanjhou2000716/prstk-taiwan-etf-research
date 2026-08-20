@@ -50,3 +50,11 @@ never treated as zero distributions.
 current validation gates. `partially_implemented`, `experimental`, and
 `synthetic_only` must remain visually distinct. `not_separately_verified`
 means a price series must not be called Total Return.
+
+## TWSE coverage boundary
+
+The current official TWSE `STOCK_DAY` endpoints reject query dates before
+2010-01-04. `config/research.json` therefore starts the downloadable research
+window on 2010-01-04. Longer horizon requests remain explicitly unavailable
+when the required official observations do not exist; the pipeline does not
+fill that gap with a third-party source or invented values.
