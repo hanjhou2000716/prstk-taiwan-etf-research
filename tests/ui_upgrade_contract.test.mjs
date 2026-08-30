@@ -47,6 +47,16 @@ test("brand exposes desktop and mobile platform names", () => {
   assert.equal(navigation.brand.mobilePlatformName, "L&B Platform");
 });
 
+test("navigation owns platform wordmark typography", () => {
+  const navigationCss = read("site/styles/navigation.css");
+  const legacyCss = read("site/styles/legacy-compat.css");
+  assert.doesNotMatch(legacyCss, /brand-platform-name/);
+  assert.match(navigationCss, /\.brand-platform-name\{[^}]*color:var\(--ds-ink\)/);
+  assert.match(navigationCss, /\.brand-platform-name\{[^}]*font-size:14px/);
+  assert.match(navigationCss, /\.brand-platform-name\{[^}]*font-weight:700/);
+  assert.match(navigationCss, /\.brand-platform-name\{[^}]*letter-spacing:-\.015em/);
+});
+
 test("lab charts expose semantic series metadata and disable invalid log scales", () => {
   const beta = read("site/js/pages/beta-lab.js");
   const composer = read("site/js/pages/composer.js");
