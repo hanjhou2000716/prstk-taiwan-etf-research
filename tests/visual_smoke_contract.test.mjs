@@ -13,6 +13,10 @@ test("CI defines the responsive visual smoke matrix", () => {
   assert.match(smoke, /scrollWidth/);
   ["composer.html", "beta-lab.html", "leverage-lab.html", "financing-lab.html", "risk-lab.html", "sensitivity.html", "methodology.html", "audit.html", "strategies.html", "builder.html", "dashboard.html", "horizons.html", "proposal.html"].forEach((page) => assert.match(smoke, new RegExp(page.replace(".", "\\."))));
   assert.match(smoke, /mobile navigation/);
+  assert.match(smoke, /desktop navigation exclusivity/);
+  assert.match(smoke, /mobile navigation exclusivity/);
+  assert.match(smoke, /expectedTitles/);
+  assert.match(smoke, /aria-expanded/);
   assert.match(smoke, /lab-parameters-open/);
   assert.match(smoke, /parameter sheet focus restore/);
   assert.match(smoke, /pageerror/);

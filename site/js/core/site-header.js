@@ -8,7 +8,7 @@ import "./lab-workbench.js?v=20260808-lab1";
 import "../pages/compare-mobile.js?v=20260808-compare1";
 
 const header = document.querySelector("[data-site-header], .site-header");
-const designSystemUrl = new URL("../../styles/design-system.css?v=20260809-ui1", import.meta.url);
+const designSystemUrl = new URL("../../styles/design-system.css?v=20260830-ui2", import.meta.url);
 
 function loadDesignSystem() {
   if (document.querySelector("link[data-design-system], link[href*='styles/design-system.css']")) return;
@@ -75,7 +75,7 @@ function createHeader(config) {
 
 function closeMenu(menuButton, nav) {
   nav.classList.remove("open");
-  nav.querySelectorAll("details[open]").forEach((details) => { details.open = false; });
+  nav.querySelectorAll(".nav-menu[open]").forEach((details) => { details.open = false; });
   document.body.classList.remove("nav-open");
   menuButton.setAttribute("aria-expanded", "false");
   menuButton.setAttribute("aria-label", "開啟主選單");
@@ -99,13 +99,18 @@ function wireMenu(headerElement, menuButton, nav) {
     if (event.target.closest("a")) closeMenu(menuButton, nav);
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && nav.classList.contains("open")) {
+    const hasOpenMenu = Boolean(nav.querySelector(".nav-menu[open]"));
+    if (event.key === "Escape" && (nav.classList.contains("open") || hasOpenMenu)) {
       closeMenu(menuButton, nav);
-      menuButton.focus();
+      if (window.innerWidth <= 820) menuButton.focus();
+      else nav.querySelector(".nav-menu > summary")?.focus();
     }
   });
   document.addEventListener("click", (event) => {
-    if (!headerElement.contains(event.target) && nav.classList.contains("open")) closeMenu(menuButton, nav);
+    const hasOpenMenu = Boolean(nav.querySelector(".nav-menu[open]"));
+    if (!headerElement.contains(event.target) && (nav.classList.contains("open") || hasOpenMenu)) {
+      closeMenu(menuButton, nav);
+    }
   });
   window.addEventListener("resize", () => {
     if (window.innerWidth > 820 && nav.classList.contains("open")) closeMenu(menuButton, nav);

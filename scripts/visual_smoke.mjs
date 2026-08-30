@@ -66,6 +66,26 @@ const pages = [
   "horizons.html",
   "proposal.html",
 ];
+const expectedTitles = new Map([
+  ["index.html", "PRStK Leverage & Beta Platform"],
+  ["composer.html", "Portfolio Composer｜PRStK Leverage & Beta Platform"],
+  ["research-lab.html", "策略實驗室｜PRStK Leverage & Beta Platform"],
+  ["beta-lab.html", "Beta Lab｜PRStK Leverage & Beta Platform"],
+  ["leverage-lab.html", "Leverage Lab｜PRStK Leverage & Beta Platform"],
+  ["financing-lab.html", "Financing Lab｜PRStK Leverage & Beta Platform"],
+  ["risk-lab.html", "Risk Lab｜PRStK Leverage & Beta Platform"],
+  ["sensitivity.html", "參數敏感度｜PRStK Leverage & Beta Platform"],
+  ["compare.html", "策略比較｜PRStK Leverage & Beta Platform"],
+  ["stress-test.html", "質押壓力測試｜PRStK Leverage & Beta Platform"],
+  ["report.html", "研究報告｜PRStK Leverage & Beta Platform"],
+  ["methodology.html", "資料與方法｜PRStK Leverage & Beta Platform"],
+  ["audit.html", "研究審核｜PRStK Leverage & Beta Platform"],
+  ["strategies.html", "策略資料庫｜PRStK Leverage & Beta Platform"],
+  ["builder.html", "策略建構器｜PRStK Leverage & Beta Platform"],
+  ["dashboard.html", "互動回測工作區｜PRStK Leverage & Beta Platform"],
+  ["horizons.html", "長期視窗｜PRStK Leverage & Beta Platform"],
+  ["proposal.html", "研究方法｜PRStK Leverage & Beta Platform"],
+]);
 const viewports = [
   { name: "desktop-1920", width: 1920, height: 1080 },
   { name: "desktop-1440", width: 1440, height: 900 },
@@ -108,15 +128,34 @@ for (const viewport of selectedViewports) {
         return stage.getBoundingClientRect().bottom <= shell.getBoundingClientRect().bottom + 1;
       }),
     }));
-    if (!state.title || state.scrollWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || errors.length) {
+    if (!state.title || state.title !== expectedTitles.get(pageName) || state.scrollWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || errors.length) {
       failures.push({ page: pageName, viewport: viewport.name, state, errors });
     }
     if (viewport.width > 820) {
-      for (const summary of await page.locator(".site-header .nav-menu > summary").all()) {
+      const summaries = await page.locator(".site-header .nav-menu > summary").all();
+      for (const [index, summary] of summaries.entries()) {
         await summary.click();
-        const isOpen = await summary.evaluate((element) => element.parentElement?.open === true);
-        if (!isOpen) failures.push({ page: pageName, viewport: viewport.name, interaction: "navigation group toggle" });
+        const menuState = await page.evaluate(() => ({
+          openCount: document.querySelectorAll(".site-header .nav-menu[open]").length,
+          openIndex: [...document.querySelectorAll(".site-header .nav-menu")].findIndex((menu) => menu.open),
+          expanded: [...document.querySelectorAll(".site-header .nav-menu > summary")].map((summary) => summary.getAttribute("aria-expanded")),
+        }));
+        if (menuState.openCount !== 1 || menuState.openIndex !== index || menuState.expanded.filter((value) => value === "true").length !== 1) {
+          failures.push({ page: pageName, viewport: viewport.name, interaction: "desktop navigation exclusivity", menuState });
+        }
+        await summary.click();
+        const toggledClosed = await page.evaluate(() => document.querySelectorAll(".site-header .nav-menu[open]").length === 0);
+        if (!toggledClosed) failures.push({ page: pageName, viewport: viewport.name, interaction: "desktop navigation toggle close" });
       }
+      const firstSummary = page.locator(".site-header .nav-menu > summary").first();
+      await firstSummary.click();
+      await page.locator("body").dispatchEvent("click");
+      const outsideClosed = await page.evaluate(() => document.querySelectorAll(".site-header .nav-menu[open]").length === 0);
+      if (!outsideClosed) failures.push({ page: pageName, viewport: viewport.name, interaction: "desktop navigation outside close" });
+      await firstSummary.click();
+      await page.keyboard.press("Escape");
+      const escapeClosed = await page.evaluate(() => document.querySelectorAll(".site-header .nav-menu[open]").length === 0);
+      if (!escapeClosed) failures.push({ page: pageName, viewport: viewport.name, interaction: "desktop navigation escape" });
     }
     if (viewport.width <= 820 && state.hasMenu) {
       const menuButton = page.locator(".menu-toggle");
@@ -132,8 +171,32 @@ for (const viewport of selectedViewports) {
       if (!menuState.open || menuState.visibleLinks < 5) {
         failures.push({ page: pageName, viewport: viewport.name, interaction: "mobile navigation", menuState });
       }
+      const summaries = page.locator(".site-header .nav-menu > summary");
+      if (await summaries.count() === 2) {
+        await summaries.nth(0).click();
+        const firstOpen = await page.evaluate(() => ({
+          openCount: document.querySelectorAll(".site-header .nav-menu[open]").length,
+          expanded: [...document.querySelectorAll(".site-header .nav-menu > summary")].map((summary) => summary.getAttribute("aria-expanded")),
+        }));
+        await summaries.nth(1).click();
+        const secondOpen = await page.evaluate(() => ({
+          openCount: document.querySelectorAll(".site-header .nav-menu[open]").length,
+          openIndex: [...document.querySelectorAll(".site-header .nav-menu")].findIndex((menu) => menu.open),
+          expanded: [...document.querySelectorAll(".site-header .nav-menu > summary")].map((summary) => summary.getAttribute("aria-expanded")),
+        }));
+        if (firstOpen.openCount !== 1 || firstOpen.expanded.filter((value) => value === "true").length !== 1 || secondOpen.openCount !== 1 || secondOpen.openIndex !== 1 || secondOpen.expanded.filter((value) => value === "true").length !== 1) {
+          failures.push({ page: pageName, viewport: viewport.name, interaction: "mobile navigation exclusivity", firstOpen, secondOpen });
+        }
+        await summaries.nth(1).click();
+        const mobileToggledClosed = await page.evaluate(() => document.querySelectorAll(".site-header .nav-menu[open]").length === 0);
+        if (!mobileToggledClosed) failures.push({ page: pageName, viewport: viewport.name, interaction: "mobile navigation toggle close" });
+        await summaries.nth(0).click();
+        await page.locator("body").dispatchEvent("click");
+        const mobileOutsideClosed = await page.evaluate(() => document.querySelectorAll(".site-header .nav-menu[open]").length === 0);
+        if (!mobileOutsideClosed) failures.push({ page: pageName, viewport: viewport.name, interaction: "mobile navigation outside close" });
+      }
       await page.keyboard.press("Escape");
-      const menuClosed = await page.evaluate(() => !document.body.classList.contains("nav-open"));
+      const menuClosed = await page.evaluate(() => !document.body.classList.contains("nav-open") && document.querySelectorAll(".site-header .nav-menu[open]").length === 0);
       if (!menuClosed) failures.push({ page: pageName, viewport: viewport.name, interaction: "mobile navigation escape" });
     }
     if (viewport.width <= 820 && state.hasLabTabs) {

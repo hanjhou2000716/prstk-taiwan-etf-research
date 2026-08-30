@@ -62,6 +62,39 @@ function groupNode(group, page) {
   return details;
 }
 
+function wireExclusiveMenus(nav) {
+  const menus = [...nav.querySelectorAll("details.nav-menu")];
+  const sync = () => {
+    for (const details of menus) {
+      const summary = details.querySelector("summary");
+      summary?.setAttribute("aria-expanded", String(details.open));
+    }
+  };
+  for (const details of menus) {
+    const summary = details.querySelector("summary");
+    summary?.addEventListener("click", (event) => {
+      event.preventDefault();
+      const willOpen = !details.open;
+      if (willOpen) {
+        for (const other of menus) {
+          if (other !== details) other.open = false;
+        }
+      }
+      details.open = willOpen;
+      sync();
+    });
+    details.addEventListener("toggle", () => {
+      if (details.open) {
+        for (const other of menus) {
+          if (other !== details) other.open = false;
+        }
+      }
+      sync();
+    });
+  }
+  sync();
+}
+
 export function createNavigation(config, page = currentPage()) {
   const nav = document.createElement("nav");
   nav.id = "site-navigation";
@@ -69,6 +102,7 @@ export function createNavigation(config, page = currentPage()) {
   nav.setAttribute("aria-label", "主要導覽");
   for (const item of config.primary) nav.append(linkNode(item, page));
   for (const group of config.groups) nav.append(groupNode(group, page));
+  wireExclusiveMenus(nav);
   return nav;
 }
 
