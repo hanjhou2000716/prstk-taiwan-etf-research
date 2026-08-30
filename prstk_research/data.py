@@ -1,6 +1,6 @@
 """TWSE downloader, parser, hashing and validation. Standard library only."""
 from __future__ import annotations
-import calendar, csv, hashlib, json, ssl, time
+import calendar, csv, hashlib, io, json, os, ssl, tempfile, time
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlencode, urljoin
@@ -30,6 +30,24 @@ RETRYABLE_HTTP_CODES = frozenset({429, 500, 502, 503, 504})
 REDIRECT_CODES = frozenset({301, 302, 303, 307, 308})
 MAX_ATTEMPTS = 5
 MAX_REDIRECTS = 3
+
+
+def _atomic_write(path: Path, payload: bytes) -> None:
+    """Replace a cached file only after the complete payload is on disk."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
+    )
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_path, path)
+    except BaseException:
+        temporary_path.unlink(missing_ok=True)
+        raise
 
 
 class _NoRedirectHandler(HTTPRedirectHandler):
@@ -72,6 +90,45 @@ def _validate_twse_payload(payload: bytes, source_url: str) -> dict:
     if not isinstance(document.get("data"), list):
         raise RuntimeError(f"TWSE response data must be a list: {source_url}")
     return document
+
+
+def _parse_vix_payload(payload: bytes, source_url: str) -> list[dict]:
+    """Validate and parse a Cboe VIX CSV before it can replace the cache."""
+    try:
+        text = payload.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise RuntimeError(f"VIX response is not valid UTF-8: {source_url}; error={exc}") from exc
+    reader = csv.DictReader(io.StringIO(text))
+    if not reader.fieldnames:
+        raise RuntimeError(f"VIX response has no CSV header: {source_url}")
+    fields = {field.strip().upper() for field in reader.fieldnames if field}
+    if not {"DATE", "CLOSE"}.issubset(fields):
+        raise RuntimeError(f"VIX response is missing DATE/CLOSE columns: {source_url}")
+    rows = []
+    for row in reader:
+        raw_date = (row.get("DATE") or row.get("Date") or "").strip()
+        raw_close = (row.get("CLOSE") or row.get("Close") or "").strip()
+        if not raw_date or not raw_close or raw_close in {"-", "NA"}:
+            continue
+        try:
+            parsed = datetime.strptime(raw_date, "%m/%d/%Y").date()
+            close = float(raw_close)
+        except ValueError:
+            continue
+        if close <= 0:
+            continue
+        rows.append({"date": parsed.isoformat(), "vix": close})
+    if not rows:
+        raise RuntimeError(f"VIX response contains no valid rows: {source_url}")
+    return rows
+
+
+def _cached_twse_payload_is_valid(path: Path) -> bool:
+    try:
+        _validate_twse_payload(path.read_bytes(), f"cache:{path}")
+    except (OSError, RuntimeError):
+        return False
+    return True
 
 
 def _download_endpoint(
@@ -163,10 +220,20 @@ def download_month(
     *,
     opener=None,
     sleep=time.sleep,
+    force_refresh=False,
+    today: date | None = None,
 ) -> Path:
     raw_dir.mkdir(parents=True, exist_ok=True)
     path = raw_dir / f"{symbol}_{year:04d}-{month:02d}.json"
-    if path.exists(): return path
+    as_of = today or date.today()
+    is_current_month = (year, month) == (as_of.year, as_of.month)
+    if (
+        path.exists()
+        and not force_refresh
+        and not is_current_month
+        and _cached_twse_payload_is_valid(path)
+    ):
+        return path
     # Keep the order used by the current TWSE CDN cache key.  The equivalent
     # date-first query intermittently returns a same-URL 308 from the CDN for
     # older months, while this official parameter order returns JSON directly.
@@ -185,7 +252,7 @@ def download_month(
             )
             # _download_endpoint validates before returning. Keep the write as
             # the final operation so malformed/error responses never become raw data.
-            path.write_bytes(payload)
+            _atomic_write(path, payload)
             time.sleep(pause)
             return path
         except RuntimeError as exc:
@@ -326,27 +393,18 @@ def normalize(symbol: str, files: list[Path], out_path: Path, actions: list[dict
 def download_vix(out_path: Path) -> Path:
     """Download the Cboe VIX historical CSV used by strategy 3."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    if out_path.exists():
-        return out_path
     req = Request(CBOE_VIX_URL, headers=HEADERS)
     with urlopen(req, timeout=60, context=TLS_CONTEXT) as response:
-        out_path.write_bytes(response.read())
+        status = response.getcode() if hasattr(response, "getcode") else getattr(response, "status", None)
+        if status not in (None, 200):
+            raise RuntimeError(f"VIX response HTTP status is not successful: {CBOE_VIX_URL}; status={status}")
+        payload = response.read()
+    _parse_vix_payload(payload, CBOE_VIX_URL)
+    _atomic_write(out_path, payload)
     return out_path
 
 def normalize_vix(path: Path, out_path: Path) -> int:
-    rows = []
-    with path.open(encoding="utf-8-sig", newline="") as f:
-        for row in csv.DictReader(f):
-            raw_date = (row.get("DATE") or row.get("Date") or "").strip()
-            raw_close = (row.get("CLOSE") or row.get("Close") or "").strip()
-            if not raw_date or not raw_close or raw_close in {"-", "NA"}:
-                continue
-            try:
-                parsed = datetime.strptime(raw_date, "%m/%d/%Y").date()
-                close = float(raw_close)
-            except ValueError:
-                continue
-            rows.append({"date": parsed.isoformat(), "vix": close})
+    rows = _parse_vix_payload(path.read_bytes(), str(path))
     rows.sort(key=lambda r: r["date"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", newline="", encoding="utf-8") as f:
