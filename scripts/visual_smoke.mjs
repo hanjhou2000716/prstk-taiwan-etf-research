@@ -121,6 +121,10 @@ for (const viewport of selectedViewports) {
       navGroups: document.querySelectorAll(".site-header .nav > .nav-menu").length,
       chartCount: document.querySelectorAll(".chart-plot svg, #riskMap svg").length,
       hasMenu: Boolean(document.querySelector(".menu-toggle")),
+      desktopPlatformName: document.querySelector(".brand-platform-name-desktop")?.textContent.trim() || "",
+      mobilePlatformName: document.querySelector(".brand-platform-name-mobile")?.textContent.trim() || "",
+      desktopPlatformVisible: Boolean(document.querySelector(".brand-platform-name-desktop") && getComputedStyle(document.querySelector(".brand-platform-name-desktop")).display !== "none"),
+      mobilePlatformVisible: Boolean(document.querySelector(".brand-platform-name-mobile") && getComputedStyle(document.querySelector(".brand-platform-name-mobile")).display !== "none"),
       hasLabTabs: Boolean(document.querySelector(".lab-mobile-tabs")),
       chartBounds: [...document.querySelectorAll(".chart-shell")].map((shell) => {
         const stage = shell.querySelector(".chart-stage");
@@ -128,7 +132,10 @@ for (const viewport of selectedViewports) {
         return stage.getBoundingClientRect().bottom <= shell.getBoundingClientRect().bottom + 1;
       }),
     }));
-    if (!state.title || state.title !== expectedTitles.get(pageName) || state.scrollWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || errors.length) {
+    const platformNameValid = viewport.width <= 600
+      ? state.mobilePlatformName === "L&B Platform" && state.mobilePlatformVisible
+      : state.desktopPlatformName === "Leverage & Beta Platform" && state.desktopPlatformVisible;
+    if (!state.title || state.title !== expectedTitles.get(pageName) || !platformNameValid || state.scrollWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || errors.length) {
       failures.push({ page: pageName, viewport: viewport.name, state, errors });
     }
     if (viewport.width > 820) {
