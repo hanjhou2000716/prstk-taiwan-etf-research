@@ -12,6 +12,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
+      - name: Restore TWSE historical raw cache
+        uses: actions/cache@v4
+        with:
+          path: data/raw/twse
+          key: prstk-twse-raw-v1-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            prstk-twse-raw-v1-${{ runner.os }}-
       - run: python -m prstk_research.pipeline run --download
       - uses: actions/upload-artifact@v4
         with:
