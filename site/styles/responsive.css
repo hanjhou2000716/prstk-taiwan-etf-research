@@ -21,7 +21,10 @@
   .metric{min-width:0;padding:var(--ds-space-3)}
   .metric strong,.metric-card__value{font-size:20px}
   .chart-card{padding:var(--ds-space-3)}
+  .chart-card__header{align-items:flex-start;flex-direction:column;gap:var(--ds-space-2)}
+  .chart-card__header p{max-width:100%;text-align:left}
   .split-heading{align-items:flex-start;flex-direction:column;gap:var(--ds-space-2)}
+  .section-title{align-items:flex-start;flex-direction:column;gap:var(--ds-space-2)}
   .section-title>p{min-width:0;overflow-wrap:anywhere;word-break:break-word}
   .button--block{min-height:48px}
   .table-scroll{margin-inline:-18px;padding-inline:18px}
@@ -36,7 +39,7 @@
   .compare-results-table{display:none}
   .definition-list{grid-template-columns:1fr}
   .definition-list dd{overflow-wrap:anywhere}
-  .risk-map-figure{overflow:hidden}
+  .risk-map-figure{overflow:visible}
   .risk-map-table{display:block;max-width:100%;overflow-x:auto}
 }
 

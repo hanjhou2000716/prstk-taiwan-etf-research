@@ -1,3 +1,5 @@
+import { evenlySpacedTicks, maxTextWidth, responsiveTickCount, yAxisLayout } from "./chart-layout.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 const COLORS = {
   actual_etf: "#596a5b",
@@ -30,6 +32,11 @@ function pctFormat(value) {
   return (Number(value) * 100).toFixed(2) + "%";
 }
 
+function xTickLabels(values, count) {
+  return evenlySpacedTicks(Math.min(...values), Math.max(...values), count)
+    .map((value) => numberFormat(value, 2));
+}
+
 function dataTypeLabel(value) {
   return value === "actual_etf" ? "Actual ETF"
     : String(value).includes("synthetic") ? "Synthetic Proxy"
@@ -55,9 +62,7 @@ export function renderRiskMap(target, rows) {
 
   const width = Math.max(320, Math.floor(target.clientWidth || 820));
   const height = 390;
-  const pad = { left: 62, right: 24, top: 24, bottom: 48 };
-  const innerWidth = width - pad.left - pad.right;
-  const innerHeight = height - pad.top - pad.bottom;
+  const narrow = width <= 520;
   const xValues = validRows.map((row) => Number(row.metrics.beta_beta));
   const yValues = validRows.map((row) => Number(row.metrics.cagr));
   const xMin = Math.min(...xValues);
@@ -66,6 +71,19 @@ export function renderRiskMap(target, rows) {
   const yMax = Math.max(...yValues);
   const xPad = Math.max(.08, (xMax - xMin) * .12);
   const yPad = Math.max(.02, (yMax - yMin) * .14);
+  const yTickValues = evenlySpacedTicks(yMin - yPad, yMax + yPad, 5).reverse();
+  const yTickLabels = yTickValues.map(pctFormat);
+  const yLayout = yAxisLayout({
+    tickLabels: yTickLabels,
+    axisTitle: "CAGR",
+    minLeft: narrow ? 70 : 62,
+  });
+  const firstXLabels = xTickLabels(xValues, 5);
+  const xTickCount = responsiveTickCount(width - yLayout.left - 24, maxTextWidth(firstXLabels), { min: 3, max: 5 });
+  const xTickValues = evenlySpacedTicks(xMin - xPad, xMax + xPad, xTickCount);
+  const pad = { left: yLayout.left, right: 24, top: narrow ? 38 : 24, bottom: 48 };
+  const innerWidth = width - pad.left - pad.right;
+  const innerHeight = height - pad.top - pad.bottom;
   const xScale = (value) => pad.left + ((value - (xMin - xPad)) / ((xMax + xPad) - (xMin - xPad))) * innerWidth;
   const yScale = (value) => pad.top + (1 - ((value - (yMin - yPad)) / ((yMax + yPad) - (yMin - yPad)))) * innerHeight;
 
@@ -82,10 +100,9 @@ export function renderRiskMap(target, rows) {
   description.textContent = "橫軸為 Beta，縱軸為 CAGR，圓點大小代表最大回撤幅度；點擊策略可進入研究實驗室。";
   svg.append(title, description);
 
-  for (let index = 0; index < 5; index += 1) {
-    const ratio = index / 4;
+  yTickValues.forEach((value, index) => {
+    const ratio = index / Math.max(1, yTickValues.length - 1);
     const y = pad.top + ratio * innerHeight;
-    const value = yMax + yPad - ratio * ((yMax + yPad) - (yMin - yPad));
     svg.append(svgElement("line", {
       x1: pad.left,
       x2: width - pad.right,
@@ -94,19 +111,19 @@ export function renderRiskMap(target, rows) {
       stroke: "#deded8",
     }));
     const label = svgElement("text", {
-      x: pad.left - 9,
+      x: yLayout.tickX,
       y: y + 4,
       "text-anchor": "end",
+      "data-chart-text": "y-tick",
       fill: "#777772",
       "font-size": 11,
     });
-    label.textContent = pctFormat(value);
+    label.textContent = yTickLabels[index];
     svg.append(label);
-  }
-  for (let index = 0; index < 5; index += 1) {
-    const ratio = index / 4;
+  });
+  xTickValues.forEach((value, index) => {
+    const ratio = index / Math.max(1, xTickValues.length - 1);
     const x = pad.left + ratio * innerWidth;
-    const value = xMin - xPad + ratio * ((xMax + xPad) - (xMin - xPad));
     svg.append(svgElement("line", {
       x1: x,
       x2: x,
@@ -118,27 +135,37 @@ export function renderRiskMap(target, rows) {
       x,
       y: height - pad.bottom + 20,
       "text-anchor": "middle",
+      "data-chart-text": "x-tick",
       fill: "#777772",
       "font-size": 11,
     });
     label.textContent = numberFormat(value, 2);
     svg.append(label);
-  }
+  });
   const xAxis = svgElement("text", {
     x: pad.left + innerWidth / 2,
     y: height - 7,
     "text-anchor": "middle",
+    "data-chart-text": "x-axis-title",
     fill: "#54544e",
     "font-size": 12,
   });
   xAxis.textContent = "Beta";
-  const yAxis = svgElement("text", {
-    x: 14,
-    y: pad.top + innerHeight / 2,
-    "text-anchor": "middle",
+  const yAxis = svgElement("text", narrow ? {
+    x: pad.left,
+    y: 18,
+    "text-anchor": "start",
+    "data-chart-text": "y-axis-title",
     fill: "#54544e",
     "font-size": 12,
-    transform: "rotate(-90 14 " + (pad.top + innerHeight / 2) + ")",
+  } : {
+    x: yLayout.axisTitleX,
+    y: pad.top + innerHeight / 2,
+    "text-anchor": "middle",
+    "data-chart-text": "y-axis-title",
+    fill: "#54544e",
+    "font-size": 12,
+    transform: "rotate(-90 " + yLayout.axisTitleX + " " + (pad.top + innerHeight / 2) + ")",
   });
   yAxis.textContent = "CAGR";
   svg.append(xAxis, yAxis);
@@ -209,7 +236,13 @@ export function renderRiskMap(target, rows) {
   tableWrap.className = "table-scroll";
   tableWrap.append(table);
   target.append(tableWrap);
-  const observer = typeof ResizeObserver === "function" ? new ResizeObserver(() => renderRiskMap(target, rows)) : null;
+  let lastWidth = width;
+  const observer = typeof ResizeObserver === "function" ? new ResizeObserver(() => {
+    const nextWidth = Math.max(320, Math.floor(target.clientWidth || 820));
+    if (Math.abs(nextWidth - lastWidth) < 1) return;
+    lastWidth = nextWidth;
+    renderRiskMap(target, rows);
+  }) : null;
   observer?.observe(target);
   target.__riskMapCleanup = () => observer?.disconnect();
 }

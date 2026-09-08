@@ -95,6 +95,7 @@ const viewports = [
   { name: "mobile-430", width: 430, height: 932 },
   { name: "mobile-390", width: 390, height: 844 },
   { name: "mobile-360", width: 360, height: 800 },
+  { name: "mobile-320", width: 320, height: 800 },
 ];
 const selectedPages = process.env.PRSTK_SMOKE_PAGES ? pages.filter((page) => process.env.PRSTK_SMOKE_PAGES.split(",").includes(page)) : pages;
 const selectedViewports = process.env.PRSTK_SMOKE_VIEWPORTS ? viewports.filter((viewport) => process.env.PRSTK_SMOKE_VIEWPORTS.split(",").includes(viewport.name)) : viewports;
@@ -131,11 +132,35 @@ for (const viewport of selectedViewports) {
         if (!stage) return true;
         return stage.getBoundingClientRect().bottom <= shell.getBoundingClientRect().bottom + 1;
       }),
+      chartTextIssues: [...document.querySelectorAll(".risk-map-figure svg, .chart-plot svg")].flatMap((svg, chartIndex) => {
+        const svgBounds = svg.getBoundingClientRect();
+        const texts = [...svg.querySelectorAll("[data-chart-text]")].map((node) => ({
+          kind: node.getAttribute("data-chart-text"),
+          text: node.textContent?.trim() || "",
+          bounds: node.getBoundingClientRect(),
+        }));
+        const intersects = (left, right) => left.left < right.right - 0.5
+          && left.right > right.left + 0.5
+          && left.top < right.bottom - 0.5
+          && left.bottom > right.top + 0.5;
+        const collisions = [];
+        for (let i = 0; i < texts.length; i += 1) {
+          for (let j = i + 1; j < texts.length; j += 1) {
+            if (intersects(texts[i].bounds, texts[j].bounds)) {
+              collisions.push(`${texts[i].kind}:${texts[i].text} ↔ ${texts[j].kind}:${texts[j].text}`);
+            }
+          }
+        }
+        const clipped = texts
+          .filter(({ bounds }) => bounds.left < svgBounds.left - 1 || bounds.right > svgBounds.right + 1 || bounds.top < svgBounds.top - 1 || bounds.bottom > svgBounds.bottom + 1)
+          .map(({ kind, text }) => `${kind}:${text}`);
+        return [...collisions.map((item) => `chart-${chartIndex} ${item}`), ...clipped.map((item) => `chart-${chartIndex} clipped ${item}`)];
+      }),
     }));
     const platformNameValid = viewport.width <= 600
       ? state.mobilePlatformName === "L&B Platform" && state.mobilePlatformVisible
       : state.desktopPlatformName === "Leverage & Beta Platform" && state.desktopPlatformVisible;
-    if (!state.title || state.title !== expectedTitles.get(pageName) || !platformNameValid || state.scrollWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || errors.length) {
+    if (!state.title || state.title !== expectedTitles.get(pageName) || !platformNameValid || state.scrollWidth > state.viewport + 1 || state.primaryNavLinks !== 1 || state.navGroups !== 2 || state.chartBounds.includes(false) || state.chartTextIssues.length || errors.length) {
       failures.push({ page: pageName, viewport: viewport.name, state, errors });
     }
     if (viewport.width > 820) {

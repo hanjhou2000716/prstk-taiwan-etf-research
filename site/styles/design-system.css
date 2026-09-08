@@ -1,4 +1,5 @@
 @import url("tokens.css");
+@import url("legacy-compat.css?v=20260830-wordmark1");
 @import url("base.css");
 @import url("layout.css");
 @import url("components.css");
@@ -15,4 +16,3 @@
 @import url("motion.css");
 @import url("print.css");
 @import url("lab-workbench.css");
-@import url("legacy-compat.css?v=20260830-wordmark1");
