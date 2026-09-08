@@ -1,3 +1,5 @@
+import { maxTextWidth, yAxisLayout } from "./chart-layout.js";
+
 const NS = "http://www.w3.org/2000/svg";
 const DEFAULT_COLORS = ["#4d6572", "#a98263", "#7b8e83", "#8d6e63", "#6d7d99"];
 
@@ -93,9 +95,6 @@ function renderLine(root, allSeries, options, state) {
   const series = allSeries.filter((_, index) => !state.hidden.has(index));
   const width = Math.max(240, Math.floor(root.clientWidth || 640));
   const height = options.height || 320;
-  const pad = { left: 54, right: 18, top: 22, bottom: 32 };
-  const innerW = width - pad.left - pad.right;
-  const innerH = height - pad.top - pad.bottom;
   const maxLength = Math.max(0, ...series.map((item) => item.values.length));
   const start = Math.min(state.start, Math.max(0, maxLength - 2));
   const end = Math.min(maxLength, Math.max(start + 2, state.end));
@@ -110,6 +109,23 @@ function renderLine(root, allSeries, options, state) {
   const min = Math.min(...transformed);
   const max = Math.max(...transformed);
   const range = max - min || 1;
+  const yValue = (index) => max - (max - min) * index / 4;
+  const formatAxisValue = (value) => options.percent ? `${(value * 100).toFixed(1)}%` : value.toFixed(2);
+  const yTickLabels = Array.from({ length: 5 }, (_, index) => {
+    const raw = logScale ? Math.exp(yValue(index)) : yValue(index);
+    return formatAxisValue(raw);
+  });
+  const yAxisLabel = options.yAxisLabel || (
+    options.percent ? "報酬"
+      : series.length === 1 && series[0].unit === "beta" ? "Beta"
+        : series.length === 1 && series[0].unit === "nav" ? "NAV"
+          : ""
+  );
+  const narrow = width <= 520;
+  const yLayout = yAxisLayout({ tickLabels: yTickLabels, axisTitle: yAxisLabel, minLeft: 54 });
+  const pad = { left: yLayout.left, right: 18, top: yAxisLabel && narrow ? 36 : 22, bottom: 32 };
+  const innerW = width - pad.left - pad.right;
+  const innerH = height - pad.top - pad.bottom;
   const svg = svgElement("svg", {
     viewBox: `0 0 ${width} ${height}`,
     role: "img",
@@ -120,18 +136,38 @@ function renderLine(root, allSeries, options, state) {
   const description = svgElement("desc");
   description.textContent = "使用日期游標查看各序列的數值；資料表可供鍵盤與輔助工具閱讀。";
   svg.append(title, description);
-  const yValue = (index) => max - (max - min) * index / 4;
   for (let index = 0; index < 5; index += 1) {
     const y = pad.top + index * innerH / 4;
     svg.append(svgElement("line", { x1: pad.left, x2: width - pad.right, y1: y, y2: y, stroke: "#deded8" }));
     const label = document.createElementNS(NS, "text");
-    label.setAttribute("x", "4");
+    label.setAttribute("x", String(yLayout.tickX));
+    label.setAttribute("text-anchor", "end");
+    label.setAttribute("data-chart-text", "y-tick");
     label.setAttribute("y", String(y + 4));
     label.setAttribute("fill", "#777770");
     label.setAttribute("font-size", "11");
-    const raw = logScale ? Math.exp(yValue(index)) : yValue(index);
-    label.textContent = options.percent ? `${(raw * 100).toFixed(1)}%` : raw.toFixed(2);
+    label.textContent = yTickLabels[index];
     svg.append(label);
+  }
+  if (yAxisLabel) {
+    const yAxis = svgElement("text", narrow ? {
+      x: pad.left,
+      y: 18,
+      "text-anchor": "start",
+      "data-chart-text": "y-axis-title",
+      fill: "#54544e",
+      "font-size": 12,
+    } : {
+      x: yLayout.axisTitleX,
+      y: pad.top + innerH / 2,
+      "text-anchor": "middle",
+      "data-chart-text": "y-axis-title",
+      fill: "#54544e",
+      "font-size": 12,
+      transform: `rotate(-90 ${yLayout.axisTitleX} ${pad.top + innerH / 2})`,
+    });
+    yAxis.textContent = yAxisLabel;
+    svg.append(yAxis);
   }
   const pointX = (index, length) => pad.left + index / Math.max(1, length - 1) * innerW;
   const pointY = (value) => pad.top + (max - transform(value)) / range * innerH;
@@ -271,7 +307,13 @@ export function lineChart(target, inputSeries, { percent = false, height = 320, 
   if (chartCapabilities.table) addDataTable(root, series, percent);
   const render = () => renderLine(root, series, { percent, height, colors, ariaLabel }, state);
   render();
-  const observer = typeof ResizeObserver === "function" ? new ResizeObserver(render) : null;
+  let lastWidth = Math.floor(root.clientWidth || 640);
+  const observer = typeof ResizeObserver === "function" ? new ResizeObserver(() => {
+    const nextWidth = Math.floor(root.clientWidth || 640);
+    if (Math.abs(nextWidth - lastWidth) < 1) return;
+    lastWidth = nextWidth;
+    render();
+  }) : null;
   observer?.observe(root);
   root.__chartCleanup = () => observer?.disconnect();
   return root.querySelector("svg");
@@ -283,14 +325,15 @@ export function drawdownChart(target, rows, options = {}) {
     peak = Math.max(peak, Number(row.nav));
     return { date: row.date, value: peak > 0 ? Number(row.nav) / peak - 1 : 0 };
   });
-  return lineChart(target, [{ name: "回撤", values }], { ...options, percent: true, ariaLabel: "水下回撤圖" });
+  return lineChart(target, [{ name: "回撤", values }], { ...options, percent: true, yAxisLabel: "回撤", ariaLabel: "水下回撤圖" });
 }
 
 export function heatmap(target, matrix, { labels = [], columns = [], height = 260 } = {}) {
   const root = clearChart(target);
   if (!root) return;
-  const width = Math.max(260, Math.floor(root.clientWidth || 700));
-  const left = 90;
+  const containerWidth = Math.max(260, Math.floor(root.clientWidth || 700));
+  const left = Math.max(58, Math.ceil(maxTextWidth(labels, { fontSize: 11 }) + 16));
+  const width = Math.max(containerWidth, left + Math.max(1, columns.length) * 54 + 12);
   const top = 26;
   const cellW = (width - left - 12) / Math.max(1, columns.length);
   const cellH = (height - top - 12) / Math.max(1, matrix.length);
@@ -303,7 +346,8 @@ export function heatmap(target, matrix, { labels = [], columns = [], height = 26
   tooltip.className = "chart-tooltip chart-tooltip--heatmap";
   tooltip.hidden = true;
   const plot = document.createElement("div");
-  plot.className = "chart-plot";
+  plot.className = "chart-plot chart-scroll";
+  plot.style.setProperty("--chart-content-width", `${width}px`);
   columns.forEach((label, index) => {
     const text = svgElement("text", { x: left + index * cellW + cellW / 2, y: 16, "text-anchor": "middle", fill: "#777770", "font-size": 11 });
     text.textContent = label;

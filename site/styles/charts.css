@@ -6,6 +6,7 @@
 .chart-stage{min-height:240px;min-width:0;position:relative}
 .chart-stage .chart-plot{min-height:inherit}
 .chart-svg svg{display:block;font-family:inherit;height:auto;max-width:100%;width:100%}
+.chart-svg .chart-scroll>svg{max-width:none;width:var(--chart-content-width,100%)}
 .chart-details{min-width:0;overflow:auto}
 .chart-sm .chart-stage{min-height:190px}
 @media(min-width:821px){.chart-stage{min-height:320px}.chart-sm .chart-stage{min-height:230px}}
