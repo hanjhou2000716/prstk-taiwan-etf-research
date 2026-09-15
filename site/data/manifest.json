@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-14T16:27:16.515106Z",
+  "generated_at_utc": "2026-09-15T15:10:01.897756Z",
   "files": [
     {
       "path": "data/raw/twse/0050_2023-01.json",
@@ -243,8 +243,8 @@
     },
     {
       "path": "data/raw/twse/006208_2026-09.json",
-      "bytes": 1824,
-      "sha256": "c12f132db2f68029a9f18f22c5ad28300547ebc766af06e8c016bb04c1928517"
+      "bytes": 1920,
+      "sha256": "4f76cb3decf91f5e218a15b37131a1cf299136f32170c008d7d514aea19e45d9"
     },
     {
       "path": "data/raw/twse/00631L_2022-01.json",
@@ -293,8 +293,8 @@
     },
     {
       "path": "data/raw/twse/00631L_2026-09.json",
-      "bytes": 1832,
-      "sha256": "166c579f015f91fcaa5fd8fbd00f38883e47103fbe36903c06d8f245ecd26b15"
+      "bytes": 1928,
+      "sha256": "897253490b4348aa7510e5986ca819c87098fae870445f032fb3612bfb877607"
     },
     {
       "path": "data/raw/twse/006208_2016-10.json",
@@ -778,8 +778,8 @@
     },
     {
       "path": "data/raw/twse/0050_2026-09.json",
-      "bytes": 1868,
-      "sha256": "630359b1b6308625815b7bc7be0b26472e7f0f6f8415ffb4d4bbd9510faf677a"
+      "bytes": 1968,
+      "sha256": "33728bb2972d30a77b04babcca6290229b7f02bd95186d49ebb1d6fe96d54444"
     },
     {
       "path": "data/raw/twse/006208_2019-12.json",
@@ -2728,8 +2728,8 @@
     },
     {
       "path": "data/raw/twse/00685L_2026-09.json",
-      "bytes": 1832,
-      "sha256": "cbd4a05d4b9e26678ffda302d0e9917da2b7d19cf9c5e36408231aac47eea1cc"
+      "bytes": 1928,
+      "sha256": "46030b0cfb3511dfdfdbc754ec700ebea8841b484a7188fca9daca9d4699303e"
     },
     {
       "path": "data/raw/twse/006208_2022-01.json",
@@ -3148,36 +3148,36 @@
     },
     {
       "path": "data/raw/vix/VIX_History.csv",
-      "bytes": 472564,
-      "sha256": "cb3515efe5577d39df5c59ab44fb69171e28927e0fd01b50ce101076e7951e93"
+      "bytes": 472615,
+      "sha256": "9148183f463cb27743267d605a743241fa3e4c134eb1275e5871a41ce0837b8a"
     },
     {
       "path": "data/processed/006208.csv",
-      "bytes": 249563,
-      "sha256": "48192f3f70be73dc0625ed9b3e65589a5a60db55058eeb9ed4c0d570b25f20e6"
+      "bytes": 249642,
+      "sha256": "151943e30a6abc192b151b29a5e7d3072e8950bcccd0e4ce2d8cf7d9e322c924"
     },
     {
       "path": "data/processed/00685L.csv",
-      "bytes": 201637,
-      "sha256": "8c828bf378ca84dac89076dca084cceaa7aefb09f061d344fe4a204d50208392"
+      "bytes": 201720,
+      "sha256": "d0f21e9acabd178a826d6d693620038ac58622bbc8461c1ccef8cda1252bb132"
     },
     {
       "path": "data/processed/0050.csv",
-      "bytes": 316002,
-      "sha256": "9b926b6db3e41a394614eaf7db4d481ef2cd33a45a25c2d54a460215ee4e19c1"
+      "bytes": 316081,
+      "sha256": "ad1a398aeb95b005fdded23df5e61ffbe11340c5c08d9ba6ac93e262be83e11a"
     },
     {
       "path": "data/processed/00631L.csv",
-      "bytes": 270981,
-      "sha256": "f7a30bd4342d5ff2aabb8c15aeaefc4bf1b44992387681487de60d696497c558"
+      "bytes": 271064,
+      "sha256": "5034bc3e2793372133f0d0a2dc4de43671b3fec15f676477cd6d7ab4b4359ee8"
     },
     {
       "path": "data/processed/vix.csv",
-      "bytes": 165912,
-      "sha256": "1c22b8b1d9ee01ba3dde80220f624aa90dbd45fe12eacd3c36b531c0dba16593"
+      "bytes": 165929,
+      "sha256": "aeb7f82a83f2d8da74a44055d43a1a8e3a86ac700ccab0e0c024eca30a9b79b2"
     }
   ],
-  "data_end_date": "2026-09-14",
+  "data_end_date": "2026-09-15",
   "pipeline_version": "pipeline-v2",
   "model_version": "phase2-p0-2026.08.04"
 }
