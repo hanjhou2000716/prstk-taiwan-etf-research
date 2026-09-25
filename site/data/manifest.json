@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-24T15:23:10.697564Z",
+  "generated_at_utc": "2026-09-25T15:25:28.009413Z",
   "files": [
     {
       "path": "data/raw/twse/006208_2023-04.json",
@@ -3177,7 +3177,7 @@
       "sha256": "dc04671f0f7389bb83705b0ab4fab159989fba1dd4d42c9723a79aab6402485f"
     }
   ],
-  "data_end_date": "2026-09-24",
+  "data_end_date": "2026-09-25",
   "pipeline_version": "pipeline-v2",
   "model_version": "phase2-p0-2026.08.04"
 }
