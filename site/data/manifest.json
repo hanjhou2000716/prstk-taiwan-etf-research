@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-10-08T17:29:29.369156Z",
+  "generated_at_utc": "2026-10-09T17:07:36.233850Z",
   "files": [
     {
       "path": "data/raw/twse/006208_2023-04.json",
@@ -3168,8 +3168,8 @@
     },
     {
       "path": "data/raw/vix/VIX_History.csv",
-      "bytes": 473482,
-      "sha256": "5c2f2ed585842efb26eb040cd18a1f7f092e92f6db94fc68756d48078b15bb32"
+      "bytes": 473533,
+      "sha256": "b95171b3e5badd76c22593dbce8ddaaec823d5e08279a93f20ba4bd43545ef52"
     },
     {
       "path": "data/processed/00685L.csv",
@@ -3193,11 +3193,11 @@
     },
     {
       "path": "data/processed/vix.csv",
-      "bytes": 166234,
-      "sha256": "5d0768987ac28248590d230d9713a7836cb783cc815d95956085030da71b52b7"
+      "bytes": 166252,
+      "sha256": "02b871d73d1495f101a9f658eff07864165fa939e99d6d755cc15aeaaafb092e"
     }
   ],
-  "data_end_date": "2026-10-08",
+  "data_end_date": "2026-10-09",
   "pipeline_version": "pipeline-v2",
   "model_version": "phase2-p0-2026.08.04"
 }
