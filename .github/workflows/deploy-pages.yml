@@ -51,6 +51,8 @@ jobs:
       - run: |
           mkdir -p artifacts/reports
           mkdir -p artifacts/reports/assets
+          mkdir -p artifacts/reports/lpos-portfolio-lab
+          cp site/lpos-portfolio-lab/index.html artifacts/reports/lpos-portfolio-lab/index.html
           cp site/index.html artifacts/reports/index.html
           cp site/composer.html artifacts/reports/composer.html
           cp site/research-lab.html artifacts/reports/research-lab.html
