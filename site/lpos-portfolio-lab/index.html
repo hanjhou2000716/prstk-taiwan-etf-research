@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f5f7fb" />
-  <meta name="description" content="LPOS Portfolio Lab：ETF 自由配置、股票質押、融資成本與極端情境生存能力互動模擬器。Web V0.1，不提供實際融資核貸或歷史投資報酬。" />
+  <meta name="description" content="LPOS Portfolio Lab：ETF 自由配置、股票質押、融資成本與極端情境生存能力互動模擬器。Web V0.2，提供經 Python 驗證之研究快照，不是完整真實歷史回測。" />
   <title>LPOS Portfolio Lab | 槓桿投資組合實驗室</title>
   
   <style>:root{
@@ -36,6 +36,14 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .comparison{width:100%;border-collapse:collapse;min-width:640px}.comparison th,.comparison td{border-bottom:1px solid #edf1f5;padding:13px 10px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums}.comparison th:first-child,.comparison td:first-child{text-align:left}.comparison th{background:#f7f9fc;color:#76889e;font-size:11px}.comparison tr:hover td{background:#fafbfe}.tiny{font-size:10px;color:var(--muted);line-height:1.6}.footnote{font-size:11px;color:#8291a2;line-height:1.7}.empty{text-align:center;padding:55px 25px;color:#718297}.empty-icon{font-size:35px;margin-bottom:12px}.empty h3{color:#2b4058;font-size:16px}.slot-tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.slot-tools select{border:1px solid #dce5ef;border-radius:9px;background:#fff;padding:9px 12px}.data-grade{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;gap:13px;align-items:flex-start}.data-grade b{color:#334a66}.data-grade .num{background:#edf2f8;color:#537295;min-width:35px;height:35px;display:grid;place-items:center;border-radius:10px;font-weight:850}.data-grade .description{font-size:11px;color:#8090a3;line-height:1.7;margin-top:5px}.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.toast{position:fixed;right:25px;bottom:22px;max-width:370px;padding:15px 20px;box-shadow:0 13px 40px rgba(0,0,0,.12);border:1px solid #d8e6ea;background:#fff;color:#325066;border-radius:14px;font-size:12px;font-weight:700;z-index:100;line-height:1.6;pointer-events:none}.mobile-nav{display:none}
 @media(max-width:1180px){.main{padding:24px}.sidebar{width:219px}.content-grid{grid-template-columns:minmax(0,1.2fr) minmax(270px,1fr)}.kpi{padding:18px 15px}.kpi-val{font-size:22px}}@media(max-width:900px){.sidebar{display:none}.main{padding:22px 18px 90px;max-width:950px}.mobile-nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:6px;overflow-x:auto;padding:9px 14px;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}.mobile-nav button{border:0;background:transparent;color:#7f91a5;white-space:nowrap;padding:9px 10px;border-radius:9px;font-size:12px}.mobile-nav button.active{color:#245dd1;background:#edf3ff;font-weight:850}.app-shell{display:block}.topbar{flex-wrap:wrap}.actions{justify-content:flex-start}.kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.content-grid{grid-template-columns:1fr}}@media(max-width:550px){.main{padding:17px 12px 92px}.page-title{font-size:23px}.kpi-grid{gap:10px}.kpi{min-height:108px;padding:15px}.kpi-val{font-size:23px}.kpi-sub{font-size:10px}.panel-head{padding:18px 15px 0}.panel-body{padding:16px}.form-grid{gap:12px}.two-col,.data-grid{grid-template-columns:1fr}.actions .btn{padding:9px 11px}.notice{font-size:11px}.topbar{margin-bottom:18px}.asset-table{min-width:790px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* LPOS Web V0.2 - Python research snapshot panels */
+.v02-kpis{margin:0}.v02-kpis .kpi{min-height:130px}
+.v02-chart svg{max-width:100%;width:100%;min-height:230px}
+.v02-panels .panel{height:100%}
+.v02-panels .panel+.panel{margin-top:0}
+#research-portfolio,#research-loan,#research-rf{font-size:13px;max-width:100%}
+.v02-evidence{background:#f8fbff;border:1px solid #e6eef7;border-radius:10px;padding:14px}
+@media(max-width:820px){.v02-panels{grid-template-columns:1fr}.v02-chart svg{min-height:175px}}
 </style>
 </head>
 <body>
@@ -47,7 +55,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
  * Units: TWD, ratios entered as percent 0..100, APR as percent per annum.
  * No external source is requested by this module.
  */
-const MODEL_VERSION = 'web-v0.1.0';
+const MODEL_VERSION = 'web-v0.2.0';
 const MAX_ASSETS = 12;
 const WARN_THRESHOLD = 130;
 const RESTORE_TARGET = 166;
@@ -226,7 +234,7 @@ function calculateScenario(p, shockOverride=null){
   if(maturityGap>0.005)warnings.push(`第 ${p.termMonths} 個月到期，單靠現金與假設每月自由現金流仍有 NT$ ${Math.ceil(maturityGap).toLocaleString('en-US')} 的本金缺口；沒有假設可續借或當天出售立即入帳`);
   if(liquidCash<reserveTarget)warnings.push(`流動現金不足 ${p.minReserveMonths} 個月必要開銷的預備金門檻`);
   if(earliestCashDeficitMonth!==null&&earliestCashDeficitMonth<=p.termMonths) warnings.push(`若市場不變、自由現金流持續負值，預估第 ${earliestCashDeficitMonth} 個月可能出現現金不足`);
-  warnings.push('V0.1 不計配息、報酬、匯率變動、借款展延、T+2 交割與實際清償順序；正二 ETF 壓力只做單步近似');
+  warnings.push('自由配置 V0.2 資金模型不計配息、報酬、匯率變動、借款展延、T+2 交割與實際清償順序；正二 ETF 壓力只做單步近似');
   return { valid:true, errors:[],warnings, config:p,shock,
     ownInvestBudget,ownCash,ownMarket,ownTradeFees,collateral,loanCapacity,
     borrow,loanFee,borrowedCash,loanBudget,loanMarket,loanTradeFees,liquidCash,
@@ -268,28 +276,64 @@ function formatTwd(n){return Number.isFinite(n)?Math.round(n).toLocaleString('en
 function formatPercent(n, digits=1){return Number.isFinite(n)?n.toFixed(digits)+'%':'—';}
 
 ;
-/** Contract for LPOS V0.2+ (not connected in V0.1). */
-const RESEARCH_ENGINE_STATUS={
-  connected:false,version:'unavailable',
-  grade:'V3.0_RESEARCH_SOURCE_NOT_CONNECTED',
-  note:'V0.1 僅計算初始資金結構、融資到期現金缺口與單步壓力；未載入 V3.0 行情或後端回測。',
-};
-async function analyzeHistoricalScenario(_scenario){
-  return {
-    ok:false,status:'not_connected',
-    model:'LPOS research adapter placeholder',
-    message:'尚未連接 LPOS V3.0 的 Python 歷史回測引擎與具來源等級的市場資料。',
-    stats:null,navSeries:[],sourceAudit:[],
-  };
-}
-/**
- * Expected V0.2 implementation must accept a validated scenario and return:
- * {ok,modelVersion,dataAsOf,sourceGrade,assumptions,
- *  stats:{twrCagr,mdd,sharpe,sortino},
- *  navSeries:[{date,twrIndex,equity,loan,cash,nav}],
- *  events:[{date,type,amount,settlementDate}], sourceAudit:[...]}
- * Never render placeholder numbers as if backtested.
+/** LPOS V3.0 read-only Python-generated research bridge.
+ * GitHub Pages cannot execute Python; snapshots are generated by the frozen
+ * historical engine and checked against V2.4/V3.0 references during the build.
+ * NEVER interpolate unsupported symbols, amounts, APRs, or sample intervals.
  */
+const RESEARCH_ENGINE_STATUS={
+  connected:true,version:'LPOS-V3.0/python-snapshot/web-v0.2.0',
+  grade:'B_VENDOR_PLUS_MIXED_PAYOUTS',
+  note:'已接入 V3.0 Python 研究引擎的版本化結果快照（非即時 Python API）。僅支援兩種既有 ETF 配置、5 種借款額度、固定 3.75% 假設利率；未取得官方完整日線或實際續借契約。'
+};
+let cache=null;
+let pending=null;
+function validateResearchBundle(data){
+  if(!data||data.schemaVersion!==2||data.webVersion!=='0.2.0'||data.researchVersion!=='LPOS V3.0')throw Error('研究資料版本不符');
+  if(!data.marketData||data.marketData.tradeSessions!==1366||data.marketData.start!=='2020-07-20'||data.marketData.end!=='2026-03-06')throw Error('研究行情範圍不符');
+  if(data.marketData.officialRawDailyRowsArchived!==0||data.sourceGrade!=='B_VENDOR_PLUS_MIXED_PAYOUTS'||data.loanRenewalVerified!==false)throw Error('研究證據分級不正確');
+  if(!Array.isArray(data.cases)||data.cases.length!==10||!Array.isArray(data.sourceAudit)||data.sourceAudit.length<5)throw Error('研究快照不足');
+  const unique=new Set();
+  for(const row of data.cases){
+    if(!data.controls.portfolio.includes(row.portfolio)||!data.controls.loanTwd.includes(row.loanTwd))throw Error('快照包含未支援的策略');
+    const key=row.portfolio+'_'+row.loanTwd;
+    if(unique.has(key))throw Error('重複研究情境'); unique.add(key);
+    if(!row.matchedFrozenV24||!Array.isArray(row.curveMonthly)||row.curveMonthly.length<60)throw Error('研究驗收紀錄不足');
+    if(row.curveMonthly[0][0]!=='2020-07-20'||row.curveMonthly.at(-1)[0]!=='2026-03-06')throw Error('研究圖表日期錯誤');
+    for(const k of ['cagr_pct','mdd_pct','sharpe_0rf','sortino_0rf'])if(!Number.isFinite(row.stats?.[k]))throw Error('研究績效數值不合法');
+  }
+  return data;
+}
+async function loadResearchBundle(){
+  if(cache)return cache;
+  if(!pending){
+    if(typeof fetch!=='function')throw Error('本地檔案無法載入研究資料；請使用 GitHub Pages 或本機 HTTP 伺服器');
+    pending=fetch('./research/v3_observed_snapshots.json',{cache:'no-store'})
+      .then(res=>{if(!res.ok)throw Error('資料伺服器回應 '+res.status);return res.json();})
+      .then(validateResearchBundle)
+      .then(data=>{cache=data;return data;})
+      .catch(err=>{pending=null;throw err;});
+  }
+  return pending;
+}
+function lookupResearchCase(data,portfolio,loanTwd){
+  if(!data)return null;
+  if(!data.controls.portfolio.includes(portfolio)||!data.controls.loanTwd.includes(loanTwd))return null;
+  return data.cases.find(x=>x.portfolio===portfolio&&x.loanTwd===loanTwd)||null;
+}
+async function analyzeHistoricalScenario({portfolio,loanTwd,ownCapitalTwd=1000000,aprPct=3.75}={}){
+  if(ownCapitalTwd!==1000000||aprPct!==3.75)return {ok:false,status:'unsupported_config',stats:null,navSeries:[],message:'目前 Python 快照僅支援自有資本 NT$100 萬、貸款利率 3.75%；不可將其他資金設定直接套入參考績效。'};
+  try {
+    const data=await loadResearchBundle();
+    const row=lookupResearchCase(data,portfolio,loanTwd);
+    if(!row)return {ok:false,status:'unsupported_config',stats:null,navSeries:[],message:'該標的／借款配置不在 V3.0 已驗證的十組快照內。'};
+    return {ok:true,status:'python_snapshot',modelVersion:data.researchVersion,sourceGrade:data.sourceGrade,
+      dataAsOf:data.marketData.end,stats:row.stats,
+      navSeries:row.curveMonthly.map(x=>({date:x[0],equity:x[1],cash:x[2],receivable:x[3],marginRatioPct:x[4]})),
+      assumptions:data.controls,sourceAudit:data.sourceAudit,
+      evidenceNote:'僅歷史條件式假設，非實盤；圖表每月抽樣，指標基於逐交易日計算。'};
+  }catch(err){return {ok:false,status:'unavailable',stats:null,navSeries:[],message:String(err.message||err)};}
+}
 
 ;
 
@@ -303,6 +347,7 @@ const tabs=[
   ['portfolio','◈','投資標的配置'],
   ['financing','▦','質押與融資'],
   ['stress','◉','壓力與生存測試'],
+  ['research','▥','歷史研究 V0.2'],
   ['compare','▤','策略比較'],
   ['sources','◇','資料品質與限制']
 ];
@@ -311,6 +356,7 @@ const titles={
   portfolio:['投資配置','自由加入 ETF、自訂倍數、分開配置自有資金與借款資金。'],
   financing:['質押融資','每一檔獨立指定質押比例、LTV、借款用途與還款流動性。'],
   stress:['極端壓力測試','用單次等比例市場下跌檢查淨資產與擔保缺口；不是多日歷史回測。'],
+  research:['V3.0 歷史研究','查看 Python 引擎已驗證的市場代理快照；不是實盤績效，也不是即時回測。'],
   compare:['策略 A / B / C','將相同初始淨資產的設定保存、比較與重新載入。'],
   sources:['資料品質中心','市場實證與融資條款有證據缺口時，結果必須清楚標示。']
 };
@@ -325,6 +371,14 @@ let tab='overview';
 let saveSlot='A';
 let toastText='';let toastHandle=null;
 let filePicker=null;
+let reference=null,referenceError='',referenceStatus='loading';
+let study={portfolio:'00878_only',loan:480000,rf:0};
+async function loadResearch(){
+  try{reference=await loadResearchBundle();referenceStatus='ready';}
+  catch(err){referenceStatus='error';referenceError=String(err.message||err);}
+  if(tab==='research'||tab==='sources')render();
+}
+
 
 const e=(s)=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const m=(n)=>Number.isFinite(n)?'NT$ '+formatTwd(n):'—';
@@ -563,16 +617,75 @@ function compare(r){
       `<div class="data-grid"><div class="data-grade"><span class="num">01</span><div><b>V0.2 歷史回測</b><div class="description">接 V3.0 研究資料與每日淨資產，先檢查來源日期與標的覆蓋。</div></div></div><div class="data-grade"><span class="num">02</span><div><b>V0.3 借款生存模型</b><div class="description">接追繳事件、T+2、實際本金到期、現金流與連續 2× 每日重設。</div></div></div></div>`)}
   </div>`;
 }
+function researchChart(selected,base){
+  const a=selected.curveMonthly,b=base.curveMonthly;
+  const points=[...a,...b].map(x=>x[1]).filter(Number.isFinite);
+  const high=Math.max(1100000,...points)*1.08, low=Math.min(0,...points)*.95;
+  const X=i=>60+i/(a.length-1)*670;
+  const Y=n=>240-(n-low)/(high-low)*210;
+  const draw=rows=>rows.map((r,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Y(r[1]).toFixed(1)).join(' ');
+  const grid=[0,.25,.5,.75,1].map(q=>{const value=low+(high-low)*q,y=Y(value);return `<line x1="60" x2="730" y1="${y}" y2="${y}" stroke="#e7edf4"/><text x="50" y="${y+4}" text-anchor="end" font-size="10" fill="#8797a6">${(value/1000000).toFixed(1)}m</text>`}).join('');
+  const yearMarks=a.map((r,i)=>({date:r[0],i})).filter((x,i)=>i===0||x.date.endsWith('12-31')||x.date.startsWith('2026-03')).filter((x,i)=>i===0||i%2===0);
+  const xTicks=yearMarks.map(z=>`<text x="${X(z.i)}" y="263" text-anchor="middle" font-size="10" fill="#8899ad">${e(z.date.slice(0,7))}</text>`).join('');
+  return `<div class="chartbox v02-chart"><svg viewBox="0 0 760 280" role="img" aria-label="LPOS V3.0 Python 模型每月底淨資產曲線，藍線為所選借款策略，綠線為相同 ETF 配比無借款基準">${grid}${xTicks}<path d="${draw(b)}" fill="none" stroke="#099c83" stroke-width="2.7" stroke-linejoin="round"/><path d="${draw(a)}" fill="none" stroke="#386fe8" stroke-width="3" stroke-linejoin="round"/></svg></div>
+  <div class="legend"><span class="legend-i"><i></i>所選策略</span><span class="legend-i"><i class="green"></i>相同標的無借款</span></div>`;
+}
+function research(){
+ if(referenceStatus==='loading')return panel('正在驗證 V3.0 研究資料','請稍候載入已凍結的 Python 模型研究快照。','<div class="empty">正在載入 · LPOS V3.0 / B 級第三方行情</div>');
+ if(referenceStatus==='error')return panel('研究資料無法載入','其他 V0.1 資金與單步壓力功能仍可使用。',`<div class="error-list">${e(referenceError)}</div><p class="footnote">GitHub Pages 需包含 research/v3_observed_snapshots.json；不會用假數據填補。</p>`);
+ const data=reference,caseA=lookupResearchCase(data,study.portfolio,study.loan),base=lookupResearchCase(data,study.portfolio,0);
+ if(!caseA||!base)return panel('不支援的研究設定','沒有相符且已核對的 Python 快照。','請選擇支援的標的與借款額度。');
+ const a=caseA.stats,b=base.stats;
+ const rf=String(study.rf),sharpeA=caseA.sharpeByRiskFreePct[rf],sharpeB=base.sharpeByRiskFreePct[rf];
+ const optPortfolio=[['00878_only','00878 100%'],['half_00631L_half_00878','00631L 50% + 00878 50%']].map(([v,label])=>`<option value="${v}" ${v===study.portfolio?'selected':''}>${label}</option>`).join('');
+ const optLoans=data.controls.loanTwd.map(v=>`<option value="${v}" ${v===study.loan?'selected':''}>${v===0?'不借款':m(v)}</option>`).join('');
+ const rfOpt=[0,2,4].map(v=>`<option value="${v}" ${v===study.rf?'selected':''}>${v}%（假設）</option>`).join('');
+ const last=caseA.curveMonthly.at(-1),first=caseA.curveMonthly[0];
+ return `<div class="section-stack">
+  ${panel('Python 研究快照：操作設定','選擇 V3.0 已驗證的組合，圖表立即更新；非自訂策略即時 Python API。',
+   `<div class="form-grid">
+    <label class="field"><span>持有標的</span><select id="research-portfolio" aria-label="歷史研究標的">${optPortfolio}</select></label>
+    <label class="field"><span>外部借款本金</span><select id="research-loan" aria-label="歷史研究借款本金">${optLoans}</select></label>
+    <label class="field"><span>Sharpe 無風險利率</span><select id="research-rf" aria-label="Sharpe 無風險利率假設">${rfOpt}</select></label>
+    <div class="field"><span>固定模型條件</span><div class="param-note">自有資金 NT$100萬 · 80萬買入／20萬現金 · 借款利率 3.75% · 不定期再平衡 · 假設持續展延</div></div>
+   </div><div class="warning-block">⚠ 僅 10 組已核對策略（借款 0 / 10 / 20 / 30 / 48 萬）可用。本分頁與左側自訂 ETF 設定是不同的研究模型，無法將其他標的、任意借款額度或手動質押條件套用成歷史績效。</div>`)}
+  <section class="kpi-grid v02-kpis" aria-label="研究回測結果">
+    ${kpi('條件式 CAGR',pct(a.cagr_pct,2),`無借款 ${pct(b.cagr_pct,2)}`,'blue')}
+    ${kpi('最大回撤',pct(a.mdd_pct,2),`無借款 ${pct(b.mdd_pct,2)}`,'warn')}
+    ${kpi(`Sharpe（rf ${study.rf}%）`,Number(sharpeA).toFixed(3),`無借款 ${Number(sharpeB).toFixed(3)}`)}
+    ${kpi('期末經濟淨資產',m(a.end_economic_net_equity_twd),`尚未償還本金 ${m(a.remaining_loan_twd)}`,'teal')}
+  </section>
+  ${panel('條件式經濟淨資產走勢','2020/7/20～2026/3/6 · 圖表依 Python 每月底帳務抽樣；CAGR、回撤和 Sharpe 使用 1,366 個交易日計算。',researchChart(caseA,base))}
+  <div class="two-col v02-panels">
+  ${panel('同標的、同資本策略對照','固定資金結構並扣除模型利息與交易費。',`<div class="stats">
+  ${stat('起始股票等值曝險',pct(a.initial_nominal_stock_exposure_pct,2))}
+  ${stat('條件式 CAGR 增減',`${a.cagr_pct-b.cagr_pct>=0?'+':''}${(a.cagr_pct-b.cagr_pct).toFixed(2)} 百分點`)}
+  ${stat('最大回撤增加幅度',`${(Math.abs(a.mdd_pct)-Math.abs(b.mdd_pct)).toFixed(2)} 百分點`)}
+  ${stat('累計假設付息',m(a.interest_paid_twd))}
+  ${stat('現金實收配息',m(a.cash_dividends_paid_twd))}
+  ${stat('期末應收未付配息',m(a.unpaid_dividend_receivable_twd))}
+  ${stat('期末未清償貸款',m(a.remaining_loan_twd))}
+  ${stat('第一個 130% 追繳訊號',a.first_130_collateral_breach?e(a.first_130_collateral_breach):'本歷史路徑未觸發')}
+  ${stat('首次流動現金不足',a.first_negative_liquid_cash_date?e(a.first_negative_liquid_cash_date):'本歷史路徑未觸發')}
+  </div>`)}
+  ${panel('資料品質與可執行性','嚴格區分「模型能算」與「真實借貸可以做到」。',`<div class="data-grade"><span class="num">B</span><div><b>第三方行情＋混合證據配息</b><div class="description">${e(data.marketData.tradeSessions)} 交易日 · ${e(data.marketData.start)} 至 ${e(data.marketData.end)} · 無官方完整 OHLCV 原始 bytes</div></div></div>
+  <div class="warning-block red">借款歷史路徑預設可一直獲得展延，實際授信契約未驗證；期末未償本金不等於可立即提出的現金。</div>
+  <p class="footnote">00631L 使用研究中的分割前價格換算與實際調整價；不能以兩倍股票長期 CAGR 替代。應收配息與現金發放日分開記帳。借款本金、整數股數與交易費用沿用 V3.0 Python 模型。</p>
+  ${button('匯出此研究快照 JSON','download-research','slim primary')}`)}
+  </div>
+  ${panel('觀測點紀錄','展示每年部分月份與最後一個交易日的已計算經濟淨資產。',`<div class="table-wrap"><table class="comparison"><thead><tr><th>日期</th><th>選擇策略淨資產</th><th>無借款淨資產</th><th>資金現金</th><th>應收未付配息</th></tr></thead><tbody>${caseA.curveMonthly.filter((x,i)=>i===0||i===caseA.curveMonthly.length-1||x[0].endsWith('-12-31')).map(x=>{const y=base.curveMonthly.find(z=>z[0]===x[0]);return `<tr><td>${e(x[0])}</td><td>${m(x[1])}</td><td>${m(y?.[1])}</td><td>${m(x[2])}</td><td>${m(x[3])}</td></tr>`}).join('')}</tbody></table></div>`)}
+ </div>`;
+}
 function sources(r){
   const grades=[
     ['A','政府／交易所官方原始 bytes','須有可存證原始檔、SHA256、欄位、權限及觀測日期；本頁尚未載入。'],
-    ['B','第三方歷史行情','LPOS V3.0 研究曾使用第三方 1,366 個交易日代理資料；網站 V0.1 不載入此數列。'],
+    ['B','第三方歷史行情','V0.2 已接入 V3.0 Python 算出的十組策略快照；沒有公開上架第三方原始 OHLCV。'],
     ['C','公開網頁或指數替代','需要與 ETF 真實交易價格區分；公開資料入口不等於成功取得整段歷史。'],
     ['S','合成情境／手動參數','V0.1 所有成本、成數、利率、跌幅與資產值都屬此類。'],
   ];
   return `<div class="section-stack">
-    ${panel('模型模式','網站目前處於靜態資金模型，不顯示任何偽造的回測報酬率。',
-      `<div class="data-grade"><div class="num">S</div><div><b>WEB V0.1 · 資金與單步壓力</b><div class="description">${e(RESEARCH_ENGINE_STATUS.note)}</div><div style="margin-top:9px"><span class="pill orange">未串接官方日線</span> <span class="pill orange">未核貸</span> <span class="pill">無 CAGR</span></div></div></div>`)}
+    ${panel('模型模式','左側自由配置仍為靜態資金模型；歷史研究分頁提供固定假設下的 Python 已驗證快照。',
+      `<div class="data-grade"><div class="num">S</div><div><b>WEB V0.2 · 資金模型＋研究快照</b><div class="description">${e(RESEARCH_ENGINE_STATUS.note)}</div><div style="margin-top:9px"><span class="pill green">V3.0 Python 快照</span> <span class="pill orange">非官方完整日線</span> <span class="pill orange">未核貸</span></div></div></div>`)}
     ${panel('研究資料分級','參考 LPOS V3.0 最終研究白皮書的證據邊界。',`<div class="data-grid">${grades.map(([x,t,d])=>`<div class="data-grade"><div class="num">${x}</div><div><b>${t}</b><div class="description">${d}</div></div></div>`).join('')}</div>`)}
     ${panel('現階段可驗證項目','所有數值都可以透過內附的 Node.js 單元測試重新計算。',
       `<div class="stats">
@@ -583,9 +696,10 @@ function sources(r){
       ${stat('1× / 2× 股票等值名目曝險','已實作')}
       ${stat('130% / 166% 質押參考門檻','模型假設')}
       ${stat('第 N 月本金到期現金缺口','簡化推估')}
-      ${stat('真實股價／配息／匯率','未連接')}
+      ${stat('B 級第三方觀測與配息研究快照',referenceStatus==='ready'?'已連接（十組）':'未載入')}
+      ${stat('其他任意 ETF / VT / 美元匯率','未連接')}
       ${stat('多日 2× ETF 逐日重設','未連接')}
-      ${stat('歷史績效 CAGR／MDD／Sharpe','未連接')}
+      ${stat('V3.0 Python 凍結績效',referenceStatus==='ready'?'已驗證十組':'未載入')}
       </div>`)}
     ${panel('原始研究對照','本次僅引用 V3.0 定義，不在公開網站中暴露研究資料庫或任何個人資訊。',
       `<div class="feature-row"><div class="feature-ico">∑</div><div><div class="feature-title">V3.0 量化研究總計畫</div><div class="feature-desc">淨資產採現金與持股市值減去借貸負債；股票曝險以淨資產為分母；維持率以質押借款為分母。</div></div></div>
@@ -594,22 +708,22 @@ function sources(r){
     ${panel('完整風險提醒','以下為目前設定下的提示；資料缺口未解決前不提供可執行投資建議。',warnings(r,20))}
   </div>`;
 }
-function body(tab,r){switch(tab){case'portfolio':return portfolio(r);case'financing':return financing(r);case'stress':return stress(r);case'compare':return compare(r);case'sources':return sources(r);default:return overview(r);}}
+function body(tab,r){switch(tab){case'portfolio':return portfolio(r);case'financing':return financing(r);case'stress':return stress(r);case'compare':return compare(r);case'sources':return sources(r);case'research':return research();default:return overview(r);}}
 function render(){
   const r=calculateScenario(current);
   const [title,subtitle]=titles[tab];
   app.innerHTML=`${mobileMenu(tab)}<div class="app-shell">
     <aside class="sidebar"><div class="brand"><span class="brand-symbol">LP</span><div><div class="brand-name">LPOS Lab</div><div class="brand-sub">PORTFOLIO RESEARCH</div></div></div>
       <div><div class="nav-label">WORKSPACE</div><nav class="nav-list" aria-label="主選單">${menu(tab)}</nav></div>
-      <div class="sidebar-bottom"><span class="side-badge">WEB V0.1 · LOCAL</span><div>數值僅供情境研究，非真實歷史回測或核貸報價。</div><div style="margin-top:6px">你的設定儲存在本機瀏覽器。</div></div>
+      <div class="sidebar-bottom"><span class="side-badge">WEB V0.2 · PYTHON SNAPSHOT</span><div>數值僅供情境研究，非真實歷史回測或核貸報價。</div><div style="margin-top:6px">你的設定儲存在本機瀏覽器。</div></div>
     </aside>
     <main class="main">
       <header class="topbar"><div><div class="eyebrow">Quant Research / LPOS V3.0 Methodology</div><h1 class="page-title">${e(title)}</h1><p class="page-desc">${e(subtitle)}</p></div>
       <div class="actions">${button('↺ 回復預設','reset')}${button('匯入 JSON','import')}${button('匯出 JSON','export','primary')}</div></header>
-      <div class="notice"><span style="font-size:16px">ⓘ</span><div><strong>研究模型（非實盤回測）</strong> · ${e(current.scenarioName)}。目前不載入即時行情、歷史資料或實際券商契約；每檔質押成數皆為你自行設定的情境假設。可編輯參數並即時查看資金與壓力結果。</div></div>
+      <div class="notice"><span style="font-size:16px">ⓘ</span><div><strong>V0.2 研究模式（非實盤）</strong> · ${e(current.scenarioName)}。資金模型可自由設定；「歷史研究」只顯示 V3.0 Python 已產生、資料有限的固定策略快照。未取得官方完整日線或實際券商核貸。</div></div>
       ${topKpis(r)}
       ${body(tab,r)}
-      <footer class="footnote" style="margin-top:27px;border-top:1px solid #e5ebf0;padding-top:14px">© LPOS Portfolio Lab · ${MODEL_VERSION} · 純前端資金模型 · 不提供投資建議，請勿將研究數值視為實際融資核准或歷史總報酬。</footer>
+      <footer class="footnote" style="margin-top:27px;border-top:1px solid #e5ebf0;padding-top:14px">© LPOS Portfolio Lab · ${MODEL_VERSION} · 前端資金模型＋離線 Python 研究快照 · 不提供投資建議，請勿將研究數值視為實際融資核准或歷史總報酬。</footer>
     </main>
   </div>`;
   safeSave();
@@ -642,12 +756,22 @@ app.addEventListener('change',ev=>{
   if(t.matches('[data-field]')){changeField(t.dataset.field,t.value);return;}
   if(t.matches('[data-fund-id]')){changeFund(t.dataset.fundId,t.dataset.fundField,t.value);return;}
   if(t.id==='save-slot')saveSlot=t.value;
+  if(t.id==='research-portfolio'){study.portfolio=t.value;render();return;}
+  if(t.id==='research-loan'){study.loan=Number(t.value);render();return;}
+  if(t.id==='research-rf'){study.rf=Number(t.value);render();return;}
 });
 app.addEventListener('click',ev=>{
   const t=ev.target.closest('button');if(!t)return;
   if(t.dataset.nav){tab=t.dataset.nav;render();window.scrollTo({top:0,behavior:'auto'});return;}
   const act=t.dataset.action;if(!act)return;
   if(act==='goto-portfolio'){tab='portfolio';render();return;}
+  if(act==='download-research'){
+    if(!reference)return toast('研究快照尚未載入');
+    const row=lookupResearchCase(reference,study.portfolio,study.loan);
+    if(!row)return toast('目前沒有這組已驗證策略');
+    download(`LPOS_V3.0_snapshot_${study.portfolio}_${study.loan}.json`,JSON.stringify({webVersion:'0.2.0',researchVersion:'V3.0',sourceGrade:reference.sourceGrade,marketData:reference.marketData,controls:reference.controls,model:reference.engine,case:row,sourceAudit:reference.sourceAudit,limitations:reference.limitations},null,2));
+    toast('已匯出可追溯的 Python 研究快照');return;
+  }
   if(act==='normalize-own'||act==='normalize-loan'){
     current.funds=normalizeFunds(current.funds,act==='normalize-own'?'ownWeightPct':'loanWeightPct');render();return;
   }
@@ -695,6 +819,7 @@ app.addEventListener('click',ev=>{
   }
 });
 render();
+void loadResearch();
 </script>
 </body>
 </html>
