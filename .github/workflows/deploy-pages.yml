@@ -84,10 +84,13 @@ jobs:
         run: |
           set -euo pipefail
           base="https://hanjhou2000716.github.io/prstk-taiwan-etf-research"
-          for path in index.html composer.html research-lab.html beta-lab.html leverage-lab.html financing-lab.html risk-lab.html sensitivity.html compare.html stress-test.html report.html styles/design-system.css data/manifest.json data/backtests/buy_hold_006208.csv; do
+          for path in index.html lpos-portfolio-lab/index.html composer.html research-lab.html beta-lab.html leverage-lab.html financing-lab.html risk-lab.html sensitivity.html compare.html stress-test.html report.html styles/design-system.css data/manifest.json data/backtests/buy_hold_006208.csv; do
             code=$(curl -L -sS -o /dev/null -w '%{http_code}' "$base/$path")
             test "$code" = "200"
           done
+          curl -fLsS --retry 6 --retry-all-errors --retry-delay 3 "$base/lpos-portfolio-lab/index.html" -o /tmp/lpos-portfolio-lab.html
+          grep -q "LPOS Portfolio Lab" /tmp/lpos-portfolio-lab.html
+          echo "LPOS Portfolio Lab publicly accessible with expected HTML"
           python - <<'PY'
           import json, urllib.request
           base='https://hanjhou2000716.github.io/prstk-taiwan-etf-research'
