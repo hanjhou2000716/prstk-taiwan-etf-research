@@ -18,10 +18,14 @@ jobs:
               Path('site/data/manifest.json'),
               Path('site/data/strategy-catalog.json'),
               Path('site/data/reconciliation_report.json'),
+              Path('site/lpos-portfolio-lab/research/v3_observed_snapshots.json'),
           ]
           for path in required:
               json.loads(path.read_text(encoding='utf-8'))
               print('valid JSON:', path)
+          research=json.loads(Path('site/lpos-portfolio-lab/research/v3_observed_snapshots.json').read_text(encoding='utf-8'))
+          assert research['webVersion']=='0.2.0' and len(research['cases'])==10 and research['marketData']['tradeSessions']==1366
+          assert research['sourceGrade']=='B_VENDOR_PLUS_MIXED_PAYOUTS' and research['loanRenewalVerified'] is False
           pages = ['index.html','composer.html','research-lab.html','beta-lab.html','leverage-lab.html','financing-lab.html','risk-lab.html','sensitivity.html','compare.html','stress-test.html','report.html']
           for name in pages:
               text = Path('site', name).read_text(encoding='utf-8')
@@ -52,7 +56,7 @@ jobs:
           mkdir -p artifacts/reports
           mkdir -p artifacts/reports/assets
           mkdir -p artifacts/reports/lpos-portfolio-lab
-          cp site/lpos-portfolio-lab/index.html artifacts/reports/lpos-portfolio-lab/index.html
+          cp -r site/lpos-portfolio-lab/. artifacts/reports/lpos-portfolio-lab/
           cp site/index.html artifacts/reports/index.html
           cp site/composer.html artifacts/reports/composer.html
           cp site/research-lab.html artifacts/reports/research-lab.html
@@ -84,16 +88,24 @@ jobs:
         run: |
           set -euo pipefail
           base="https://hanjhou2000716.github.io/prstk-taiwan-etf-research"
-          for path in index.html lpos-portfolio-lab/index.html composer.html research-lab.html beta-lab.html leverage-lab.html financing-lab.html risk-lab.html sensitivity.html compare.html stress-test.html report.html styles/design-system.css data/manifest.json data/backtests/buy_hold_006208.csv; do
+          for path in index.html lpos-portfolio-lab/index.html lpos-portfolio-lab/research/v3_observed_snapshots.json composer.html research-lab.html beta-lab.html leverage-lab.html financing-lab.html risk-lab.html sensitivity.html compare.html stress-test.html report.html styles/design-system.css data/manifest.json data/backtests/buy_hold_006208.csv; do
             code=$(curl -L -sS -o /dev/null -w '%{http_code}' "$base/$path")
             test "$code" = "200"
           done
           curl -fLsS --retry 6 --retry-all-errors --retry-delay 3 "$base/lpos-portfolio-lab/index.html" -o /tmp/lpos-portfolio-lab.html
           grep -q "LPOS Portfolio Lab" /tmp/lpos-portfolio-lab.html
+          grep -q "v3_observed_snapshots.json" /tmp/lpos-portfolio-lab.html
           echo "LPOS Portfolio Lab publicly accessible with expected HTML"
           python - <<'PY'
           import json, urllib.request
           base='https://hanjhou2000716.github.io/prstk-taiwan-etf-research'
+          from urllib.request import urlopen
+          bridge=json.load(urlopen(base+'/lpos-portfolio-lab/research/v3_observed_snapshots.json'))
+          assert bridge['webVersion']=='0.2.0' and len(bridge['cases'])==10
+          assert bridge['marketData']['tradeSessions']==1366
+          assert bridge['loanRenewalVerified'] is False
+          assert bridge['marketData']['officialRawDailyRowsArchived']==0
+          print('LPOS V0.2 research JSON publicly verified:', len(bridge['cases']), 'cases')
           meta=json.load(urllib.request.urlopen(base+'/data/deployment.json'))
           expected='${{ github.sha }}'
           assert meta['commit_sha'] == expected, (meta, expected)
