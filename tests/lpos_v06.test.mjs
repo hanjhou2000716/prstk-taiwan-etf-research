@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-const html=readFileSync('site/lpos-portfolio-lab/index.html','utf8');
+const html=readFileSync('site/lpos-portfolio-lab/legacy-v06.html','utf8');
 const code=html.match(/<script>([\s\S]*?)<\/script>/)[1];
 const engine=readFileSync('site/lpos-portfolio-lab/survival-engine.js','utf8');
 function harness(){

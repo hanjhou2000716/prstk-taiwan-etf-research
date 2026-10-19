@@ -4,5 +4,8 @@ __pycache__/
 data/raw/
 data/processed/
 artifacts/
+node_modules/
+apps/lpos/dist/
+work/pytest-tmp/
 *.pyc
 .env

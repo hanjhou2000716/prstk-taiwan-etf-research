@@ -25,7 +25,7 @@ try{
   const act=async value=>{await page.locator(`[data-action="${value}"]:visible`).first().click()};
   const text=async re=>{await page.getByText(re).first().waitFor({state:'visible'})};
   const field=async (key,value)=>{const el=page.locator(`[data-field="${key}"]`);await el.fill(String(value));await el.dispatchEvent('change')};
-  await page.goto(base+'/lpos-portfolio-lab/index.html');await text('Web V0.6 財務審計與公平比較');
+  await page.goto(base+'/lpos-portfolio-lab/legacy-v06.html');await text('Web V0.6 財務審計與公平比較');
   await nav('survival');await act('survival-sample');
   await nav('portfolio');
   assert.equal(await page.locator('[data-fund-field="ownWeightPct"]').count(),2);

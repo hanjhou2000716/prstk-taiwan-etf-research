@@ -3,7 +3,7 @@
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import assert from 'node:assert/strict';
-const html=readFileSync('site/lpos-portfolio-lab/index.html','utf8');
+const html=readFileSync('site/lpos-portfolio-lab/legacy-v06.html','utf8');
 assert.match(html,/Web V0\.3/);
 assert.match(html,/調整價格代理/);
 const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];

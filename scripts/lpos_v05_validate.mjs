@@ -2,7 +2,7 @@
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import assert from 'node:assert/strict';
-const page=readFileSync('site/lpos-portfolio-lab/index.html','utf8');
+const page=readFileSync('site/lpos-portfolio-lab/legacy-v06.html','utf8');
 const engine=readFileSync('site/lpos-portfolio-lab/survival-engine.js','utf8');
 const redirect=readFileSync('site/lpos-portfolio-lab/v04/index.html','utf8');
 assert.match(page,/web-v0\.6\.0/);
