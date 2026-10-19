@@ -1158,6 +1158,7 @@ function render(){
       <header class="topbar"><div><div class="eyebrow">Quant Research / LPOS V3.0 Methodology</div><h1 class="page-title">${e(title)}</h1><p class="page-desc">${e(subtitle)}</p></div>
       <div class="actions">${button('↺ 回復預設','reset')}${button('匯入 JSON','import')}${button('匯出 JSON','export','primary')}</div></header>
       <div class="notice"><span style="font-size:16px">ⓘ</span><div><strong>V0.3 動態價格路徑（非實盤）</strong> · ${e(current.scenarioName)}。可用三檔調整價格代理重算自訂組合；V0.2 固定 Python 快照保留，兩者資料來源與方法不同。未完成配息總報酬、逐筆券商質押與 T+2 驗證。</div></div>
+      <div style="margin:15px 0;padding:14px;border:1px solid #aed5c8;border-radius:12px;background:#edf9f4;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between"><div><strong>新增 Web V0.4 生存實驗室</strong><div style="font-size:12px;color:#567e6e">股災、失業、融資到期、追繳警示、T+2 交割現金缺口</div></div><a href="./v04/index.html" style="padding:10px 15px;background:#176a62;color:white;border-radius:10px;text-decoration:none;font-weight:700">開啟 V0.4 生存測試 ↗</a></div>
       ${topKpis(r)}
       ${body(tab,r)}
       <footer class="footnote" style="margin-top:27px;border-top:1px solid #e5ebf0;padding-top:14px">© LPOS Portfolio Lab · ${MODEL_VERSION} · 資金模型＋V0.2 Python 快照＋V0.3 每日調整價格動態計算 · 不提供投資建議，請勿將研究數值視為實際融資核准或歷史總報酬。</footer>
