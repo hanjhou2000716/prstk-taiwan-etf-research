@@ -1199,7 +1199,7 @@ function svField(name,label,min,max,step=1){
 }
 
 function svChoice(name,label,options){
- const v=survivalSettings[name];
+ const v=name==='prefund'?(survivalSettings.prefund?'yes':'no'):survivalSettings[name];
  return `<label class="field"><span>${e(label)}</span><select data-survival="${e(name)}">${options.map(([val,t])=>
  `<option value="${e(val)}" ${String(v)===String(val)?'selected':''}>${e(t)}</option>`).join('')}</select></label>`;
 }
@@ -1366,12 +1366,58 @@ app.addEventListener('change',ev=>{
   if(t.id==='research-loan'){study.loan=Number(t.value);render();return;}
   if(t.id==='research-rf'){study.rf=Number(t.value);render();return;}
   if(t.matches('[data-v03]')){v03Settings[t.dataset.v03]=t.dataset.v03==='rfPct'?Number(t.value):t.value;render();return;}
+  if(t.matches('[data-survival]')){
+    const key=t.dataset.survival;
+    const value=['shockPct','shockMonth','unemploymentMonths','rateHikePct','horizonMonths'].includes(key)?Number(t.value):
+      key==='prefund'?t.value==='yes':t.value;
+    const next={...survivalSettings,[key]:value};
+    try{
+      survivalSettings=window.LPOSSurvival.validate(next);
+      localStorage.setItem('lpos-v05-survival-controls',JSON.stringify(survivalSettings));
+      render();
+    }catch(err){toast('生存參數無效：'+String(err.message||err));render()}
+    return;
+  }
 });
 app.addEventListener('click',ev=>{
   const t=ev.target.closest('button');if(!t)return;
-  if(t.dataset.nav){tab=t.dataset.nav;render();window.scrollTo({top:0,behavior:'auto'});return;}
+  if(t.dataset.nav){tab=t.dataset.nav;
+    if(typeof history!=='undefined'&&history.replaceState)history.replaceState(null,'','#'+tab);
+    render();window.scrollTo({top:0,behavior:'auto'});return;}
   const act=t.dataset.action;if(!act)return;
   if(act==='goto-portfolio'){tab='portfolio';render();return;}
+  if(act==='goto-financing'){tab='financing';render();return;}
+  if(act==='survival-sample'){
+    const a=makeFund('006208',60,60);a.pledgePct=100;a.ltvPct=60;
+    const b=makeFund('00685L',40,40);b.pledgePct=0;b.ltvPct=0;
+    current.funds=[a,b];current.scenarioName='整合範例：006208／00685L';
+    render();toast('已切換至可進行逐日研究的 ETF 示例，資金與融資條件不變');return;
+  }
+  if(act==='survival-run'||act==='survival-cases'){void runSurvival(act==='survival-cases'?'cases':'solo');return;}
+  if(act==='survival-export'||act==='survival-export-csv'){
+    if(survivalState.status!=='ready'||survivalState.stamp!==survivalStamp())
+      return toast('請先重新計算目前設定的生存研究');
+    const q=survivalState.result;
+    if(act==='survival-export-csv'){
+      const head='date,equity,cash,debt,receivable,restricted_cash,maintenance_pct,accrued_interest';
+      const data=q.ledger.map(x=>[x.date,x.equity,x.cash,x.debt,x.receivable,x.restrictedCash,x.maintenancePct??'',x.accruedInterest].join(','));
+      download('LPOS_integrated_survival.csv','\ufeff'+head+'\n'+data.join('\n')+'\n','text/csv');
+    }else{
+      download('LPOS_integrated_survival.json',JSON.stringify({
+        version:'LPOS Web V0.5',scenario:current,controls:survivalSettings,
+        researchGrade:'TWSE-derived adjusted price proxy, NOT verified ETF total returns',
+        result:q,cases:survivalState.cases},null,2));
+    }return;
+  }
+  if(act==='export-workspace'){
+    download('LPOS_integrated_workspace.json',JSON.stringify({
+      version:'LPOS Web V0.5',scenario:current,savedScenarios:saved,
+      backtestSettings:v03Settings,survivalSettings,
+      backtest:v03State.status==='ready'&&v03State.stamp===backtestStamp()?v03State.result:null,
+      survival:survivalState.status==='ready'&&survivalState.stamp===survivalStamp()?survivalState.result:null,
+      caveats:'Adjusted-price research. No certified total returns, broker credit approval, or actual forced liquidation.'},null,2));
+    toast('已匯出整合研究設定與目前有效的結果');return;
+  }
   if(act==='v03-goto-compare'){tab='compare';render();return;}
   if(act==='v03-sample'){
     const a=makeFund('006208',60,60);a.pledgePct=100;a.ltvPct=60;
@@ -1417,7 +1463,7 @@ app.addEventListener('click',ev=>{
   }
   if(act==='reset'){
     if(window.confirm('確定回復預設情境？瀏覽器儲存的 A/B/C 方案仍會保留。')){
-      current=defaultScenario();render();toast('已回復 V0.3 基準情境');}return;
+      current=defaultScenario();render();toast('已回復整合研究基準情境');}return;
   }
   if(act==='export'){
     try{download('LPOS_Portfolio_Lab_V0.3_'+new Date().toISOString().slice(0,10)+'.json',serializeScenario(current));toast('已匯出 JSON 情境設定');}
@@ -1444,6 +1490,11 @@ app.addEventListener('click',ev=>{
     if(!saved[saveSlot])return toast(`方案 ${saveSlot} 目前是空的`);
     delete saved[saveSlot];safeSaveSlots();render();toast(`已清除方案 ${saveSlot}`);return;
   }
+});
+if(typeof window.addEventListener==='function')window.addEventListener('hashchange',()=>{
+  const raw=(typeof location!=='undefined'?location.hash.slice(1):'');
+  const target=tabAlias[raw]||raw;
+  if(tabs.some(x=>x[0]===target)&&target!==tab){tab=target;render();}
 });
 render();
 void loadResearch();
