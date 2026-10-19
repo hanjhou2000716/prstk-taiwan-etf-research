@@ -1184,10 +1184,133 @@ function unifiedBacktest(){
  '<details class="expand-study"><summary>展開 V3.0 Python 研究快照：00878／00631L 10 組策略（不同證據口徑）</summary>'+
  research()+'</details></div>';
 }
+function survivalRiskLabel(type){
+ const x={essential_spending_shortfall:"必要生活費無法支付",interest_payment_shortfall:"借款利息付款不足",
+ bullet_maturity_shortfall:"到期本金／利息現金不足",hypothetical_margin_cure_shortfall:"假設補擔保品不足",
+ nonpositive_net_equity:"淨資產歸零或負值",margin_warning_below_130:"維持率低於 130% 的警示",
+ rollover_assumed_NOT_APPROVED:"假設續借（尚未核准）",sell_receivable_T2:"賣出並等待 T+2",
+ T2_cash_settled:"待交割款入帳",synthetic_market_level_shock:"人工股災衝擊"};
+ return x[type]||type;
+}
+
+function svField(name,label,min,max,step=1){
+ const v=survivalSettings[name];
+ return `<label class="field"><span>${e(label)}</span><input type="number" data-survival="${e(name)}" value="${e(v)}" min="${min}" max="${max}" step="${step}"/></label>`;
+}
+
+function svChoice(name,label,options){
+ const v=survivalSettings[name];
+ return `<label class="field"><span>${e(label)}</span><select data-survival="${e(name)}">${options.map(([val,t])=>
+ `<option value="${e(val)}" ${String(v)===String(val)?'selected':''}>${e(t)}</option>`).join('')}</select></label>`;
+}
+
+function survivalChartView(result){
+ if(!result?.ledger?.length)return '<div class="empty">沒有可顯示的淨資產路徑</div>';
+ const rows=result.ledger,span=Math.max(1,Math.ceil(rows.length/120)),arr=rows.filter((x,i)=>i%span===0||i===rows.length-1);
+ const v=arr.flatMap(x=>[x.equity,x.cash]),hi=Math.max(1,...v),lo=Math.min(0,...v);
+ const X=i=>42+(i/Math.max(1,arr.length-1))*580,Y=a=>226-(a-lo)/(hi-lo)*195;
+ function trace(key,color){
+  return `<polyline fill="none" stroke="${color}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" points="${arr.map((p,i)=>`${X(i).toFixed(1)},${Y(p[key]).toFixed(1)}`).join(' ')}"/>`;
+ }
+ return `<div class="survival-chart"><svg viewBox="0 0 660 256" role="img" aria-label="淨資產與已交割現金曲線">
+  <rect x="0" y="0" width="660" height="256" rx="12" fill="#f8fafc"/>
+  ${[0,.25,.5,.75,1].map(q=>`<line x1="42" x2="622" y1="${Y(lo+(hi-lo)*q)}" y2="${Y(lo+(hi-lo)*q)}" stroke="#e6ecf2"/>`).join('')}
+  ${trace('equity','#174f81')}${trace('cash','#e29346')}
+  <text x="42" y="246" font-size="10" fill="#7e90a4">${e(rows[0].date)}</text>
+  <text x="622" y="246" text-anchor="end" font-size="10" fill="#7e90a4">${e(rows.at(-1).date)}</text>
+  </svg><div class="v03-legend-wrap"><span class="v03-legend"><i style="background:#174f81"></i>經濟淨資產</span>
+  <span class="v03-legend"><i style="background:#e29346"></i>已交割現金</span></div></div>`;
+}
+
+function survivalResultView(){
+ if(survivalState.status==='loading')return '<div class="empty">載入共同交易日與逐日記帳中，請稍候……</div>';
+ if(survivalState.status==='error')return `<div class="error-list"><strong>無法完成本次生存研究</strong><p>${e(survivalState.error)}</p></div>`;
+ if(survivalState.status!=='ready'||survivalState.stamp!==survivalStamp())
+  return '<div class="empty"><div class="empty-icon">◎</div><h3>套用目前資金設定，計算多日生存情境</h3><p>修改持股、質押或現金流後，請重新計算。歷史行情未涵蓋的 ETF 不能冒用其他代號補齊。</p></div>';
+ const q=survivalState.result,tail=q.ledger.at(-1);
+ const first=q.firstHard?.date||'未出現';
+ const disposition=q.completed?(q.conditionalOnLoanRollover?'條件完成（依賴續借）':'完成研究區間'):'中途發生資金／政策失敗';
+ const data=[
+  ['研究狀態',disposition],['研究至',q.period.realizedTo],['經濟淨資產',m(tail?.equity)],
+  ['可支配現金',m(tail?.cash)],['T+2 待交割',m(tail?.receivable)],['期末借款',m(tail?.debt)],
+  ['首次維持率警示',q.firstMargin||'無'],['首次付款／政策失敗',first]
+ ];
+ const tiles=`<div class="survival-grid">${data.map(([label,value])=>`<div class="survival-tile"><small>${e(label)}</small><b>${e(value)}</b></div>`).join('')}</div>`;
+ const events=q.events.filter(x=>x.type!=='monthly_net_cash_flow').slice(-32);
+ const evTable=`<div class="integrated-table"><table><thead><tr><th>日期</th><th>事件</th><th>金額／備註</th></tr></thead><tbody>
+ ${events.map(x=>`<tr><td>${e(x.date)}</td><td>${e(survivalRiskLabel(x.type))}</td><td>${e(x.reason||x.why||x.amount||x.gross||x.pct||x.ratioPct||'—')}</td></tr>`).join('')}
+ </tbody></table></div>`;
+ const cases=survivalState.cases?.length?`<div class="thin-divider"></div><h3 class="panel-title">五組壓力劇本比較</h3>
+ <div class="integrated-table"><table><thead><tr><th>研究情境</th><th>是否完成</th><th>最後淨資產</th><th>第一次資金失敗</th><th>首次維持率警示</th></tr></thead><tbody>
+ ${survivalState.cases.map(v=>`<tr><td>${e(v.name)}</td><td>${v.result.completed?'完成*':'失敗'}</td>
+ <td>${m(v.result.ledger.at(-1)?.equity)}</td><td>${e(v.result.firstHard?.date||'無')}</td>
+ <td>${e(v.result.firstMargin||'無')}</td></tr>`).join('')}</tbody></table></div>
+ <p class="footnote">*「完成」不是市場存活機率，更不代表續借或擔保資格已獲核准。</p>`:'';
+ return `${tiles}${survivalChartView(q)}
+  <div class="row-actions">${button('匯出本次每日帳 CSV','survival-export-csv','slim')}
+  ${button('匯出完整生存研究 JSON','survival-export','slim primary')}</div>
+  <div class="warning-block ${q.firstHard?'red':''}">研究判定：${e(disposition)}。${q.firstHard?`首次失敗原因：${e(survivalRiskLabel(q.firstHard.type))}（${e(q.firstHard.date)}）。`:
+  '未發現本情境設定中的硬性付款失敗。'} 賣股 T+2 應收款不可視為當日現金。</div>
+  ${cases}<div class="thin-divider"></div><h3 class="panel-title">事件軌跡</h3>${evTable}
+  <p class="footnote">累計已付利息 ${m(q.interestPaid)}，T+2 已結算款 ${m(q.totalT2Settled)}；低於 130% 僅是警示。
+  選擇「假設兩交易日補擔保品」時，為自訂研究政策，並非券商實際要求。</p>`;
+}
+
 function integratedSurvival(r){
- return '<div class="section-stack">'+panel('生存研究連線','同一份組合設定即時套用到生存模型。',
- '<div class="empty"><h3>生存研究計算整合中</h3><p>設定與完整模型已保存，請稍候發布。</p></div>')+
- '<details class="expand-study"><summary>展開單次市場下跌的舊版風險指標</summary>'+stress(r)+'</details></div>';
+ const info=`目前策略：${e(current.scenarioName)} · 自有淨資產 ${m(current.ownCapital)} ·
+  假設質押借款 ${r.valid?m(r.borrow):'資料不完整'} · 保留現金 ${r.valid?m(r.liquidCash):'—'}。
+  <b>以下計算直接讀取持股與融資頁設定，不需要重新輸入兩份資金。</b>`;
+ const eligible=supportedSymbols(current);
+ const warn=eligible.unsupported.length?`<div class="warning-block red">目前持有
+   ${[...new Set(eligible.unsupported)].map(e).join('、')}，尚無同口徑逐日行情。請換成 006208／00631L／00685L，
+   或套用範例；00878 原有 V3.0 Python 參考快照仍在「歷史研究」內。</div>`:'';
+ const controls=`<div class="param-note">${info}</div>${warn}
+ <div class="row-actions" style="margin:14px 0">${button('返回持股配置','goto-portfolio','slim')}
+ ${button('調整借款與每月支出','goto-financing','slim')}
+ ${button('套用有行情的 ETF 示範組合','survival-sample','slim')}</div>
+ <div class="form-grid">
+   <label class="field"><span>共同回測起始日期</span><input type="date" data-v03="from" value="${e(v03Settings.from)}"/></label>
+   ${svField('horizonMonths','觀測期限（月）',1,120)}
+   ${svField('shockPct','額外假設指數跌幅（%）',0,90,5)}
+   ${svField('shockMonth','第幾個月發生股災',0,120)}
+   ${svField('unemploymentMonths','失業／收入中斷月數',0,120)}
+   ${svField('rateHikePct','借款升息（百分點）',0,20,.25)}
+   ${svChoice('rollover','借款到期怎麼辦',[['deny','必須還清（不假設續借）'],['conditional','假設券商願意展延（未核准）']])}
+   ${svChoice('prefund','T+2 到期預售',[['yes','預先兩交易日賣出可動用部位'],['no','不預先出售，只有已結算現金可付款']])}
+   ${svChoice('marginPolicy','維持率跌破 130% 時',[['warning','只記錄風險警示'],['hypothetical_two_day_cure','假設需兩交易日內補到 166%']])}
+ </div><div class="row-actions" style="margin-top:17px">
+ ${button('▶ 計算目前組合生存能力','survival-run','primary')}
+ ${button('比較五種極端情境','survival-cases','teal')}</div>
+ <p class="footnote">失業時假設收入降至零、生活費仍需支付；平常採用資金頁的「每月自由現金流（已扣生活費）」，不重複扣除。
+ 正二 ETF 的人工瞬間股災衝擊採約兩倍短期價格近似；日常路徑仍使用正二本身的調整價格。</p>`;
+ return `<div class="section-stack">
+  ${panel('04｜真正的多日生存能力檢驗','T+2 到帳、失業、升息、到期與質押風險，全部使用同一個投資組合。',controls)}
+  ${panel('生存結果、逐日現金與風險事件','可區分市場淨值、尚未交割賣款、已交割現金及未償還借款。',survivalResultView())}
+  <details class="expand-study"><summary>展開單日壓力預覽（V0.1 的 130%／166% 靜態風險模型）</summary>${stress(r)}</details>
+  ${panel('證據與操作邊界','調整價格研究快照不是經交易所核實的完整含息總報酬。',
+  `<div class="warning-block">不模擬盤中追繳、真實券商作業期限、個別質押資格、到期日節假日調整、無法成交的交易限制；
+  T+2 以共同市場交易日近似。持續借款僅為模型假設，非核准事實。</div>`)}
+ </div>`;
+}
+
+async function runSurvival(kind='solo'){
+ const stamp=survivalStamp();
+ survivalState={status:'loading',kind,result:null,cases:null,error:'',stamp};
+ render();
+ try{
+  if(!window.LPOSSurvival)throw Error('生存引擎尚未載入，請重新整理網頁');
+  const config=calculateScenario(current);
+  if(!config.valid)throw Error('配置或質押參數有誤：'+config.errors.join('；'));
+  const available=supportedSymbols(current);
+  if(available.unsupported.length)throw Error('不支援的逐日 ETF：'+[...new Set(available.unsupported)].join('、'));
+  const series=await loadMarketSeries(available.symbols);
+  const dates=sharedDates([current],series,{from:v03Settings.from,to:v03Settings.to});
+  const result=window.LPOSSurvival.run(current,config,series,dates,survivalSettings);
+  const cases=kind==='cases'?window.LPOSSurvival.scenarios(survivalSettings).map(([name,settings])=>
+    ({name,result:window.LPOSSurvival.run(current,config,series,dates,settings)})):null;
+  survivalState={status:'ready',kind,result,cases,error:'',stamp};
+ }catch(err){survivalState={status:'error',kind,result:null,cases:null,error:String(err.message||err),stamp}}
+ render();
 }
 function body(tab,r){switch(tab){case'portfolio':return portfolio(r);case'financing':return financing(r);case'stress':case'survival':return integratedSurvival(r);case'compare':return compare(r);case'sources':return sources(r);case'research':case'backtest':return unifiedBacktest();default:return overview(r);}}
 function render(){
