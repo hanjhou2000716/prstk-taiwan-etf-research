@@ -55,6 +55,7 @@ does not overwrite interactive pages.
 - [Quant Engine](docs/quant_engine.md)
 - [Data Dictionary](docs/DATA_DICTIONARY.md)
 - [Testing](docs/TESTING.md)
+- [LPOS Portfolio Lab V0.7](docs/LPOS_V07.md)
 - [Methodology](site/methodology.html)
 - [Audit](site/audit.html)
 
