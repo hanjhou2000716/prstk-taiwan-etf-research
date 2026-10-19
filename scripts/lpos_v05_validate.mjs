@@ -45,7 +45,7 @@ assert.ok(renewal.unpaidLoan>0,'renewal must NOT extinguish debt');
 const jobless=E.run({...scenario,termMonths:12,monthlyLivingExpense:20000},
  {valid:true,liquidCash:10000,borrow:0,legs:[{symbol:'006208',ownValue:990000,loanValue:0,
  factor:1,pledgeStatus:'blocked',pledgePct:0}]},market,weekdays,
- {...base,horizonMonths:3,unemploymentMonths:12});
+ {...base,horizonMonths:3,unemploymentMonths:12,prefund:false});
 assert.equal(jobless.completed,false);
 assert.equal(jobless.firstHard.type,'essential_spending_shortfall');
 const margin=E.run(scenario,initial,market,weekdays,
