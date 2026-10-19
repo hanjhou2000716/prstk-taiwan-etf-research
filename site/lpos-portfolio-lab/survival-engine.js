@@ -67,7 +67,7 @@ function run(scenario,initial,series,dates,settings={}){
  const fee=scenario.tradeCostPct/100, targetReserve=scenario.monthlyLivingExpense*scenario.minReserveMonths;
  const loanMaturity=addMonths(start,scenario.termMonths);
  let maturity=loanMaturity,prev=start;
- const monthEnds=new Set(selected.map((d,i)=> i===selected.length-1||selected[i+1].slice(0,7)!==d.slice(0,7) ? i : -1).filter(i=>i>=0));
+ const monthEnds=new Set(selected.map((d,i)=> i<selected.length-1&&selected[i+1].slice(0,7)!==d.slice(0,7) ? i : -1).filter(i=>i>=0));
  let nextMaturityIndex=loan>EPS?selected.findIndex(d=>d>=maturity):-1;
  function shockFactor(sym){return shockApplied?Math.max(.01,1-s.shockPct/100*positions[sym].factor):1;}
  function holdings(date){let total=0,collateral=0,bySym={};
