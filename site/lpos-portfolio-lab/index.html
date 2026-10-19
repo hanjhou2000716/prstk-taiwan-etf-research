@@ -58,18 +58,37 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .v03-legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
 @media(max-width:900px){.v03-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.v03-controls{grid-template-columns:1fr}.v03-graph svg{min-height:175px}}
+
+/* Unified LPOS Portfolio Lab V0.5 */
+.flowsteps{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 19px}
+.flowsteps button{border:1px solid #d9e3ee;background:#fff;padding:9px 11px;border-radius:10px;font-weight:800;color:#627b94;font-size:11px}
+.flowsteps button.active{background:#153b60;color:white;border-color:#153b60}
+.flowsteps button:hover:not(.active){background:#eef4f8}
+.integrated-hint{background:#eef8f6;border:1px solid #beded4;border-radius:12px;padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:0 0 19px;color:#285d56}
+.integrated-hint b{font-size:13px}.integrated-hint p{font-size:11px;margin:6px 0 0}
+.expand-study{border:1px solid #dce5f0;border-radius:13px;background:#fff;overflow:hidden}
+.expand-study summary{cursor:pointer;padding:17px;font-weight:800;color:#285578}.expand-study[open] summary{border-bottom:1px solid #e6edf4}
+.expand-study>.section-stack{padding:15px}
+.survival-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:8px 0}
+.survival-tile{background:#f5f8fc;border-radius:10px;padding:12px;min-width:0}.survival-tile small{display:block;color:#8596a7;font-size:10px;margin-bottom:9px}.survival-tile b{color:#244058;overflow-wrap:anywhere}
+.survival-chart svg{display:block;width:100%;height:auto}
+.integrated-table{max-height:330px;overflow:auto}.integrated-table table{border-collapse:collapse;min-width:600px;width:100%;font-size:11px}
+.integrated-table th,.integrated-table td{padding:9px 10px;text-align:right;border-bottom:1px solid #e8eef5;white-space:nowrap}.integrated-table th:first-child,.integrated-table td:first-child{text-align:left}
+.flow-next{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:19px 0}
+@media(max-width:1000px){.survival-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.flowsteps{gap:4px}.flowsteps button{padding:7px 8px;font-size:10px}}
 </style>
 </head>
 <body>
   <noscript><div style="padding:32px;font-family:sans-serif">此互動研究工具需要啟用 JavaScript 才能使用。</div></noscript>
   <div id="app" aria-live="polite"></div>
+  <script src="./survival-engine.js"></script>
   <script>/**
  * LPOS Portfolio Lab Web V0.1 - deterministic, browser-safe capital model.
  * NO price feed, NO claim of pledge eligibility, NO historical backtest.
  * Units: TWD, ratios entered as percent 0..100, APR as percent per annum.
  * No external source is requested by this module.
  */
-const MODEL_VERSION = 'web-v0.3.0';
+const MODEL_VERSION = 'web-v0.5.0';
 const MAX_ASSETS = 12;
 const WARN_THRESHOLD = 130;
 const RESTORE_TARGET = 166;
@@ -642,22 +661,22 @@ const CURRENT_KEY='lpos-web-v01-current';
 const SAVED_KEY='lpos-web-v01-saved';
 const app=document.getElementById('app');
 const tabs=[
-  ['overview','◫','總覽 Dashboard'],
-  ['portfolio','◈','投資標的配置'],
-  ['financing','▦','質押與融資'],
-  ['stress','◉','壓力與生存測試'],
-  ['research','▥','歷史研究 V0.2'],
-  ['backtest','↗','自訂回測 V0.3'],
-  ['compare','▤','策略比較'],
-  ['sources','◇','資料品質與限制']
+  ['overview','◫','研究總覽'],
+  ['portfolio','◈','01 投資配置'],
+  ['financing','▦','02 質押與融資'],
+  ['backtest','↗','03 歷史研究'],
+  ['survival','◎','04 生存分析'],
+  ['compare','▤','05 策略比較'],
+  ['sources','◇','資料與限制']
 ];
 const titles={
   overview:['研究控制台','同時看見資金效率、槓桿曝險與借款償付風險。'],
   portfolio:['投資配置','自由加入 ETF、自訂倍數、分開配置自有資金與借款資金。'],
   financing:['質押融資','每一檔獨立指定質押比例、LTV、借款用途與還款流動性。'],
-  stress:['極端壓力測試','用單次等比例市場下跌檢查淨資產與擔保缺口；不是多日歷史回測。'],
+  stress:['極端壓力測試','市場單次下跌和多日現金生存研究。'],
+  survival:['生存能力與極端風險','直接使用同一套持股、質押與資金配置，納入失業、T+2、追繳、到期。'],
   research:['V3.0 歷史研究','查看 Python 引擎已驗證的市場代理快照；不是實盤績效，也不是即時回測。'],
-  backtest:['Web V0.3 動態路徑研究','自由配置三檔有資料的 ETF、再平衡與融資期限，依每日調整價格代理重算。'],
+  backtest:['歷史回測與 Python 參考研究','在同一頁比較自訂調整價格日線回測，以及 V3.0 已封存 Python 參考資料。'],
   compare:['策略 A / B / C','將相同初始淨資產的設定保存、比較與重新載入。'],
   sources:['資料品質中心','市場實證與融資條款有證據缺口時，結果必須清楚標示。']
 };
@@ -668,7 +687,9 @@ try { const existing=readStorage(CURRENT_KEY,null);current=existing?validateAndP
 catch {current=defaultScenario();}
 let saved=readStorage(SAVED_KEY,{});
 if(!saved||typeof saved!=='object'||Array.isArray(saved))saved={};
-let tab='overview';
+const tabAlias={stress:'survival',research:'backtest'};
+const hashPart=typeof location!=='undefined' ? location.hash.slice(1) : '';
+let tab=tabs.some(x=>x[0]===(tabAlias[hashPart]||hashPart))?(tabAlias[hashPart]||hashPart):'overview';
 let saveSlot='A';
 let toastText='';let toastHandle=null;
 let filePicker=null;
@@ -677,6 +698,13 @@ let study={portfolio:'00878_only',loan:480000,rf:0};
 let v03Settings={rebalance:'quarterly',repayment:'repay_at_term',rfPct:0,from:'2018-01-01',to:''};
 let v03State={status:'idle',kind:'solo',result:null,baseline:null,comparison:null,error:'',stamp:null};
 const backtestStamp=()=>JSON.stringify({current,settings:v03Settings,saved});
+const survivalDefaults={shockPct:35,shockMonth:2,unemploymentMonths:0,rateHikePct:0,
+  horizonMonths:18,rollover:'deny',prefund:true,marginPolicy:'warning'};
+let survivalSettings=readStorage('lpos-v05-survival-controls',survivalDefaults);
+try{survivalSettings=window.LPOSSurvival.validate(survivalSettings)}
+catch{survivalSettings={...survivalDefaults};}
+let survivalState={status:'idle',kind:'solo',result:null,cases:null,error:'',stamp:''};
+const survivalStamp=()=>JSON.stringify({current,settings:survivalSettings,from:v03Settings.from,to:v03Settings.to});
 async function runV03(kind='solo'){
   v03State={status:'loading',kind,result:null,baseline:null,comparison:null,error:'',stamp:null};render();
   try{
@@ -703,7 +731,7 @@ async function runV03(kind='solo'){
 async function loadResearch(){
   try{reference=await loadResearchBundle();referenceStatus='ready';}
   catch(err){referenceStatus='error';referenceError=String(err.message||err);}
-  if(tab==='research'||tab==='sources')render();
+  if(tab==='backtest'||tab==='sources')render();
 }
 
 
@@ -1145,23 +1173,40 @@ function sources(r){
     ${panel('完整風險提醒','以下為目前設定下的提示；資料缺口未解決前不提供可執行投資建議。',warnings(r,20))}
   </div>`;
 }
-function body(tab,r){switch(tab){case'portfolio':return portfolio(r);case'financing':return financing(r);case'stress':return stress(r);case'compare':return compare(r);case'sources':return sources(r);case'research':return research();case'backtest':return backtestV03();default:return overview(r);}}
+function workflowSteps(active){
+ const flow=[['portfolio','① 配置'],['financing','② 質押'],['backtest','③ 回測'],
+ ['survival','④ 生存'],['compare','⑤ 比較']];
+ return '<nav class="flowsteps" aria-label="LPOS 完整研究流程">'+flow.map(([k,t])=>
+ '<button type="button" data-nav="'+k+'" class="'+(active===k?'active':'')+'">'+t+'</button>').join('')+'</nav>';
+}
+function unifiedBacktest(){
+ return '<div class="section-stack">'+backtestV03()+
+ '<details class="expand-study"><summary>展開 V3.0 Python 研究快照：00878／00631L 10 組策略（不同證據口徑）</summary>'+
+ research()+'</details></div>';
+}
+function integratedSurvival(r){
+ return '<div class="section-stack">'+panel('生存研究連線','同一份組合設定即時套用到生存模型。',
+ '<div class="empty"><h3>生存研究計算整合中</h3><p>設定與完整模型已保存，請稍候發布。</p></div>')+
+ '<details class="expand-study"><summary>展開單次市場下跌的舊版風險指標</summary>'+stress(r)+'</details></div>';
+}
+function body(tab,r){switch(tab){case'portfolio':return portfolio(r);case'financing':return financing(r);case'stress':case'survival':return integratedSurvival(r);case'compare':return compare(r);case'sources':return sources(r);case'research':case'backtest':return unifiedBacktest();default:return overview(r);}}
 function render(){
   const r=calculateScenario(current);
   const [title,subtitle]=titles[tab];
   app.innerHTML=`${mobileMenu(tab)}<div class="app-shell">
     <aside class="sidebar"><div class="brand"><span class="brand-symbol">LP</span><div><div class="brand-name">LPOS Lab</div><div class="brand-sub">PORTFOLIO RESEARCH</div></div></div>
       <div><div class="nav-label">WORKSPACE</div><nav class="nav-list" aria-label="主選單">${menu(tab)}</nav></div>
-      <div class="sidebar-bottom"><span class="side-badge">WEB V0.3 · DYNAMIC PRICE RESEARCH</span><div>數值僅供情境研究，非真實歷史回測或核貸報價。</div><div style="margin-top:6px">你的設定儲存在本機瀏覽器。</div></div>
+      <div class="sidebar-bottom"><span class="side-badge">WEB V0.5 · UNIFIED WORKSPACE</span><div>數值僅供情境研究，非真實歷史回測或核貸報價。</div><div style="margin-top:6px">你的設定儲存在本機瀏覽器。</div></div>
     </aside>
     <main class="main">
       <header class="topbar"><div><div class="eyebrow">Quant Research / LPOS V3.0 Methodology</div><h1 class="page-title">${e(title)}</h1><p class="page-desc">${e(subtitle)}</p></div>
-      <div class="actions">${button('↺ 回復預設','reset')}${button('匯入 JSON','import')}${button('匯出 JSON','export','primary')}</div></header>
-      <div class="notice"><span style="font-size:16px">ⓘ</span><div><strong>V0.3 動態價格路徑（非實盤）</strong> · ${e(current.scenarioName)}。可用三檔調整價格代理重算自訂組合；V0.2 固定 Python 快照保留，兩者資料來源與方法不同。未完成配息總報酬、逐筆券商質押與 T+2 驗證。</div></div>
-      <div style="margin:15px 0;padding:14px;border:1px solid #aed5c8;border-radius:12px;background:#edf9f4;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between"><div><strong>新增 Web V0.4 生存實驗室</strong><div style="font-size:12px;color:#567e6e">股災、失業、融資到期、追繳警示、T+2 交割現金缺口</div></div><a href="./v04/index.html" style="padding:10px 15px;background:#176a62;color:white;border-radius:10px;text-decoration:none;font-weight:700">開啟 V0.4 生存測試 ↗</a></div>
+      <div class="actions">${button('↺ 回復預設','reset')}${button('匯入 JSON','import')}${button('匯出設定','export','slim')}${button('匯出整合研究','export-workspace','primary')}</div></header>
+      <div class="notice"><span style="font-size:16px">ⓘ</span><div><strong>Web V0.5 全功能整合</strong> · ${e(current.scenarioName)}。全站共用持股、質押及現金流設定；回測為調整價格代理，真實 ETF 含息總報酬、融資核貸與券商處分並未獲認證。</div></div>
+      ${workflowSteps(tab)}
+      ${tab==='overview'?'<div class="integrated-hint"><div><b>一條流程完成整份研究</b><p>配置 → 質押 → 回測 → 生存 → 策略比較，不必重複輸入。</p></div>'+button('開始配置 →','goto-portfolio','primary')+'</div>':''}
       ${topKpis(r)}
       ${body(tab,r)}
-      <footer class="footnote" style="margin-top:27px;border-top:1px solid #e5ebf0;padding-top:14px">© LPOS Portfolio Lab · ${MODEL_VERSION} · 資金模型＋V0.2 Python 快照＋V0.3 每日調整價格動態計算 · 不提供投資建議，請勿將研究數值視為實際融資核准或歷史總報酬。</footer>
+      <footer class="footnote" style="margin-top:27px;border-top:1px solid #e5ebf0;padding-top:14px">© LPOS Portfolio Lab · ${MODEL_VERSION} · 資金模型＋V3.0 Python 快照＋V0.3 調整價格回測＋V0.4 生存能力分析 · 不提供投資建議，請勿將研究數值視為實際融資核准或歷史總報酬。</footer>
     </main>
   </div>`;
   safeSave();
