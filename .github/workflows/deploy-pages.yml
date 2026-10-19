@@ -42,6 +42,7 @@ jobs:
           node --check site/lpos-portfolio-lab/survival-engine.js
           node scripts/lpos_v03_validate.mjs
           node scripts/lpos_v05_validate.mjs
+          node scripts/lpos_v05_ui_smoke.mjs
       - name: Write deployment metadata
         env:
           SITE_COMMIT: ${{ github.sha }}
