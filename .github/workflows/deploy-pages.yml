@@ -97,6 +97,9 @@ jobs:
           curl -fLsS --retry 6 --retry-all-errors --retry-delay 3 "$base/lpos-portfolio-lab/index.html" -o /tmp/lpos-portfolio-lab.html
           grep -q "LPOS Portfolio Lab" /tmp/lpos-portfolio-lab.html
           grep -q "Web V0.3" /tmp/lpos-portfolio-lab.html
+          grep -q "v04/index.html" /tmp/lpos-portfolio-lab.html
+          curl -fLsS --retry 4 --retry-all-errors --retry-delay 3 "$base/lpos-portfolio-lab/v04/index.html" -o /tmp/lpos-v04.html
+          grep -q "生存實驗室 V0.4" /tmp/lpos-v04.html
           grep -q "function runDynamicBacktest" /tmp/lpos-portfolio-lab.html
           for symbol in 006208 00631L 00685L; do
             test "$(curl -L -sS -o /dev/null -w '%{http_code}' "$base/data/backtests/buy_hold_${symbol}.csv")" = 200
