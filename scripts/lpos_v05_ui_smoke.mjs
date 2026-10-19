@@ -2,7 +2,7 @@
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import assert from 'node:assert/strict';
-const main=readFileSync('site/lpos-portfolio-lab/index.html','utf8');
+const main=readFileSync('site/lpos-portfolio-lab/legacy-v06.html','utf8');
 const engine=readFileSync('site/lpos-portfolio-lab/survival-engine.js','utf8');
 const inline=main.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(inline?.includes('async function runSurvival('));

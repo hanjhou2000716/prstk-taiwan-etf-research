@@ -1,0 +1,1564 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f5f7fb" />
+  <meta name="description" content="LPOS Portfolio Lab：ETF 自由配置、股票質押、融資成本與極端情境生存能力互動模擬器。Web V0.3，提供逐交易日調整價格代理與 V3.0 Python 快照，不是完整真實歷史回測。" />
+  <title>LPOS Portfolio Lab | 槓桿投資組合實驗室</title>
+  
+  <style>:root{
+ --navy:#142943;--navy2:#20395a;--ink:#1c2b3f;--muted:#78869a;
+ --bg:#f5f7fa;--paper:#fff;--line:#e7ebf0;--teal:#099c83;
+ --teal-soft:#e2f5ef;--blue:#376ce4;--blue-soft:#ebf1ff;
+ --warn:#aa6b28;--warn-bg:#fff8e9;--bad:#b6444a;--bad-bg:#fff0ef;
+ --shadow:0 13px 38px rgba(27,48,81,.045);--r:18px;
+ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC','Microsoft JhengHei',sans-serif;
+ font-size:14px; color:var(--ink);background:var(--bg)
+}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,select{font:inherit}
+button{cursor:pointer}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #a8c5ff;outline-offset:2px}
+.app-shell{display:flex;min-height:100vh}.sidebar{width:248px;flex-shrink:0;background:#fff;border-right:1px solid var(--line);min-height:100vh;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:26px;padding:27px 17px 20px}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 10px}.brand-symbol{width:39px;height:39px;border-radius:12px;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:800;position:relative;letter-spacing:-.6px}.brand-symbol:before{content:"";height:3px;position:absolute;top:7px;left:10px;right:10px;background:#40d9b0;border-radius:10px}.brand-name{font-size:16px;line-height:1.1;color:#12263d;letter-spacing:-.3px;font-weight:800}.brand-sub{color:#97a1ad;font-size:10px;margin-top:6px;letter-spacing:.07em}
+.nav-label{font-size:10px;letter-spacing:.17em;font-weight:800;color:#a4adba;margin:0 11px 11px}.nav-list{display:grid;gap:4px}.nav-item{width:100%;display:flex;align-items:center;text-align:left;gap:12px;border:0;border-radius:11px;background:transparent;padding:12px 13px;color:#68798d;font-weight:600;transition:background .13s}.nav-item:hover{background:#f4f7fb}.nav-item.active{background:var(--blue-soft);color:#255dce}.nav-ico{font-size:17px;width:22px;text-align:center;font-weight:normal}.sidebar-bottom{margin-top:auto;border-top:1px solid var(--line);padding:17px 11px 3px;font-size:11px;line-height:1.8;color:var(--muted)}.side-badge{display:inline-block;padding:4px 8px;background:#f1f5f8;color:#718399;border-radius:8px;font-size:10px;font-weight:800;letter-spacing:.04em;margin-bottom:8px}
+.main{flex:1;min-width:0;max-width:1560px;margin:0 auto;padding:30px 42px 80px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:25px}.eyebrow{text-transform:uppercase;letter-spacing:.15em;font-size:10px;font-weight:900;color:var(--teal);margin-bottom:10px}.page-title{font-size:27px;font-weight:780;letter-spacing:-.8px;margin:0 0 9px;color:#152842}.page-desc{font-size:13px;color:var(--muted);line-height:1.65;margin:0;max-width:850px}.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{border:1px solid #e2e7ef;background:#fff;color:var(--navy2);padding:10px 14px;border-radius:10px;font-weight:700;font-size:12px;transition:all .15s;white-space:nowrap}.btn:hover{background:#f3f6fc;border-color:#c8d7ee}.btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}.btn.primary:hover{background:#294d73}.btn.teal{background:var(--teal);color:white;border-color:var(--teal)}.btn.slim{padding:7px 10px;font-size:11px}.btn.ghost{background:transparent;border:0;color:var(--muted)}.btn.danger{color:#ae4147}.btn:disabled{opacity:.4;cursor:default}
+.notice{border:1px solid #dbe4ee;border-radius:12px;padding:13px 17px;margin:0 0 21px;background:linear-gradient(90deg,#f0f7ff,#f6fafb);font-size:12px;color:#61738a;display:flex;align-items:flex-start;gap:10px;line-height:1.65}.notice b{color:#365476}.notice strong{font-weight:800;color:#263c5c}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}.kpi{min-height:132px;border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:19px 21px;box-shadow:var(--shadow);position:relative;overflow:hidden}.kpi-label{font-size:11px;color:var(--muted);font-weight:650;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center}.kpi-val{font-size:clamp(21px,2.15vw,29px);line-height:1;font-weight:800;letter-spacing:-.8px;white-space:nowrap;color:var(--navy)}.kpi-sub{font-size:11px;color:#91a0af;margin-top:12px}.kpi.teal .kpi-val{color:var(--teal)}.kpi.blue .kpi-val{color:var(--blue)}.kpi.warn .kpi-val{color:var(--bad)}.pill{font-size:10px;padding:4px 8px;border-radius:30px;background:#eef2f5;color:#637488;font-weight:800;white-space:nowrap}.pill.green{background:var(--teal-soft);color:#058168}.pill.red{background:var(--bad-bg);color:var(--bad)}.pill.orange{background:var(--warn-bg);color:var(--warn)}
+.content-grid{display:grid;grid-template-columns:minmax(0,1.58fr) minmax(300px,1fr);gap:18px;align-items:start}.panel{border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:var(--shadow);overflow:hidden}.panel-head{padding:20px 22px 0;display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.panel-title{font-size:16px;line-height:1.3;color:var(--navy);margin:0;font-weight:800}.panel-desc{color:var(--muted);font-size:11px;margin:7px 0 0;line-height:1.6}.panel-body{padding:18px 22px 22px}.panel+.panel{margin-top:18px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}.section-stack{display:grid;gap:18px}.thin-divider{height:1px;background:var(--line);margin:19px 0}.mini-heading{text-transform:uppercase;letter-spacing:.12em;font-size:10px;color:#a4afbf;font-weight:900;margin:0 0 11px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field{display:block;min-width:0}.field.full{grid-column:1/-1}.field>span,.field>label{display:block;color:#596a80;font-size:11px;font-weight:750;margin:0 0 8px}.field small{display:block;color:#99a4b2;font-size:10px;margin:7px 0 0;line-height:1.5}.field input,.field select{background:#fcfdff;border:1px solid #dde5f0;outline:0;width:100%;padding:10px 11px;color:#19304b;border-radius:9px;min-height:39px}.field input:focus,.field select:focus{border-color:var(--blue);background:#fff}.field input[type=range]{accent-color:var(--blue);padding:0;min-height:25px;border:0;background:transparent}.field input[type=number]{text-align:right;font-variant-numeric:tabular-nums}.field input[type=text]{text-align:left}.input-suffix{display:flex;align-items:center;gap:8px}.input-suffix em{font-size:11px;color:#94a0ad;font-style:normal;min-width:24px}.range-line{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.range-line strong{font-size:13px;color:#264671}.param-note{padding:11px 13px;background:#f7f9fc;color:#7f91a5;font-size:11px;line-height:1.7;border-radius:10px}
+.stats{display:grid;gap:0}.stat-row{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #f1f4f6;padding:10px 0;gap:20px;font-size:12px}.stat-row:last-child{border-bottom:0}.stat-row span{color:#7c8997}.stat-row b{color:#26405b;font-variant-numeric:tabular-nums;text-align:right}.stat-row b.bad{color:var(--bad)}.stat-row b.green{color:var(--teal)}
+.mix-item{display:grid;grid-template-columns:12px 1fr auto;gap:11px;align-items:center;padding:11px 0}.mix-item+.mix-item{border-top:1px solid #f2f4f6}.mix-dot{width:11px;height:11px;border-radius:4px}.mix-name{font-size:12px;font-weight:700}.mix-sub{color:#97a3b0;font-size:10px;margin-top:4px}.mix-percent{font-size:12px;color:var(--navy);font-weight:800}.bar-bg{height:7px;border-radius:20px;overflow:hidden;background:#eef1f4}.bar-fill{height:100%;border-radius:20px;background:var(--teal)}.stackbar{width:100%;height:15px;border-radius:7px;background:#f0f3f7;display:flex;overflow:hidden;margin:19px 0 13px}.stackbar>div{height:100%;min-width:0}
+.warning-block{border-left:3px solid #e2a655;background:#fffaf1;padding:11px 13px;border-radius:6px;font-size:11px;color:#8b704e;line-height:1.6;margin-top:8px}.warning-block.red{border-color:#d3646a;background:#fff5f5;color:#95525a}.warnings{display:grid;gap:8px}.error-list{padding:13px 16px;background:#fff0f0;border:1px solid #f5d8d8;border-radius:12px;margin-bottom:17px;font-size:12px;color:#ac4343;line-height:1.75}
+.asset-table{width:100%;border-collapse:separate;border-spacing:0 8px;min-width:850px}.asset-table th{font-size:10px;font-weight:800;color:#9aa8b7;text-align:right;padding:0 9px 8px;white-space:nowrap}.asset-table th:first-child{text-align:left}.asset-table td{background:#f8fafc;border-top:1px solid #eef1f4;border-bottom:1px solid #eef1f4;padding:11px 9px;vertical-align:middle;text-align:right}.asset-table td:first-child{border-left:1px solid #eef1f4;border-radius:10px 0 0 10px;text-align:left}.asset-table td:last-child{border-right:1px solid #eef1f4;border-radius:0 10px 10px 0}.asset-id{font-size:12px;font-weight:850;color:var(--navy);white-space:nowrap}.asset-name{font-size:10px;color:#a1acb9;margin-top:5px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.asset-table input,.asset-table select{width:74px;min-height:35px;border-radius:7px;border:1px solid #dae2ed;padding:6px;background:#fff;font-size:12px;color:#334b66}.asset-table select.eligibility{width:94px}.asset-table select.factor{width:65px}.asset-table input{text-align:right}.table-wrap{width:100%;overflow-x:auto}.table-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:15px 0 2px}.sum-pill{padding:8px 10px;border-radius:8px;background:#e9f6f1;color:#078269;font-weight:800;font-size:11px}.sum-pill.bad{background:#fff0f0;color:#c04d52}.row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.catalog-add{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}.catalog-add select,.catalog-add input{min-height:38px;padding:8px 10px;border:1px solid #dce5ef;border-radius:9px;background:#fff;color:#344c64;max-width:220px}.catalog-add input{width:135px}
+.chartbox{width:100%;overflow:hidden}.chartbox svg{display:block;width:100%;height:auto}.legend{display:flex;gap:18px;align-items:center;flex-wrap:wrap;color:#718299;font-size:11px;margin:12px 0}.legend-i{display:flex;gap:7px;align-items:center}.legend i{width:11px;height:11px;display:inline-block;border-radius:3px;background:var(--blue)}.legend i.orange{background:#e19d5f}.legend i.green{background:var(--teal)}
+.feature-row{display:flex;gap:13px;padding:16px 0;border-bottom:1px solid var(--line)}.feature-row:last-child{border-bottom:0}.feature-ico{background:#edf3fc;color:#3565a8;font-size:18px;width:38px;height:38px;display:grid;place-items:center;border-radius:12px;flex-shrink:0}.feature-title{font-size:12px;font-weight:800;color:#2b435f;margin:2px 0 5px}.feature-desc{color:#8090a4;font-size:11px;line-height:1.6}
+.comparison{width:100%;border-collapse:collapse;min-width:640px}.comparison th,.comparison td{border-bottom:1px solid #edf1f5;padding:13px 10px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums}.comparison th:first-child,.comparison td:first-child{text-align:left}.comparison th{background:#f7f9fc;color:#76889e;font-size:11px}.comparison tr:hover td{background:#fafbfe}.tiny{font-size:10px;color:var(--muted);line-height:1.6}.footnote{font-size:11px;color:#8291a2;line-height:1.7}.empty{text-align:center;padding:55px 25px;color:#718297}.empty-icon{font-size:35px;margin-bottom:12px}.empty h3{color:#2b4058;font-size:16px}.slot-tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.slot-tools select{border:1px solid #dce5ef;border-radius:9px;background:#fff;padding:9px 12px}.data-grade{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;gap:13px;align-items:flex-start}.data-grade b{color:#334a66}.data-grade .num{background:#edf2f8;color:#537295;min-width:35px;height:35px;display:grid;place-items:center;border-radius:10px;font-weight:850}.data-grade .description{font-size:11px;color:#8090a3;line-height:1.7;margin-top:5px}.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.toast{position:fixed;right:25px;bottom:22px;max-width:370px;padding:15px 20px;box-shadow:0 13px 40px rgba(0,0,0,.12);border:1px solid #d8e6ea;background:#fff;color:#325066;border-radius:14px;font-size:12px;font-weight:700;z-index:100;line-height:1.6;pointer-events:none}.mobile-nav{display:none}
+@media(max-width:1180px){.main{padding:24px}.sidebar{width:219px}.content-grid{grid-template-columns:minmax(0,1.2fr) minmax(270px,1fr)}.kpi{padding:18px 15px}.kpi-val{font-size:22px}}@media(max-width:900px){.sidebar{display:none}.main{padding:22px 18px 90px;max-width:950px}.mobile-nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:6px;overflow-x:auto;padding:9px 14px;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}.mobile-nav button{border:0;background:transparent;color:#7f91a5;white-space:nowrap;padding:9px 10px;border-radius:9px;font-size:12px}.mobile-nav button.active{color:#245dd1;background:#edf3ff;font-weight:850}.app-shell{display:block}.topbar{flex-wrap:wrap}.actions{justify-content:flex-start}.kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.content-grid{grid-template-columns:1fr}}@media(max-width:550px){.main{padding:17px 12px 92px}.page-title{font-size:23px}.kpi-grid{gap:10px}.kpi{min-height:108px;padding:15px}.kpi-val{font-size:23px}.kpi-sub{font-size:10px}.panel-head{padding:18px 15px 0}.panel-body{padding:16px}.form-grid{gap:12px}.two-col,.data-grid{grid-template-columns:1fr}.actions .btn{padding:9px 11px}.notice{font-size:11px}.topbar{margin-bottom:18px}.asset-table{min-width:790px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* LPOS Web V0.2 - Python research snapshot panels */
+.v02-kpis{margin:0}.v02-kpis .kpi{min-height:130px}
+.v02-chart svg{max-width:100%;width:100%;min-height:230px}
+.v02-panels .panel{height:100%}
+.v02-panels .panel+.panel{margin-top:0}
+#research-portfolio,#research-loan,#research-rf{font-size:13px;max-width:100%}
+.v02-evidence{background:#f8fbff;border:1px solid #e6eef7;border-radius:10px;padding:14px}
+@media(max-width:820px){.v02-panels{grid-template-columns:1fr}.v02-chart svg{min-height:175px}}
+
+/* Web V0.3 dynamic portfolio laboratory */
+.v03-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:15px 0}
+.v03-supported{background:#edf6f9;color:#315d70;border-radius:10px;padding:13px 15px;font-size:12px;line-height:1.6}
+.v03-supported strong{display:block;color:#176077;margin-bottom:3px}
+.v03-grade{background:#f5f8fc;border:1px solid #e2eaf4;border-radius:10px;padding:13px 15px;color:#5f748c;line-height:1.75;font-size:11px;margin:12px 0}
+.v03-btnrow{margin:13px 0 5px}
+.v03-graph{width:100%;overflow:hidden}
+.v03-graph svg{width:100%;height:auto;display:block}
+.v03-legend-wrap{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;color:#607691;font-size:11px}
+.v03-legend{display:inline-flex;align-items:center;gap:7px}
+.v03-legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+@media(max-width:900px){.v03-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.v03-controls{grid-template-columns:1fr}.v03-graph svg{min-height:175px}}
+
+/* Unified LPOS Portfolio Lab V0.5 */
+.flowsteps{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 19px}
+.flowsteps button{border:1px solid #d9e3ee;background:#fff;padding:9px 11px;border-radius:10px;font-weight:800;color:#627b94;font-size:11px}
+.flowsteps button.active{background:#153b60;color:white;border-color:#153b60}
+.flowsteps button:hover:not(.active){background:#eef4f8}
+.integrated-hint{background:#eef8f6;border:1px solid #beded4;border-radius:12px;padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:0 0 19px;color:#285d56}
+.integrated-hint b{font-size:13px}.integrated-hint p{font-size:11px;margin:6px 0 0}
+.expand-study{border:1px solid #dce5f0;border-radius:13px;background:#fff;overflow:hidden}
+.expand-study summary{cursor:pointer;padding:17px;font-weight:800;color:#285578}.expand-study[open] summary{border-bottom:1px solid #e6edf4}
+.expand-study>.section-stack{padding:15px}
+.survival-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:8px 0}
+.survival-tile{background:#f5f8fc;border-radius:10px;padding:12px;min-width:0}.survival-tile small{display:block;color:#8596a7;font-size:10px;margin-bottom:9px}.survival-tile b{color:#244058;overflow-wrap:anywhere}
+.survival-chart svg{display:block;width:100%;height:auto}
+.integrated-table{max-height:330px;overflow:auto}.integrated-table table{border-collapse:collapse;min-width:600px;width:100%;font-size:11px}
+.integrated-table th,.integrated-table td{padding:9px 10px;text-align:right;border-bottom:1px solid #e8eef5;white-space:nowrap}.integrated-table th:first-child,.integrated-table td:first-child{text-align:left}
+.flow-next{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:19px 0}
+@media(max-width:1000px){.survival-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.flowsteps{gap:4px}.flowsteps button{padding:7px 8px;font-size:10px}}
+</style>
+</head>
+<body>
+  <noscript><div style="padding:32px;font-family:sans-serif">此互動研究工具需要啟用 JavaScript 才能使用。</div></noscript>
+  <div id="app" aria-live="polite"></div>
+  <script src="./survival-engine.js?v=0.6.0"></script>
+  <script>/**
+ * LPOS Portfolio Lab Web V0.1 - deterministic, browser-safe capital model.
+ * NO price feed, NO claim of pledge eligibility, NO historical backtest.
+ * Units: TWD, ratios entered as percent 0..100, APR as percent per annum.
+ * No external source is requested by this module.
+ */
+const MODEL_VERSION = 'web-v0.6.0';
+const MAX_ASSETS = 12;
+const WARN_THRESHOLD = 130;
+const RESTORE_TARGET = 166;
+const COST_PCT_DEFAULT = 0.2425; // V2.6: 0.1425% + illustrative 0.10%
+
+const CATALOG = [
+  {symbol:'0050', name:'元大台灣50', factor:1},
+  {symbol:'006208', name:'富邦台50', factor:1},
+  {symbol:'00631L', name:'元大台灣50正2', factor:2},
+  {symbol:'00685L', name:'群益臺灣加權正2', factor:2},
+  {symbol:'0056', name:'元大高股息', factor:1},
+  {symbol:'00878', name:'國泰永續高股息', factor:1},
+  {symbol:'00919', name:'群益台灣精選高息', factor:1},
+  {symbol:'VT', name:'Vanguard Total World Stock ETF', factor:1},
+];
+const catalogFund = (symbol) => CATALOG.find(x => x.symbol === symbol) ?? null;
+function makeFund(symbol, initialOwn=0, initialLoan=0){
+  const found = catalogFund(symbol);
+  return { id: symbol+'-'+Math.random().toString(36).slice(2,8), symbol,
+    name:found?.name??symbol, factor:found?.factor??1,
+    ownWeightPct:initialOwn, loanWeightPct:initialLoan,
+    pledgePct:0, ltvPct:60, pledgeStatus:'assumed' };
+}
+function defaultScenario(){
+  const a=makeFund('006208',50,50);a.pledgePct=100;
+  const b=makeFund('00878',50,50);b.pledgePct=100;
+  return {
+    schemaVersion:1, scenarioName:'基準情境', ownCapital:1000000,
+    ownCashPct:20, tradeCostPct:COST_PCT_DEFAULT,
+    borrowUtilPct:100, loanInvestPct:100, originationFeePct:0,
+    aprPct:4, termMonths:6, monthlyFreeCashFlow:20000,
+    monthlyLivingExpense:20000, minReserveMonths:3,
+    shockPct:30, funds:[a,b],
+  };
+}
+function validateScenario(p){
+  const errors=[];
+  const warnings=[];
+  if(!p || typeof p!=='object') return {errors:['設定物件格式不正確'],warnings};
+  const check = (key, low, high, label, inclusiveZero=true) => {
+    const n=p[key];
+    if(typeof n!=='number'||!Number.isFinite(n)||n<low||n>high||(!inclusiveZero && n===0)) errors.push(`${label}必須介於 ${low} 至 ${high}`);
+  };
+  check('ownCapital',1,1e12,'自有資金');
+  check('ownCashPct',0,100,'自有現金比例');
+  check('tradeCostPct',0,20,'每筆買進成本率');
+  check('borrowUtilPct',0,100,'借款動用比例');
+  check('loanInvestPct',0,100,'借款再投資比例');
+  check('originationFeePct',0,20,'借款開辦費比例');
+  check('aprPct',0,50,'借款年利率');
+  check('termMonths',1,360,'借款期數');
+  check('monthlyFreeCashFlow',-1e9,1e9,'每月自由現金流');
+  check('monthlyLivingExpense',0,1e9,'每月必要支出');
+  check('minReserveMonths',0,36,'緊急預備月數');
+  check('shockPct',0,100,'單次壓力下跌比例');
+  if(!Number.isInteger(p.termMonths)) errors.push('借款月數必須是整數');
+  if(!Number.isInteger(p.minReserveMonths)) errors.push('緊急預備月數必須是整數');
+  if(!Array.isArray(p.funds) || p.funds.length===0 || p.funds.length>MAX_ASSETS){
+    errors.push(`標的數量必須為 1 至 ${MAX_ASSETS} 個`);
+    return {errors,warnings};
+  }
+  const seen=new Set(),seenSymbols=new Set();
+  p.funds.forEach((f,i)=>{
+    if(!f || typeof f!=='object') { errors.push(`第 ${i+1} 筆標的有誤`); return; }
+    const tag = `標的 ${i+1}`;
+    if(typeof f.symbol!=='string'||!/^[A-Z0-9._-]{1,16}$/.test(f.symbol)) errors.push(`${tag}代號無效`);
+    if(typeof f.name!=='string'||f.name.length>80) errors.push(`${tag}名稱無效`);
+    if(typeof f.id!=='string'||f.id.length>100||seen.has(f.id)) errors.push(`${tag}識別碼不正確或重複`);
+    seen.add(f.id);
+    if(seenSymbols.has(f.symbol))errors.push(`${tag}代號重複，請合併同一 ETF`);
+    seenSymbols.add(f.symbol);
+    if(f.factor!==1&&f.factor!==2) errors.push(`${tag}倍數只支援 1 或 2`);
+    for(const key of ['ownWeightPct','loanWeightPct','pledgePct','ltvPct']){
+      if(typeof f[key]!=='number'||!Number.isFinite(f[key])||f[key]<0||f[key]>100)errors.push(`${tag}的 ${key} 不在 0 至 100`);
+    }
+    if(f.pledgeStatus!=='assumed'&&f.pledgeStatus!=='blocked')errors.push(`${tag}的質押資格狀態無效`);
+    if(f.pledgeStatus==='blocked'&&f.pledgePct>0)warnings.push(`${f.symbol}標示不可質押，其質押比例不計入擔保額度`);
+    if(f.factor===2&&f.pledgePct>0)warnings.push(`${f.symbol} 是每日重設正二 ETF；質押資格與折算率未驗證，且單次下跌推算不等於多日真實報酬`);
+    if(f.pledgePct>0&&f.pledgeStatus==='assumed')warnings.push(`${f.symbol} 的質押資格與可貸成數僅為情境假設，未取得券商核准`);
+  });
+  if(errors.length) return {errors,warnings};
+  const totalOwn=p.funds.reduce((s,f)=>s+f.ownWeightPct,0);
+  const totalBorrowed=p.funds.reduce((s,f)=>s+f.loanWeightPct,0);
+  if(Math.abs(totalOwn-100)>1e-6)errors.push(`自有資金配置總和為 ${totalOwn.toFixed(1)}%，必須為 100%`);
+  // Loan weights also need to sum to 100, because user may later increase credit draw.
+  if(Math.abs(totalBorrowed-100)>1e-6)errors.push(`借款再投入配置總和為 ${totalBorrowed.toFixed(1)}%，必須為 100%`);
+  if(p.aprPct===0&&p.borrowUtilPct>0)warnings.push('0% 融資利率是純假設；不是券商已承諾的報價');
+  return {errors,warnings};
+}
+
+/** Normalize weights to one decimal percentage-point, without remainder drift. */
+function normalizeFunds(funds, field){
+  if(!['ownWeightPct','loanWeightPct'].includes(field)) throw new Error('invalid allocation field');
+  if(!Array.isArray(funds)||!funds.length)throw new Error('fund list must not be empty');
+  const weights=funds.map(f=>Number.isFinite(f[field])?Math.max(0,f[field]):0);
+  const total=weights.reduce((a,b)=>a+b,0);
+  const units=total===0 ? weights.map(()=>1000/funds.length) : weights.map(v=>v/total*1000);
+  const floors=units.map(Math.floor);
+  const toAdd=1000-floors.reduce((a,b)=>a+b,0);
+  const order=units.map((v,i)=>({i,frac:v-Math.floor(v)})).sort((a,b)=>b.frac-a.frac||a.i-b.i);
+  for(let j=0;j<toAdd;j++)floors[order[j].i]++;
+  return funds.map((f,i)=>({...f,[field]:floors[i]/10}));
+}
+function stressMultiplier(factor, marketFallPct){
+  return Math.max(0, 1-factor*marketFallPct/100);
+}
+function finiteNonNegative(n){ return Number.isFinite(n)?Math.max(0,n):0; }
+
+/** Pure one-snapshot capital allocation + one-step market stress. */
+function calculateScenario(p, shockOverride=null){
+  const chk=validateScenario(p);
+  if(chk.errors.length)return {valid:false, errors:chk.errors, warnings:chk.warnings};
+  const shock = shockOverride===null ? p.shockPct : shockOverride;
+  if(!Number.isFinite(shock)||shock<0||shock>100)return {valid:false,errors:['壓力下跌比例需介於 0～100%'],warnings:chk.warnings};
+  const ownInvestBudget=p.ownCapital*(1-p.ownCashPct/100);
+  const ownCash=p.ownCapital-ownInvestBudget;
+  const costFactor=1+p.tradeCostPct/100;
+  const ownMarket=ownInvestBudget/costFactor;
+  const ownTradeFees=ownInvestBudget-ownMarket;
+  const legs=p.funds.map(f=>{
+    const ownValue=ownMarket*f.ownWeightPct/100;
+    const pledgedValue=f.pledgeStatus==='blocked'?0:ownValue*f.pledgePct/100;
+    const capacity=pledgedValue*f.ltvPct/100;
+    return { id:f.id,symbol:f.symbol, name:f.name,factor:f.factor,
+      ownValue,pledgedValue,capacity, ownWeightPct:f.ownWeightPct,
+      loanWeightPct:f.loanWeightPct,pledgePct:f.pledgePct,ltvPct:f.ltvPct,
+      pledgeStatus:f.pledgeStatus};
+  });
+  const collateral=legs.reduce((s,f)=>s+f.pledgedValue,0);
+  const loanCapacity=legs.reduce((s,f)=>s+f.capacity,0);
+  const borrow=loanCapacity*p.borrowUtilPct/100;
+  const loanFee=borrow*p.originationFeePct/100;
+  const usableLoan=borrow-loanFee;
+  const loanBudget=usableLoan*p.loanInvestPct/100;
+  const borrowedCash=usableLoan-loanBudget;
+  const loanMarket=loanBudget/costFactor;
+  const loanTradeFees=loanBudget-loanMarket;
+  const liquidCash=ownCash+borrowedCash;
+  const assets=ownMarket+loanMarket+liquidCash;
+  const netAsset=assets-borrow;
+  const exposureEq=legs.reduce((s,f)=>{
+    f.loanValue=loanMarket*f.loanWeightPct/100;
+    f.totalValue=f.ownValue+f.loanValue;
+    f.eqExposure=f.totalValue*f.factor;
+    return s+f.eqExposure;
+  },0);
+  const holdingValue=ownMarket+loanMarket;
+  const grossMarketExposurePct=netAsset>0?holdingValue/netAsset*100:null;
+  const equityExposurePct=netAsset>0?exposureEq/netAsset*100:null;
+  const maintenancePct=borrow>1e-8?collateral/borrow*100:null;
+  const monthlyInterest=borrow*p.aprPct/1200;
+  const projectedMonthlyFlow=p.monthlyFreeCashFlow-monthlyInterest;
+  // Maturity: no market profits, no sale proceeds, no rollover and no refinancing.
+  const maturityCash=liquidCash+projectedMonthlyFlow*p.termMonths;
+  const maturityGap=Math.max(0,borrow-Math.max(0,maturityCash));
+  const reserveTarget=p.monthlyLivingExpense*p.minReserveMonths;
+  const earliestCashDeficitMonth=projectedMonthlyFlow<0 && liquidCash>=0 ? Math.floor(liquidCash/(-projectedMonthlyFlow))+1:null;
+  const stressedLegs=legs.map(f=>{
+    const mult=stressMultiplier(f.factor,shock);
+    return {...f, stressFactor:mult, stressedOwnValue:f.ownValue*mult,
+      stressedLoanValue:f.loanValue*mult,stressedCollateral:f.pledgedValue*mult};
+  });
+  const stressedHoldings=stressedLegs.reduce((s,f)=>s+f.stressedOwnValue+f.stressedLoanValue,0);
+  const stressedCollateral=stressedLegs.reduce((s,f)=>s+f.stressedCollateral,0);
+  const stressedAssets=stressedHoldings+liquidCash;
+  const stressedNetAsset=stressedAssets-borrow;
+  const stressedMaintenancePct=borrow>1e-8?stressedCollateral/borrow*100:null;
+  const marginTrigger=borrow>0 && stressedMaintenancePct<WARN_THRESHOLD;
+  const topUpCollateralValue=marginTrigger?Math.max(0,borrow*RESTORE_TARGET/100-stressedCollateral):0;
+  const stressedEqExposure=stressedLegs.reduce((s,f)=>s+(f.stressedOwnValue+f.stressedLoanValue)*f.factor,0);
+  const shockedExposurePct=stressedNetAsset>0?stressedEqExposure/stressedNetAsset*100:null;
+  const fees=ownTradeFees+loanFee+loanTradeFees;
+  const accountingDifference=netAsset-(p.ownCapital-fees);
+  const warnings=[...chk.warnings];
+  if(equityExposurePct!==null&&equityExposurePct>130) warnings.push(`初始股票等值曝險 ${equityExposurePct.toFixed(1)}% 高於參考的 130% 自有淨資產風險預算；此值不是券商維持率`);
+  if(maintenancePct!==null&&maintenancePct<RESTORE_TARGET)warnings.push('初始擔保維持率低於參考的 166% 補繳目標，需審慎確認券商條款');
+  if(marginTrigger)warnings.push(`下跌 ${shock}% 的簡化情境中維持率低於 130%，參考補到 166% 的擔保市值缺口約為 NT$ ${Math.ceil(topUpCollateralValue).toLocaleString('en-US')}`);
+  if(maturityGap>0.005)warnings.push(`第 ${p.termMonths} 個月到期，單靠現金與假設每月自由現金流仍有 NT$ ${Math.ceil(maturityGap).toLocaleString('en-US')} 的本金缺口；沒有假設可續借或當天出售立即入帳`);
+  if(liquidCash<reserveTarget)warnings.push(`流動現金不足 ${p.minReserveMonths} 個月必要開銷的預備金門檻`);
+  if(earliestCashDeficitMonth!==null&&earliestCashDeficitMonth<=p.termMonths) warnings.push(`若市場不變、自由現金流持續負值，預估第 ${earliestCashDeficitMonth} 個月可能出現現金不足`);
+  warnings.push('自由配置 V0.2 資金模型不計配息、報酬、匯率變動、借款展延、T+2 交割與實際清償順序；正二 ETF 壓力只做單步近似');
+  return { valid:true, errors:[],warnings, config:p,shock,
+    ownInvestBudget,ownCash,ownMarket,ownTradeFees,collateral,loanCapacity,
+    borrow,loanFee,borrowedCash,loanBudget,loanMarket,loanTradeFees,liquidCash,
+    assets,netAsset,exposureEq,holdingValue,equityExposurePct,grossMarketExposurePct,
+    maintenancePct, monthlyInterest, projectedMonthlyFlow, maturityCash,maturityGap,
+    earliestCashDeficitMonth, reserveTarget,fees,accountingDifference,
+    stressedLegs,legs,stressedHoldings,stressedCollateral,stressedAssets,
+    stressedNetAsset,stressedMaintenancePct,marginTrigger,topUpCollateralValue,
+    stressedEqExposure,shockedExposurePct};
+}
+
+function validateAndParse(raw){
+  if(typeof raw!=='string'||raw.length>100000)throw new Error('JSON 檔案太大或格式不正確');
+  const p=JSON.parse(raw);
+  if(!p||p.schemaVersion!==1)throw new Error('不支援的設定版本');
+  // Ensure known canonical primitives are present, exclude unknown imported fields.
+  const wanted=['schemaVersion','scenarioName','ownCapital','ownCashPct','tradeCostPct',
+    'borrowUtilPct','loanInvestPct','originationFeePct','aprPct','termMonths',
+    'monthlyFreeCashFlow','monthlyLivingExpense','minReserveMonths','shockPct'];
+  const x=Object.fromEntries(wanted.map(k=>[k,p[k]]));
+  x.scenarioName=typeof p.scenarioName==='string'?p.scenarioName.slice(0,60):'匯入方案';
+  if(!Array.isArray(p.funds))throw new Error('標的陣列不存在');
+  x.funds=p.funds.map((f,i)=>({
+    id:typeof f?.id==='string'?f.id:`import-${i}`,symbol:f?.symbol,
+    name:f?.name,factor:f?.factor,ownWeightPct:f?.ownWeightPct,
+    loanWeightPct:f?.loanWeightPct,pledgePct:f?.pledgePct,
+    ltvPct:f?.ltvPct,pledgeStatus:f?.pledgeStatus,
+  }));
+  const {errors}=validateScenario(x);
+  if(errors.length)throw new Error(errors.join('；'));
+  return x;
+}
+function serializeScenario(p){
+  const {errors}=validateScenario(p);
+  if(errors.length)throw new Error('無法匯出：'+errors.join('；'));
+  return JSON.stringify(p,null,2);
+}
+function formatTwd(n){return Number.isFinite(n)?Math.round(n).toLocaleString('en-US'):'—';}
+function formatPercent(n, digits=1){return Number.isFinite(n)?n.toFixed(digits)+'%':'—';}
+
+;
+/** LPOS V3.0 read-only Python-generated research bridge.
+ * GitHub Pages cannot execute Python; snapshots are generated by the frozen
+ * historical engine and checked against V2.4/V3.0 references during the build.
+ * NEVER interpolate unsupported symbols, amounts, APRs, or sample intervals.
+ */
+const RESEARCH_ENGINE_STATUS={
+  connected:true,version:'LPOS-V3.0/python-snapshot/web-v0.2.0',
+  grade:'B_VENDOR_PLUS_MIXED_PAYOUTS',
+  note:'已接入 V3.0 Python 研究引擎的版本化結果快照（非即時 Python API）。僅支援兩種既有 ETF 配置、5 種借款額度、固定 3.75% 假設利率；未取得官方完整日線或實際續借契約。'
+};
+let cache=null;
+let pending=null;
+function validateResearchBundle(data){
+  if(!data||data.schemaVersion!==2||data.webVersion!=='0.2.0'||data.researchVersion!=='LPOS V3.0')throw Error('研究資料版本不符');
+  if(!data.marketData||data.marketData.tradeSessions!==1366||data.marketData.start!=='2020-07-20'||data.marketData.end!=='2026-03-06')throw Error('研究行情範圍不符');
+  if(data.marketData.officialRawDailyRowsArchived!==0||data.sourceGrade!=='B_VENDOR_PLUS_MIXED_PAYOUTS'||data.loanRenewalVerified!==false)throw Error('研究證據分級不正確');
+  if(!Array.isArray(data.cases)||data.cases.length!==10||!Array.isArray(data.sourceAudit)||data.sourceAudit.length<5)throw Error('研究快照不足');
+  const unique=new Set();
+  for(const row of data.cases){
+    if(!data.controls.portfolio.includes(row.portfolio)||!data.controls.loanTwd.includes(row.loanTwd))throw Error('快照包含未支援的策略');
+    const key=row.portfolio+'_'+row.loanTwd;
+    if(unique.has(key))throw Error('重複研究情境'); unique.add(key);
+    if(!row.matchedFrozenV24||!Array.isArray(row.curveMonthly)||row.curveMonthly.length<60)throw Error('研究驗收紀錄不足');
+    if(row.curveMonthly[0][0]!=='2020-07-20'||row.curveMonthly.at(-1)[0]!=='2026-03-06')throw Error('研究圖表日期錯誤');
+    for(const k of ['cagr_pct','mdd_pct','sharpe_0rf','sortino_0rf'])if(!Number.isFinite(row.stats?.[k]))throw Error('研究績效數值不合法');
+  }
+  return data;
+}
+async function loadResearchBundle(){
+  if(cache)return cache;
+  if(!pending){
+    if(typeof fetch!=='function')throw Error('本地檔案無法載入研究資料；請使用 GitHub Pages 或本機 HTTP 伺服器');
+    pending=fetch('./research/v3_observed_snapshots.json',{cache:'no-store'})
+      .then(res=>{if(!res.ok)throw Error('資料伺服器回應 '+res.status);return res.json();})
+      .then(validateResearchBundle)
+      .then(data=>{cache=data;return data;})
+      .catch(err=>{pending=null;throw err;});
+  }
+  return pending;
+}
+function lookupResearchCase(data,portfolio,loanTwd){
+  if(!data)return null;
+  if(!data.controls.portfolio.includes(portfolio)||!data.controls.loanTwd.includes(loanTwd))return null;
+  return data.cases.find(x=>x.portfolio===portfolio&&x.loanTwd===loanTwd)||null;
+}
+async function analyzeHistoricalScenario({portfolio,loanTwd,ownCapitalTwd=1000000,aprPct=3.75}={}){
+  if(ownCapitalTwd!==1000000||aprPct!==3.75)return {ok:false,status:'unsupported_config',stats:null,navSeries:[],message:'目前 Python 快照僅支援自有資本 NT$100 萬、貸款利率 3.75%；不可將其他資金設定直接套入參考績效。'};
+  try {
+    const data=await loadResearchBundle();
+    const row=lookupResearchCase(data,portfolio,loanTwd);
+    if(!row)return {ok:false,status:'unsupported_config',stats:null,navSeries:[],message:'該標的／借款配置不在 V3.0 已驗證的十組快照內。'};
+    return {ok:true,status:'python_snapshot',modelVersion:data.researchVersion,sourceGrade:data.sourceGrade,
+      dataAsOf:data.marketData.end,stats:row.stats,
+      navSeries:row.curveMonthly.map(x=>({date:x[0],equity:x[1],cash:x[2],receivable:x[3],marginRatioPct:x[4]})),
+      assumptions:data.controls,sourceAudit:data.sourceAudit,
+      evidenceNote:'僅歷史條件式假設，非實盤；圖表每月抽樣，指標基於逐交易日計算。'};
+  }catch(err){return {ok:false,status:'unavailable',stats:null,navSeries:[],message:String(err.message||err)};}
+}
+
+;
+/** LPOS Web V0.3 - deterministic adjusted-price path research.
+ * Prices: PRStK research repository, TWSE-derived adjusted PRICE proxy only.
+ * Not total return; no distributions/FX, official contracts, T+2, or live Python.
+ * Pledge eligibility and loan rollover are unverified scenarios.
+ */
+
+const DYNAMIC_VERSION='LPOS-WEB-V0.3.0';
+const PRICE_GRADE='TWSE_DERIVED_ADJUSTED_PRICE_PROXY_NOT_TOTAL_RETURN';
+const ASSETS={
+  '006208':{name:'富邦台50',factor:1},
+  '00631L':{name:'元大台灣50正2',factor:2},
+  '00685L':{name:'群益臺灣加權正2',factor:2},
+};
+const DAY_MS=86400000;
+const TRADE_DAYS=252;
+const finite=n=>typeof n==='number'&&Number.isFinite(n);
+const round2=n=>Math.round(n*100)/100;
+const dayStamp=str=>{
+  if(typeof str!=='string'||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(str))throw Error('日期格式無效');
+  const t=Date.parse(str+'T00:00:00Z');
+  if(!Number.isFinite(t)||new Date(t).toISOString().slice(0,10)!==str)throw Error('非法日期');
+  return t;
+};
+const dayGap=(a,b)=>(dayStamp(b)-dayStamp(a))/DAY_MS;
+function addMonths(date,months){
+  const t=new Date(dayStamp(date)),m=t.getUTCMonth()+months;
+  const year=t.getUTCFullYear()+Math.floor(m/12),month=(m%12+12)%12;
+  const maxDay=new Date(Date.UTC(year,month+1,0)).getUTCDate();
+  return new Date(Date.UTC(year,month,Math.min(t.getUTCDate(),maxDay))).toISOString().slice(0,10);
+}
+function parsePublishedBuyHoldCsv(symbol,text){
+  if(!ASSETS[symbol])throw Error('不支援的行情代號 '+symbol);
+  if(typeof text!=='string'||text.length>2500000)throw Error('行情檔太大或格式錯誤');
+  const lines=text.replace(/^\ufeff/,'').trim().split(/\r?\n/);
+  const head=lines.shift()?.split(',').map(x=>x.trim());
+  const dateCol=head?.indexOf('date'),navCol=head?.indexOf('nav'),strategyCol=head?.indexOf('strategy');
+  if(dateCol<0||navCol<0||strategyCol<0)throw Error(symbol+' 缺少必要 date / nav / strategy 欄位');
+  if(lines.length<50||lines.length>13000)throw Error(symbol+' 行情筆數異常');
+  const expected='buy_hold_'+symbol;let previous='';const rows=[];
+  for(const line of lines){
+    if(!line.trim())continue;
+    const col=line.split(',');
+    const date=col[dateCol]?.trim(),value=Number(col[navCol]?.trim());
+    dayStamp(date);
+    if(col[strategyCol]?.trim()!==expected||!finite(value)||value<=0||date<=previous)throw Error(symbol+' 日線有重複、順序錯誤或非正價格');
+    rows.push({date,nav:value});previous=date;
+  }
+  if(rows.length<50)throw Error(symbol+' 有效行情不足');
+  return {symbol,kind:PRICE_GRADE,sourcePath:`../data/backtests/buy_hold_${symbol}.csv`,rows,
+    start:rows[0].date,end:rows.at(-1).date,count:rows.length};
+}
+const marketCache=new Map();
+async function loadMarketSeries(symbols,{fetcher=globalThis.fetch,basePath='../data/backtests'}={}){
+  const uniq=[...new Set(symbols)];
+  const res={};
+  for(const symbol of uniq){
+    if(!ASSETS[symbol])throw Error(symbol+' 沒有可用的逐日調整價格；不可用其他 ETF 冒充');
+    if(!marketCache.has(symbol)){
+      const url=`${basePath}/buy_hold_${symbol}.csv`;
+      const task=Promise.resolve().then(()=>fetcher(url,{cache:'no-store'}))
+        .then(r=>{if(!r.ok)throw Error(symbol+' 行情伺服器回應 '+r.status);return r.text();})
+        .then(text=>parsePublishedBuyHoldCsv(symbol,text));
+      marketCache.set(symbol,task);
+    }
+    try{res[symbol]=await marketCache.get(symbol);}catch(err){marketCache.delete(symbol);throw err;}
+  }
+  return res;
+}
+function clearMarketCache(){marketCache.clear();}
+function supportedSymbols(scenario){
+  const active=scenario.funds.filter(f=>f.ownWeightPct>1e-9|| (scenario.borrowUtilPct>0&&scenario.loanInvestPct>0&&f.loanWeightPct>1e-9));
+  const unsupported=active.filter(f=>!ASSETS[f.symbol]||f.factor!==ASSETS[f.symbol].factor).map(f=>f.symbol);
+  return {symbols:[...new Set(active.map(f=>f.symbol))],unsupported};
+}
+function sharedDates(scenarios,series,{from='',to=''}={}){
+  if(from)dayStamp(from);if(to)dayStamp(to);
+  const symbols=[...new Set(scenarios.flatMap(p=>supportedSymbols(p).symbols))];
+  for(const symbol of symbols)if(!series[symbol]?.rows)throw Error(symbol+' 沒有已驗證的逐日行情');
+  if(!symbols.length)throw Error('沒有可用的 ETF 持倉');
+  let common=new Set(series[symbols[0]].rows.map(x=>x.date));
+  for(const sym of symbols.slice(1)){const dates=new Set(series[sym].rows.map(x=>x.date));common=new Set([...common].filter(x=>dates.has(x)));}
+  const d=[...common].sort().filter(x=>(!from||x>=from)&&(!to||x<=to));
+  if(d.length<30)throw Error('共同交易日少於 30 日；請調整時間窗或投資組合');
+  return d;
+}
+function weightedStdev(values){
+  if(values.length<2)return 0;
+  const avg=values.reduce((a,b)=>a+b,0)/values.length;
+  return Math.sqrt(values.reduce((a,b)=>a+(b-avg)**2,0)/(values.length-1));
+}
+function sharpeRatio(returns,rfPct){
+  const sd=weightedStdev(returns);if(sd<1e-14)return null;
+  const mean=returns.reduce((a,b)=>a+b,0)/returns.length;
+  return Math.sqrt(TRADE_DAYS)*(mean-rfPct/100/TRADE_DAYS)/sd;
+}
+function drawdownStats(indexPath){
+  let peak=1,maxDD=0,currentUnderwater=0,longest=0;
+  for(const x of indexPath){peak=Math.max(peak,x);const dd=peak===0?0:x/peak-1;maxDD=Math.min(maxDD,dd);
+    if(dd< -1e-10){currentUnderwater++;longest=Math.max(longest,currentUnderwater);}else currentUnderwater=0;
+  }
+  return {mddPct:maxDD*100,longestUnderwaterSessions:longest};
+}
+function canRebalance(freq,date,nextDate,startDate){
+  if(freq==='none'||!nextDate||date.slice(0,7)===nextDate.slice(0,7))return false;
+  const d=new Date(dayStamp(date)),s=new Date(dayStamp(startDate));
+  const months=(d.getUTCFullYear()-s.getUTCFullYear())*12+d.getUTCMonth()-s.getUTCMonth()+1;
+  const period={monthly:1,quarterly:3,semiannual:6,annual:12}[freq];
+  if(!period)throw Error('不支援的再平衡設定');
+  return months>0&&months%period===0;
+}
+function runDynamicBacktest(scenario,series,options={}){
+  const rebalance=options.rebalance||'quarterly';
+  const repayment=options.repayment||'repay_at_term';
+  const rfPct=options.rfPct??0;
+  if(!['none','monthly','quarterly','semiannual','annual'].includes(rebalance))throw Error('不支援的再平衡頻率');
+  if(!['repay_at_term','conditional_rollover'].includes(repayment))throw Error('不支援的貸款到期模式');
+  if(!finite(rfPct)||rfPct<0||rfPct>30)throw Error('無風險利率參數無效');
+  const {symbols,unsupported}=supportedSymbols(scenario);
+  if(unsupported.length)throw Error('不支援的 ETF 或倍數：'+[...new Set(unsupported)].join('、')+'；請移除或使用 V0.2 固定快照');
+  const r=calculateScenario(scenario);
+  if(!r.valid)throw Error('組合參數無效：'+r.errors.join('；'));
+  const dates=options.dates||sharedDates([scenario],series,{from:options.from||'',to:options.to||''});
+  if(!dates.length||dates.length<30)throw Error('回測交易日不足');
+  const maps=Object.fromEntries(symbols.map(s=>[s,new Map(series[s].rows.map(x=>[x.date,x.nav]))]));
+  if(dates.some((dt,i)=>i&&dates[i-1]>=dt))throw Error('共同交易日必須遞增且不重複');
+  for(const dt of dates)for(const sym of symbols)if(!finite(maps[sym].get(dt))||maps[sym].get(dt)<=0)throw Error(sym+' 缺少 '+dt+' 的調整價格');
+  const startDate=dates[0],endDate=dates.at(-1);
+  const unit=Object.fromEntries(r.legs.filter(f=>symbols.includes(f.symbol)).map(f=>[f.symbol,{own:f.ownValue/maps[f.symbol].get(startDate),loan:f.loanValue/maps[f.symbol].get(startDate),pledgePct:f.pledgePct,eligible:f.pledgeStatus!=='blocked',factor:f.factor,ownWeightPct:f.ownWeightPct,loanWeightPct:f.loanWeightPct}]));
+  let cash=r.liquidCash,debt=r.borrow,accruedInterest=0,interestPaid=0,externalNetFlows=0;
+  let rebalanceFees=0,forcedSaleFees=0,turnover=0,forcedSales=0,hardFailure=null;
+  let renewalAssumedCount=0,firstMarginDate=null,minMarginPct=null,marginSignalCount=0;
+  let pledgedSaleRequiresRelease=false,unsettledProceedsUsed=false;
+  let nextLoanMaturity=addMonths(startDate,scenario.termMonths);
+  let index=r.netAsset/scenario.ownCapital;
+  const initialNet=r.netAsset;
+  if(initialNet<=0)throw Error('初始淨資產不合法');
+  const path=[],events=[],dailyReturns=[];
+  const costRate=scenario.tradeCostPct/100;
+  const getValues=(date)=>Object.fromEntries(symbols.map(s=>{const q=unit[s],p=maps[s].get(date);return [s,{own:q.own*p,loan:q.loan*p,price:p}]}));
+  const marketValue=values=>Object.values(values).reduce((s,v)=>s+v.own+v.loan,0);
+  const postInterest=()=>{};
+  function liquidateForCash(needed,date,reason){
+    if(needed<=cash+1e-7)return true;
+    const deficit=needed-cash;
+    const grossNeed=deficit/(1-costRate);
+    const values=getValues(date);
+    // Sell non-pledged/loan units before own pledged units; settlement is instant proxy (not T+2).
+    let remaining=grossNeed,sold=0,pledgedUsed=0;
+    for(const key of ['loan','own']){
+      for(const symbol of symbols){
+        const leg=unit[symbol],price=values[symbol].price;
+        const total=leg[key]*price;
+        const take=Math.min(total,remaining);
+        if(take>1e-10){leg[key]-=take/price;remaining-=take;sold+=take;
+          if(key==='own'&&leg.pledgePct>0){pledgedUsed+=take*leg.pledgePct/100;}}
+      }
+    }
+    cash+=sold*(1-costRate);
+    const fee=sold*costRate;forcedSaleFees+=fee;forcedSales++;
+    if(pledgedUsed>1e-7){pledgedSaleRequiresRelease=true;events.push({date,type:'pledged_sale_unverified',amount:round2(pledgedUsed),reason});}
+    unsettledProceedsUsed=true;
+    events.push({date,type:'forced_sale',reason,gross:round2(sold),fee:round2(fee)});
+    return cash+1e-6>=needed;
+  }
+  function rebalancePool(date,key,weightKey){
+    const values=getValues(date),pool=Object.values(values).reduce((s,v)=>s+v[key],0);
+    if(pool<=1e-9)return;
+    const target=Object.fromEntries(symbols.map(sym=>[sym,pool*unit[sym][weightKey]/100]));
+    const turn=symbols.reduce((s,sym)=>s+Math.abs(values[sym][key]-target[sym]),0);
+    const fee=turn*costRate;
+    if(fee>=pool)throw Error('再平衡交易成本大於資產市值');
+    const investable=pool-fee;
+    for(const sym of symbols){unit[sym][key]=investable*unit[sym][weightKey]/100/values[sym].price;}
+    turnover+=turn;rebalanceFees+=fee;
+  }
+  let previousDate=startDate,previousNAV=initialNet;
+  for(let i=0;i<dates.length;i++){
+    const date=dates[i],nextDate=dates[i+1]||null;
+    if(i>0){
+      const delta=dayGap(previousDate,date);
+      if(delta<=0)throw Error('交易日順序不合法');
+      accruedInterest+=debt*scenario.aprPct/100*delta/365;
+    }
+    const isMonthEnd=nextDate!==null&&date.slice(0,7)!==nextDate.slice(0,7);
+    let dayFlow=0;
+    // This cashflow occurs at the end of each fully observed calendar month.
+    if(isMonthEnd){dayFlow=scenario.monthlyFreeCashFlow;cash+=dayFlow;externalNetFlows+=dayFlow;}
+    if(i>0&&debt>0&&date>=nextLoanMaturity){
+      if(repayment==='conditional_rollover'){
+        renewalAssumedCount++;
+        events.push({date,type:'rollover_assumed_unverified',principal:round2(debt)});
+        nextLoanMaturity=addMonths(nextLoanMaturity,scenario.termMonths);
+        while(nextLoanMaturity<=date)nextLoanMaturity=addMonths(nextLoanMaturity,scenario.termMonths);
+      }else{
+        // Accrued interest is payable before principal, no invisible overdrafts.
+        const due=debt+accruedInterest;
+        const preCash=cash;
+        if(!liquidateForCash(due,date,'maturity')){hardFailure={date,type:'maturity_payment_failure',unpaid:round2(due-Math.max(0,cash))};
+          events.push({...hardFailure});
+        }else{
+          cash-=due;interestPaid+=accruedInterest;accruedInterest=0;events.push({date,type:'bullet_principal_repaid',principal:round2(debt),cashBeforePayment:round2(preCash)});debt=0;
+        }
+      }
+    }
+    if(hardFailure)break;
+    if(isMonthEnd&&accruedInterest>1e-9){
+      if(!liquidateForCash(accruedInterest,date,'interest')){
+        hardFailure={date,type:'interest_payment_failure',unpaid:round2(accruedInterest-Math.max(0,cash))};events.push({...hardFailure});break;
+      }
+      cash-=accruedInterest;interestPaid+=accruedInterest;accruedInterest=0;
+    }
+    if(cash< -1e-7){
+      if(!liquidateForCash(0,date,'external_outflow')){
+        hardFailure={date,type:'cash_shortfall',unpaid:round2(-cash)};events.push({...hardFailure});break;
+      }
+    }
+    if(canRebalance(rebalance,date,nextDate,startDate)){
+      rebalancePool(date,'own','ownWeightPct');
+      rebalancePool(date,'loan','loanWeightPct');
+      events.push({date,type:'scheduled_rebalance',frequency:rebalance});
+    }
+    const vals=getValues(date);
+    const market=marketValue(vals);
+    const collateral=debt>0?symbols.reduce((sum,sym)=>sum+(unit[sym].eligible?vals[sym].own*unit[sym].pledgePct/100:0),0):0;
+    const maintenancePct=debt>1e-9?collateral/debt*100:null;
+    const nav=market+cash-debt-accruedInterest;
+    if(maintenancePct!==null){minMarginPct=minMarginPct===null?maintenancePct:Math.min(minMarginPct,maintenancePct);
+      if(maintenancePct<130){marginSignalCount++;if(!firstMarginDate){firstMarginDate=date;events.push({date,type:'maintenance_under_130',marginPct:round2(maintenancePct)});}}
+    }
+    const eqExposure=nav>0?symbols.reduce((sum,sym)=>sum+(vals[sym].own+vals[sym].loan)*unit[sym].factor,0)/nav*100:null;
+    if(nav<=0){hardFailure={date,type:'nonpositive_net_equity',nav:round2(nav)};events.push({...hardFailure});break;}
+    if(i>0){const step=(nav-dayFlow)/previousNAV;
+      if(!finite(step)||step<=0){hardFailure={date,type:'invalid_twr_step'};events.push({...hardFailure});break;}
+      index*=step;dailyReturns.push(step-1);
+    }
+    const rec={date,nav:round2(nav),cash:round2(cash),debt:round2(debt),accruedInterest:round2(accruedInterest),
+      holdings:round2(market),maintenancePct:maintenancePct===null?null:round2(maintenancePct),
+      eqExposurePct:eqExposure===null?null:round2(eqExposure),twrIndex:index};
+    path.push(rec);previousDate=date;previousNAV=nav;
+  }
+  if(path.length<2)throw Error('模型無法產生至少 2 個有效交易日');
+  const elapsed=dayGap(path[0].date,path.at(-1).date);
+  const cagrPct=elapsed>0?(Math.pow(index,365.25/elapsed)-1)*100:null;
+  const dd=drawdownStats([1,...path.map(x=>x.twrIndex)]);
+  const sumReturns=dailyReturns.reduce((a,b)=>a+b,0)/Math.max(1,dailyReturns.length);
+  const downside=Math.sqrt(dailyReturns.reduce((a,b)=>a+Math.min(0,b-rfPct/100/TRADE_DAYS)**2,0)/Math.max(1,dailyReturns.length));
+  const stats={cagrPct,mddPct:dd.mddPct,sharpe:sharpeRatio(dailyReturns,rfPct),
+    sortino:downside>1e-14?Math.sqrt(TRADE_DAYS)*(sumReturns-rfPct/100/TRADE_DAYS)/downside:null,
+    calmar:dd.mddPct< -1e-9?(cagrPct||0)/(-dd.mddPct):null,
+    longestUnderwaterSessions:dd.longestUnderwaterSessions,
+    startNetAssetTwd:initialNet,endNetAssetTwd:path.at(-1).nav,
+    endUnpaidDebtTwd:path.at(-1).debt,interestPaidTwd:round2(interestPaid),
+    rebalancingFeesTwd:round2(rebalanceFees),forcedSaleFeesTwd:round2(forcedSaleFees),
+    capitalInjectionsNetTwd:round2(externalNetFlows),cashAtEndTwd:path.at(-1).cash,
+    minMaintenancePct:minMarginPct,firstMarginSignal:firstMarginDate,
+    marginSignalDays:marginSignalCount,rolloverAssumedCount:renewalAssumedCount,
+    forcedSales,turnoverTwd:round2(turnover),startNominalExposurePct:r.equityExposurePct,
+    hardFailure:hardFailure?.type||null,lastDate:path.at(-1).date,
+    pledgedSaleRequiresRelease,unsettledProceedsUsed};
+  return {ok:true,version:DYNAMIC_VERSION,priceGrade:PRICE_GRADE,
+    period:{start:path[0].date,end:path.at(-1).date,marketEnd:endDate,sessions:path.length},
+    symbols,options:{rebalance,repayment,rfPct,from:options.from||'',to:options.to||''},
+    stats,path,events,flags:{
+      totalReturnVerified:false,officialRawOHLCVIncluded:false,
+      eligibilityVerified:false,loanRenewalVerified:false,t2SettlementModeled:false,
+      marketExecutionVerified:false,hardFailure,pledgedSaleRequiresRelease,unsettledProceedsUsed,
+    }};
+}
+function compareDynamicBacktests(items,series,options={}){
+  if(!Array.isArray(items)||!items.length||items.length>4)throw Error('請提供 1 至 4 個組合');
+  const firstCapital=items[0].scenario.ownCapital;
+  if(items.some(x=>Math.abs(x.scenario.ownCapital-firstCapital)>0.01))throw Error('A/B/C 同期比較須採相同自有資金');
+  const dates=sharedDates(items.map(x=>x.scenario),series,options);
+  const firstFlow=items[0].scenario.monthlyFreeCashFlow;
+  if(items.some(x=>x.scenario.monthlyFreeCashFlow!==firstFlow))throw Error('公平比較須採相同每月外部自由現金流；請修正各方案，模型不會偷偷改寫');
+  const results=items.map(({name,scenario})=>({name,...runDynamicBacktest(scenario,series,{...options,dates})}));
+  for(const r of results)r.fullPeriod=!r.flags.hardFailure&&r.period.sessions===dates.length;
+  const rankingEligible=results.every(r=>r.fullPeriod);
+  // Failed paths remain visible; no annualized ranking across unequal realized horizons.
+  for(const r of results)r.comparableCagrPct=rankingEligible?r.stats.cagrPct:null;
+  return {ok:true,version:DYNAMIC_VERSION,priceGrade:PRICE_GRADE,rankingEligible,ownCapital:firstCapital,monthlyFreeCashFlow:firstFlow,period:{start:dates[0],end:dates.at(-1),sessions:dates.length},results};
+}
+function backtestCsv(result){
+  if(!result?.ok||!result.path)throw Error('沒有可匯出的歷史路徑');
+  const header=['date','net_asset_twd','cash_twd','debt_twd','accrued_interest_twd','holdings_twd','maintenance_pct','equity_exposure_pct','twr_index'];
+  const rows=result.path.map(x=>[x.date,x.nav,x.cash,x.debt,x.accruedInterest,x.holdings,x.maintenancePct??'',x.eqExposurePct??'',x.twrIndex].join(','));
+  return '\ufeff'+header.join(',')+'\n'+rows.join('\n')+'\n';
+}
+
+;
+
+
+
+
+const CURRENT_KEY='lpos-web-v01-current';
+const SAVED_KEY='lpos-web-v01-saved';
+const app=document.getElementById('app');
+const tabs=[
+  ['overview','◫','研究總覽'],
+  ['portfolio','◈','01 投資配置'],
+  ['financing','▦','02 質押與融資'],
+  ['backtest','↗','03 歷史研究'],
+  ['survival','◎','04 生存分析'],
+  ['compare','▤','05 策略比較'],
+  ['sources','◇','資料與限制']
+];
+const titles={
+  overview:['研究控制台','同時看見資金效率、槓桿曝險與借款償付風險。'],
+  portfolio:['投資配置','自由加入 ETF、自訂倍數、分開配置自有資金與借款資金。'],
+  financing:['質押融資','每一檔獨立指定質押比例、LTV、借款用途與還款流動性。'],
+  stress:['極端壓力測試','市場單次下跌和多日現金生存研究。'],
+  survival:['生存能力與極端風險','直接使用同一套持股、質押與資金配置，納入失業、T+2、追繳、到期。'],
+  research:['V3.0 歷史研究','查看 Python 引擎已驗證的市場代理快照；不是實盤績效，也不是即時回測。'],
+  backtest:['歷史回測與 Python 參考研究','在同一頁比較自訂調整價格日線回測，以及 V3.0 已封存 Python 參考資料。'],
+  compare:['策略 A / B / C','採相同起始自有資金、每月外部現金流與共同交易期間；費用造成的初始淨資產差異保留。'],
+  sources:['資料品質中心','市場實證與融資條款有證據缺口時，結果必須清楚標示。']
+};
+const palette=['#386fe8','#0c9f83','#8e79d5','#e4a764','#4b9fbc','#df8190','#a6ba68','#8d9bb4','#9d6abd','#c47967','#66788b','#2daca1'];
+const readStorage=(key,fallback)=>{try {const s=localStorage.getItem(key);return s?JSON.parse(s):fallback;}catch{return fallback;}};
+let current;
+try { const existing=readStorage(CURRENT_KEY,null);current=existing?validateAndParse(JSON.stringify(existing)):defaultScenario(); }
+catch {current=defaultScenario();}
+let saved=readStorage(SAVED_KEY,{});
+if(!saved||typeof saved!=='object'||Array.isArray(saved))saved={};
+const tabAlias={stress:'survival',research:'backtest'};
+const hashPart=typeof location!=='undefined' ? location.hash.slice(1) : '';
+let tab=tabs.some(x=>x[0]===(tabAlias[hashPart]||hashPart))?(tabAlias[hashPart]||hashPart):'overview';
+let saveSlot='A';
+let toastText='';let toastHandle=null;
+let filePicker=null;
+let reference=null,referenceError='',referenceStatus='loading';
+let study={portfolio:'00878_only',loan:480000,rf:0};
+let v03Settings={rebalance:'quarterly',repayment:'repay_at_term',rfPct:0,from:'2018-01-01',to:''};
+let v03State={status:'idle',kind:'solo',result:null,baseline:null,comparison:null,error:'',stamp:null};
+const backtestStamp=()=>JSON.stringify({current,settings:v03Settings,saved});
+const survivalDefaults={shockPct:35,shockMonth:2,unemploymentMonths:0,rateHikePct:0,
+  horizonMonths:18,rollover:'deny',prefund:true,marginPolicy:'warning'};
+let survivalSettings=readStorage('lpos-v05-survival-controls',survivalDefaults);
+try{survivalSettings=window.LPOSSurvival.validate(survivalSettings)}
+catch{survivalSettings={...survivalDefaults};}
+let survivalState={status:'idle',kind:'solo',result:null,cases:null,error:'',stamp:''};
+const survivalStamp=()=>JSON.stringify({current,settings:survivalSettings,from:v03Settings.from,to:v03Settings.to});
+async function runV03(kind='solo'){
+  const requestStamp=backtestStamp(),requestScenario=deepCopy(current);
+  v03State={status:'loading',kind,result:null,baseline:null,comparison:null,error:'',stamp:null};render();
+  try{
+    const options={...v03Settings};
+    const items=kind==='comparison'?[{name:'目前組合',scenario:requestScenario},...['A','B','C'].filter(k=>saved[k]).map(k=>({name:'方案 '+k,scenario:validateAndParse(JSON.stringify(saved[k]))}))]:[{name:'目前組合',scenario:requestScenario}];
+    if(kind==='comparison'&&items.length<2)throw Error('至少先儲存一個 A/B/C 方案，再比較兩種策略');
+    const bad=items.flatMap(x=>supportedSymbols(x.scenario).unsupported);
+    if(bad.length)throw Error('以下代號尚無可用的同期日線或設定倍數不符：'+[...new Set(bad)].join('、')+'。請使用 006208／00631L／00685L，或保留 V0.2 快照。');
+    const symbols=[...new Set(items.flatMap(x=>supportedSymbols(x.scenario).symbols))];
+    const series=await loadMarketSeries(symbols);
+    let result=null,baseline=null,comparison=null;
+    if(kind==='comparison')comparison=compareDynamicBacktests(items,series,options);
+    else{
+      const dates=sharedDates([requestScenario],series,options);
+      result=runDynamicBacktest(requestScenario,series,{...options,dates});
+      const unlevered={...requestScenario,borrowUtilPct:0};
+      baseline=runDynamicBacktest(unlevered,series,{...options,dates});
+    }
+    v03State={status:'ready',kind,result,baseline,comparison,error:'',stamp:requestStamp};
+  }catch(err){v03State={status:'error',kind,result:null,baseline:null,comparison:null,error:String(err.message||err),stamp:requestStamp};}
+  render();
+}
+
+async function loadResearch(){
+  try{reference=await loadResearchBundle();referenceStatus='ready';}
+  catch(err){referenceStatus='error';referenceError=String(err.message||err);}
+  if(tab==='backtest'||tab==='sources')render();
+}
+
+
+const e=(s)=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+const m=(n)=>Number.isFinite(n)?'NT$ '+formatTwd(n):'—';
+const signed=(n)=>Number.isFinite(n)?(n<0?'−':'')+m(Math.abs(n)):'—';
+const pct=(n,digits=1)=>formatPercent(n,digits);
+const deepCopy=x=>JSON.parse(JSON.stringify(x));
+const ctrl=(name)=>current[name];
+const safeSave=()=>{try{localStorage.setItem(CURRENT_KEY,JSON.stringify(current));}catch{}};
+const safeSaveSlots=()=>{try{localStorage.setItem(SAVED_KEY,JSON.stringify(saved));}catch{}};
+function toast(message){
+  toastText=message;
+  document.querySelector('.toast')?.remove();
+  const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=message;document.body.appendChild(t);
+  clearTimeout(toastHandle);toastHandle=setTimeout(()=>t.remove(),3600);
+}
+function button(label,action,cls='',extras=''){
+  return `<button type="button" class="btn ${cls}" data-action="${e(action)}" ${extras}>${label}</button>`;
+}
+function rinput(label,key,min,max,step,note=''){
+  return `<div class="field"><div class="range-line"><span>${e(label)}</span><strong>${ctrl(key)}%</strong></div>
+    <input type="range" aria-label="${e(label)}" min="${min}" max="${max}" step="${step}" value="${ctrl(key)}" data-field="${key}" />
+    ${note?`<small>${e(note)}</small>`:''}</div>`;
+}
+function ninput(label,key,suffix,min,max,step,note=''){
+  return `<div class="field"><span>${e(label)}</span><div class="input-suffix">
+  <input aria-label="${e(label)}" type="number" min="${min}" max="${max}" step="${step}" value="${e(ctrl(key))}" data-field="${key}"/><em>${e(suffix)}</em></div>
+  ${note?`<small>${e(note)}</small>`:''}</div>`;
+}
+function panel(title,description,body,right=''){
+  return `<section class="panel"><div class="panel-head"><div><h2 class="panel-title">${title}</h2>${description?`<p class="panel-desc">${description}</p>`:''}</div>${right}</div><div class="panel-body">${body}</div></section>`;
+}
+function stat(label,value,style=''){
+  return `<div class="stat-row"><span>${label}</span><b class="${style}">${value}</b></div>`;
+}
+function kpi(label,value,sub,color=''){
+  return `<div class="kpi ${color}"><div class="kpi-label">${label}<span>↗</span></div><div class="kpi-val">${value}</div><div class="kpi-sub">${sub}</div></div>`;
+}
+function topKpis(r){
+  const good=r.valid;
+  return `<section class="kpi-grid" aria-label="策略重點">
+    ${kpi('初始淨資產',good?m(r.netAsset):'—','自有資本扣除進場成本','')}
+    ${kpi('股票等值曝險',good?pct(r.equityExposurePct):'—','分母：初始淨資產','blue')}
+    ${kpi('新增質押借款',good?m(r.borrow):'—','假設成數 × 質押持股價值','')}
+    ${kpi('下跌後淨資產',good?signed(r.stressedNetAsset):'—',`單次市場下跌 ${current.shockPct}%`,good&&r.stressedNetAsset<0?'warn':'teal')}
+  </section>`;
+}
+function menu(active){
+  return tabs.map(([id,icon,label])=>`<button class="nav-item ${active===id?'active':''}" data-nav="${id}" aria-current="${active===id?'page':'false'}"><span class="nav-ico">${icon}</span><span>${e(label)}</span></button>`).join('');
+}
+function mobileMenu(active){
+  return `<nav class="mobile-nav" aria-label="功能分頁">${tabs.map(([id,icon,label])=>`<button class="${active===id?'active':''}" data-nav="${id}">${e(label)}</button>`).join('')}</nav>`;
+}
+function mixVisualization(r){
+  const total=r.holdingValue || 1;
+  const bar=r.legs.map((f,i)=>`<div style="width:${f.totalValue/total*100}%;background:${palette[i%palette.length]}" title="${e(f.symbol)} ${pct(f.totalValue/total*100)}"></div>`).join('');
+  const rows=r.legs.map((f,i)=>`<div class="mix-item"><span class="mix-dot" style="background:${palette[i%palette.length]}"></span><div><div class="mix-name">${e(f.symbol)} <span class="pill">${f.factor}×</span></div><div class="mix-sub">${e(f.name)} · 持倉 ${m(f.totalValue)}</div></div><div class="mix-percent">${pct(f.totalValue/total*100)}</div></div>`).join('');
+  return `<div class="stackbar" aria-label="ETF 持倉分布">${bar}</div><div>${rows}</div>`;
+}
+function warnings(r,max=5){
+  if(!r.valid)return `<div class="error-list"><b>參數需要修正</b><div>${r.errors.map(x=>'• '+e(x)).join('<br>')}</div></div>`;
+  return `<div class="warnings">${r.warnings.slice(0,max).map((w,i)=>`<div class="warning-block ${i===0&&r.marginTrigger?'red':''}">⚠ ${e(w)}</div>`).join('')}${r.warnings.length>max?`<div class="tiny">尚有 ${r.warnings.length-max} 項提醒，前往「資料品質與限制」查看完整研究邊界。</div>`:''}</div>`;
+}
+function balanceSheet(r){
+  return `<div class="stats">
+   ${stat('原始自有淨資產',m(current.ownCapital))}
+   ${stat('自有 ETF 市值',m(r.ownMarket))}
+   ${stat('借款購買 ETF 市值',m(r.loanMarket))}
+   ${stat('流動現金',m(r.liquidCash))}
+   ${stat('總資產',m(r.assets))}
+   ${stat('未償還借款本金','− '+m(r.borrow))}
+   ${stat('總進場成本','− '+m(r.fees))}
+   ${stat('初始淨資產',m(r.netAsset),'green')}
+  </div>`;
+}
+function chartStress(r){
+  const maxFall=Math.max(80,Math.ceil(r.shock/10)*10);
+  const xs=Array.from({length:maxFall/10+1},(_,i)=>i*10).map(fall=>({fall,result:calculateScenario(current,fall)}));
+  const values=xs.map(x=>x.result.stressedNetAsset/current.ownCapital*100);
+  const lo=Math.min(0,...values)-10,hi=Math.max(105,...values)+4;
+  const X=(v)=>50+v/maxFall*540;
+  const Y=(v)=>18+(hi-v)/(hi-lo)*216;
+  const path=values.map((v,i)=>(i?'L':'M')+X(xs[i].fall).toFixed(2)+' '+Y(v).toFixed(2)).join(' ');
+  const grid=[0,25,50,75,100].filter(y=>y>=lo&&y<=hi).map(y=>`<g><line x1="50" x2="590" y1="${Y(y)}" y2="${Y(y)}" stroke="#e8eef4"/><text x="40" y="${Y(y)+4}" font-size="11" text-anchor="end" fill="#9aabbc">${y}%</text></g>`).join('');
+  const tick=xs.filter((_,i)=>i%2===0).map(x=>`<text x="${X(x.fall)}" y="255" text-anchor="middle" font-size="11" fill="#9aabbc">-${x.fall}%</text>`).join('');
+  const selectedX=X(r.shock),selectedY=Y(r.stressedNetAsset/current.ownCapital*100);
+  return `<div class="chartbox"><svg viewBox="0 0 624 280" role="img" aria-label="單步市場跌幅與淨資產比例關係圖">
+    ${grid}${tick}<path d="${path}" fill="none" stroke="#376ce4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="${selectedX}" x2="${selectedX}" y1="17" y2="236" stroke="#e3a268" stroke-dasharray="4 4"/><circle cx="${selectedX}" cy="${selectedY}" r="5" stroke="#fff" stroke-width="3" fill="#e4a361"/>
+    <text x="312" y="277" text-anchor="middle" font-size="11" fill="#8c9aaa">假設市場在單一時點下跌幅度</text></svg></div>`;
+}
+function overview(r){
+  if(!r.valid)return panel('請先調整配置比例','權重必須合計 100% 才能計算。',warnings(r)+button('前往投資配置','goto-portfolio','primary'));
+  const maint=r.maintenancePct===null?'無借款':pct(r.maintenancePct);
+  const maintShock=r.stressedMaintenancePct===null?'不適用':pct(r.stressedMaintenancePct);
+  return `<div class="content-grid"><div class="section-stack">
+    ${panel('單步壓力下的淨資產','同一條資產負債表，不假設價格會反彈；不是歷史回測或 7 年報酬曲線。',chartStress(r)+`<div class="legend"><span class="legend-i"><i></i>假設淨資產</span><span class="legend-i"><i class="orange"></i>目前選擇的跌幅</span></div>`)}
+    ${panel('目前投資組合','自有及借款再投入部位合併顯示；正二標的另以股票等值曝險計算。',mixVisualization(r))}
+  </div><div class="section-stack">
+    ${panel('資金結構','依照 LPOS V3.0 的資產與負債分開列帳。',balanceSheet(r))}
+    ${panel('質押與償付能力','每月利息是簡化固定 APR 假設；本期到期本金不預設可以展延。',`<div class="stats">
+      ${stat('假設可借額度',m(r.loanCapacity))}
+      ${stat('初始擔保維持率',maint)}
+      ${stat('單步下跌後維持率',maintShock,r.marginTrigger?'bad':'')}
+      ${stat('每月應付利息',m(r.monthlyInterest))}
+      ${stat('到期資金缺口',m(r.maturityGap),r.maturityGap>0?'bad':'green')}
+    </div>`)}
+    ${panel('重要研究提醒','財務計算有效不等於融資策略可以實盤執行。',warnings(r,4))}
+  </div></div>`;
+}
+function portfolio(r){
+  const totalOwn=current.funds.reduce((s,f)=>s+(Number(f.ownWeightPct)||0),0),totalLoan=current.funds.reduce((s,f)=>s+(Number(f.loanWeightPct)||0),0);
+  const rows=current.funds.map(f=>`<tr>
+    <td><div class="asset-id">${e(f.symbol)} ${f.factor===2?'<span class="pill orange">正二</span>':''}</div><div class="asset-name" title="${e(f.name)}">${e(f.name)}</div></td>
+    <td><select class="factor" aria-label="${e(f.symbol)} 名目倍數" data-fund-id="${e(f.id)}" data-fund-field="factor"><option value="1" ${f.factor===1?'selected':''}>1×</option><option value="2" ${f.factor===2?'selected':''}>2×</option></select></td>
+    <td><input type="number" min="0" max="100" step=".1" aria-label="${e(f.symbol)} 自有配置比例" value="${f.ownWeightPct}" data-fund-id="${e(f.id)}" data-fund-field="ownWeightPct"/></td>
+    <td><input type="number" min="0" max="100" step=".1" aria-label="${e(f.symbol)} 借款再投資比例" value="${f.loanWeightPct}" data-fund-id="${e(f.id)}" data-fund-field="loanWeightPct"/></td>
+    <td><input type="number" min="0" max="100" step="1" aria-label="${e(f.symbol)} 質押比例" value="${f.pledgePct}" data-fund-id="${e(f.id)}" data-fund-field="pledgePct" ${f.pledgeStatus==='blocked'?'disabled':''}/></td>
+    <td><input type="number" min="0" max="100" step="1" aria-label="${e(f.symbol)} 假設可貸成數" value="${f.ltvPct}" data-fund-id="${e(f.id)}" data-fund-field="ltvPct" ${f.pledgeStatus==='blocked'?'disabled':''}/></td>
+    <td><select class="eligibility" aria-label="${e(f.symbol)} 質押認列假設" data-fund-id="${e(f.id)}" data-fund-field="pledgeStatus"><option value="assumed" ${f.pledgeStatus==='assumed'?'selected':''}>假設認列</option><option value="blocked" ${f.pledgeStatus==='blocked'?'selected':''}>不認列</option></select></td>
+    <td>${r.valid?m(r.legs.find(l=>l.id===f.id).capacity):'—'}</td>
+    <td>${button('✕','remove-fund','ghost',`data-id="${e(f.id)}" title="刪除此標的"`)}</td>
+  </tr>`).join('');
+  const options=CATALOG.filter(c=>!current.funds.some(f=>f.symbol===c.symbol)).map(c=>`<option value="${e(c.symbol)}">${e(c.symbol)} · ${e(c.name)}</option>`).join('');
+  return `<div class="section-stack">
+   ${panel('ETF 與資金配置',`已加入 ${current.funds.length} 檔標的 · 可分別設定「自有資金權重」、「借款投資權重」與「質押比例」。`,
+   `<p class="footnote">自有權重以扣除預留現金與買進成本後的 ETF 金額為基礎；借款權重以扣除開辦費、保留現金與買進成本後的借款 ETF 金額為基礎。質押僅認列每檔自有持股；不認列時質押與 LTV 不計入，保留輸入值供切回使用。</p><div class="table-wrap"><table class="asset-table"><thead><tr><th>投資標的</th><th>倍數</th><th>自有資金 %</th><th>借款投入 %</th><th>質押 %</th><th>LTV %</th><th>資格</th><th>可借額度</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+   <div class="table-footer"><div class="row-actions"><span class="sum-pill ${Math.abs(totalOwn-100)>1e-6?'bad':''}">自有合計 ${pct(totalOwn)}</span><span class="sum-pill ${Math.abs(totalLoan-100)>1e-6?'bad':''}">借款合計 ${pct(totalLoan)}</span></div><div class="row-actions">${button('自動正規化自有權重','normalize-own','slim')}${button('自動正規化借款權重','normalize-loan','slim')}</div></div>
+   <div class="thin-divider"></div><p class="mini-heading">新增 ETF／自訂標的</p>
+   <div class="catalog-add"><select id="catalog-picker" aria-label="選擇預設 ETF">${options||'<option value="">預設標的皆已加入</option>'}</select>${button('＋ 加入常見 ETF','add-catalog','slim primary')}
+   <input id="custom-symbol" maxlength="16" placeholder="自訂代號" aria-label="自訂 ETF 代號" />${button('加入自訂代號','add-custom','slim')}</div>
+   <p class="footnote">代號與倍數由使用者輸入，不代表已核實基金屬性或質押資格。此版按資金額模擬，不使用即時價格或整股交易單位。</p>
+   ${r.valid?'':warnings(r)}`)}
+   <div class="two-col">
+    ${panel('每檔自有持股與擔保額度','借款買入的部位不自動再次質押。',r.valid?`<div class="stats">${r.legs.map(f=>stat(`${e(f.symbol)} 自有持股`,`${m(f.ownValue)} ｜ 擔保 ${m(f.pledgedValue)}`)).join('')}</div>`:'<div class="empty">請先讓兩組資金比例合計為 100%。</div>')}
+    ${panel('配置注意事項','避免把內部正二與外部借款當成同一種槓桿。',`<div class="feature-row"><div class="feature-ico">✚</div><div><div class="feature-title">外部融資</div><div class="feature-desc">貸款本金記在負債，費用扣除後再投入 ETF。</div></div></div><div class="feature-row"><div class="feature-ico">2×</div><div><div class="feature-title">內部正二</div><div class="feature-desc">名目股票曝險乘 2；持有多日會路徑依賴，不能用 2 倍 CAGR 推算。</div></div></div>`) }
+   </div>
+   </div>`;
+}
+function financing(r){
+  return `<div class="content-grid"><div class="section-stack">
+    ${panel('起始資金','資金與單次買進費用分開計算，避免用未扣手續費的預算直接當擔保市值。',
+      `<div class="form-grid">
+        <div class="field full"><span>方案名稱</span><input type="text" maxlength="60" data-text-field="scenarioName" aria-label="方案名稱" value="${e(current.scenarioName)}"/></div>
+        ${ninput('初始自有淨資產','ownCapital','元',1,1000000000000,1000)}
+        ${ninput('自有現金保留比例','ownCashPct','%',0,100,.5)}
+        ${ninput('單次買進成本率','tradeCostPct','%',0,20,.0025,'預設 0.2425% 僅為 V3.0 研究的假設交易成本。')}
+        ${ninput('借款開辦費率','originationFeePct','%',0,20,.1)}
+      </div>`)}
+    ${panel('質押動用與借款用途','各 ETF 的質押比例及 LTV 請在投資配置頁設定。',
+      `<div class="form-grid">
+        ${rinput('動用假設可借額度','borrowUtilPct',0,100,5)}
+        ${rinput('借款收益再投入比例','loanInvestPct',0,100,5,'其餘放在現金水庫；借款本金仍全部計入負債。')}
+        ${ninput('借款年利率','aprPct','%',0,50,.25)}
+        ${ninput('本金到期月數','termMonths','月',1,360,1,'V0.1 採到期一次清償本金，不假設展延。')}
+      </div>
+      <div class="param-note" style="margin-top:14px">短期質押的續借及每檔 ETF 質押資格均未經本網站核實。單純改為更長天期只是情境分析，不是核貸承諾。</div>`)}
+    ${panel('現金預備金與每月流量','「每月自由現金流」應填扣除生活支出及其他固定投資後，可用於儲蓄或還款的金額。',
+      `<div class="form-grid">
+         ${ninput('每月自由現金流（付息前）','monthlyFreeCashFlow','元',-1000000000,1000000000,1000)}
+         ${ninput('每月必要生活支出','monthlyLivingExpense','元',0,1000000000,1000)}
+         ${ninput('最低預備月數','minReserveMonths','月',0,36,1)}
+       </div><p class="footnote">到期現金估算不含行情收益、額外借款、展延及賣股尚未交割款項；請勿視為未來現金流預測。</p>`)}
+  </div><div class="section-stack">
+    ${panel('借貸摘要','不把借款本金直接當成收益。',r.valid?`<div class="stats">
+      ${stat('自有買進預算',m(r.ownInvestBudget))}
+      ${stat('可認列擔保市值',m(r.collateral))}
+      ${stat('假設可借總額',m(r.loanCapacity))}
+      ${stat('實際動用借款',m(r.borrow),'green')}
+      ${stat('借款開辦費',m(r.loanFee))}
+      ${stat('借款購買 ETF',m(r.loanMarket))}
+      ${stat('借款保留現金',m(r.borrowedCash))}
+      ${stat('借款每月利息',m(r.monthlyInterest))}
+      ${stat('初始維持率',r.maintenancePct===null?'不適用':pct(r.maintenancePct))}
+     </div>`:warnings(r))}
+    ${panel('到期現金水庫','不預設借款核准展延。',r.valid?`<div class="stats">
+        ${stat('目前可用現金',m(r.liquidCash))}
+        ${stat('每月付息後現金流',signed(r.projectedMonthlyFlow),r.projectedMonthlyFlow<0?'bad':'')}
+        ${stat(`第 ${current.termMonths} 月預估現金`,signed(r.maturityCash))}
+        ${stat('到期本金',m(r.borrow))}
+        ${stat('本金缺口',m(r.maturityGap),r.maturityGap>0?'bad':'green')}
+        ${stat('建議預備金',m(r.reserveTarget))}
+      </div>`:warnings(r))}
+    ${panel('研究風險提示','審核條件與成數皆依實際券商而不同。',warnings(r,5))}
+  </div></div>`;
+}
+function stress(r){
+  return `<div class="content-grid"><div class="section-stack">
+    ${panel('市場下跌幅度','理論上將同一時間、同一方向的市場跌幅施加於所有標的。',
+       `<div class="field"><div class="range-line"><span>假設單次市場下跌</span><strong>−${current.shockPct}%</strong></div><input type="range" min="0" max="80" step="5" value="${current.shockPct}" data-field="shockPct" aria-label="假設市場單次跌幅"/></div>
+        ${r.valid?chartStress(r):warnings(r)}
+        <div class="param-note">1 倍 ETF 使用 1 − 跌幅；2 倍 ETF 使用 max(0, 1 − 2 × 跌幅)。這是單步近似，不是 2 倍 ETF 每日重設的歷史價格模型。</div>`)}
+    ${panel('標的下跌後估值','正二標的的單步跌幅可能遠大於一般 1 倍 ETF。',r.valid?
+      `<div class="table-wrap"><table class="comparison"><thead><tr><th>標的</th><th>名目倍數</th><th>初始持倉</th><th>下跌後持倉</th><th>擔保市值（下跌後）</th></tr></thead><tbody>${r.stressedLegs.map(f=>`<tr><td>${e(f.symbol)}</td><td>${f.factor}×</td><td>${m(f.totalValue)}</td><td>${m(f.stressedOwnValue+f.stressedLoanValue)}</td><td>${m(f.stressedCollateral)}</td></tr>`).join('')}</tbody></table></div>`:warnings(r))}
+  </div><div class="section-stack">
+    ${panel('極端情境摘要','把「市場價值」與「能否準時清償」分開判讀。',r.valid?`<div class="stats">
+       ${stat('下跌後投資市值',m(r.stressedHoldings))}
+       ${stat('下跌後剩餘總資產',m(r.stressedAssets))}
+       ${stat('借款負債（不變）','− '+m(r.borrow))}
+       ${stat('下跌後淨資產',signed(r.stressedNetAsset),r.stressedNetAsset<0?'bad':'')}
+       ${stat('下跌後質押維持率',r.stressedMaintenancePct===null?'不適用':pct(r.stressedMaintenancePct),r.marginTrigger?'bad':'')}
+       ${stat('跌破 130% 門檻?',r.marginTrigger?'是，觸發模型警示':'否',r.marginTrigger?'bad':'green')}
+       ${stat('補到 166% 擔保價值缺口',m(r.topUpCollateralValue),r.topUpCollateralValue>0?'bad':'')}
+       ${stat('現金預備金缺口',m(Math.max(0,r.reserveTarget-r.liquidCash)))}
+     </div>`:warnings(r))}
+    ${panel('不同的 130% 不要混用','數字雖相同，經濟意義完全不同。',`<div class="feature-row"><div class="feature-ico">①</div><div><div class="feature-title">股票等值曝險 / 個人淨資產</div><div class="feature-desc">你設定的風險預算，可能隨 ETF 漲跌而變動；不是擔保維持率。</div></div></div><div class="feature-row"><div class="feature-ico">②</div><div><div class="feature-title">質押擔保市值 / 質押本金</div><div class="feature-desc">低於 130% 可構成追繳訊號，166% 是研究採用的補繳目標參考；詳細規則由券商條款決定。</div></div></div>`)}
+    ${panel('風險與限制','單步推算不包含強制處分賣價、折價率及應計未付利息。',warnings(r,6))}
+  </div></div>`;
+}
+function compare(r){
+  const slots=['A','B','C'];
+  const options=slots.map(i=>`<option value="${i}" ${saveSlot===i?'selected':''}>方案 ${i}</option>`).join('');
+  const scenarios=slots.map(slot=>{
+    const item=saved[slot];
+    if(!item)return {slot,empty:true};
+    try {const p=validateAndParse(JSON.stringify(item));return {slot,scenario:p,result:calculateScenario(p),empty:false}; }
+    catch{return {slot,empty:true};}
+  });
+  const active=scenarios.filter(x=>!x.empty);
+  const fair=active.length>=2&&active.every(x=>Math.abs(x.scenario.ownCapital-active[0].scenario.ownCapital)<.01&&x.scenario.monthlyFreeCashFlow===active[0].scenario.monthlyFreeCashFlow);
+  const fairNotice=active.length<2?'請儲存至少兩個 A/B/C 方案以檢核公平條件。':fair?'已儲存方案的自有資金與每月外部現金流一致；歷史比較另檢核目前組合與共同日期。':'不符合公平比較：已儲存方案的自有資金或每月外部現金流不同。以下靜態數值僅供核對，請調整後再比較。';
+  const headers=scenarios.map(x=>`<th>${x.empty?'方案 '+x.slot+'（空）':`方案 ${x.slot}<br><span class="tiny">${e(x.scenario.scenarioName)}</span>`}</th>`).join('');
+  const rows=[
+    ['起始自有資金',x=>m(x.scenario.ownCapital)],
+    ['股票等值曝險',x=>pct(x.result.equityExposurePct)],
+    ['質押借款本金',x=>m(x.result.borrow)],
+    ['單月利息',x=>m(x.result.monthlyInterest)],
+    ['初始淨資產',x=>m(x.result.netAsset)],
+    ['下跌後淨資產',x=>signed(x.result.stressedNetAsset)],
+    ['擔保維持率',x=>x.result.maintenancePct===null?'無借款':pct(x.result.maintenancePct)],
+    ['追繳訊號',x=>x.result.marginTrigger?'有':'無'],
+    ['到期現金缺口',x=>m(x.result.maturityGap)],
+  ];
+  return `<div class="section-stack">
+   ${panel('儲存並比較 3 種策略','公平檢核：相同自有資金、每月外部現金流、共同日期；保留各策略真實費用差異。',
+     `<div class="slot-tools"><label for="save-slot">儲存到</label><select id="save-slot">${options}</select>${button('儲存目前設定','save-slot','primary')}${button('載入選取方案','load-slot')}${button('清除選取方案','clear-slot','danger')}</div>
+       <p class="footnote">方案存在你的瀏覽器 localStorage，不會上傳伺服器；若清除網站資料，保存的方案也會消失。可另匯出 JSON 備份。</p>`)}
+   ${panel('A / B / C 比較表','本表比較靜態資金與單步情境；下方 V0.3 面板可以執行真正的逐日價格代理路徑比較。',
+      `<div class="warning-block">${e(fairNotice)}</div><div class="table-wrap"><table class="comparison"><thead><tr><th>指標</th>${headers}</tr></thead><tbody>${rows.map(([label,fn])=>`<tr><td>${label}</td>${scenarios.map(x=>`<td>${x.empty||!x.result.valid?'—':fn(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`)}
+   ${v03ComparisonPanel()}
+   ${panel('研究引擎版本界線','V0.2 Python 快照與 V0.3 調整價格動態回測，屬不同方法與資料口徑。',
+      `<div class="data-grid"><div class="data-grade"><span class="num">01</span><div><b>V0.2 歷史回測</b><div class="description">接 V3.0 研究資料與每日淨資產，先檢查來源日期與標的覆蓋。</div></div></div><div class="data-grade"><span class="num">02</span><div><b>V0.3 借款生存模型</b><div class="description">接追繳事件、T+2、實際本金到期、現金流與連續 2× 每日重設。</div></div></div></div>`)}
+  </div>`;
+}
+function researchChart(selected,base){
+  const a=selected.curveMonthly,b=base.curveMonthly;
+  const points=[...a,...b].map(x=>x[1]).filter(Number.isFinite);
+  const high=Math.max(1100000,...points)*1.08, low=Math.min(0,...points)*.95;
+  const X=i=>60+i/(a.length-1)*670;
+  const Y=n=>240-(n-low)/(high-low)*210;
+  const draw=rows=>rows.map((r,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Y(r[1]).toFixed(1)).join(' ');
+  const grid=[0,.25,.5,.75,1].map(q=>{const value=low+(high-low)*q,y=Y(value);return `<line x1="60" x2="730" y1="${y}" y2="${y}" stroke="#e7edf4"/><text x="50" y="${y+4}" text-anchor="end" font-size="10" fill="#8797a6">${(value/1000000).toFixed(1)}m</text>`}).join('');
+  const yearMarks=a.map((r,i)=>({date:r[0],i})).filter((x,i)=>i===0||x.date.endsWith('12-31')||x.date.startsWith('2026-03')).filter((x,i)=>i===0||i%2===0);
+  const xTicks=yearMarks.map(z=>`<text x="${X(z.i)}" y="263" text-anchor="middle" font-size="10" fill="#8899ad">${e(z.date.slice(0,7))}</text>`).join('');
+  return `<div class="chartbox v02-chart"><svg viewBox="0 0 760 280" role="img" aria-label="LPOS V3.0 Python 模型每月底淨資產曲線，藍線為所選借款策略，綠線為相同 ETF 配比無借款基準">${grid}${xTicks}<path d="${draw(b)}" fill="none" stroke="#099c83" stroke-width="2.7" stroke-linejoin="round"/><path d="${draw(a)}" fill="none" stroke="#386fe8" stroke-width="3" stroke-linejoin="round"/></svg></div>
+  <div class="legend"><span class="legend-i"><i></i>所選策略</span><span class="legend-i"><i class="green"></i>相同標的無借款</span></div>`;
+}
+function research(){
+ if(referenceStatus==='loading')return panel('正在驗證 V3.0 研究資料','請稍候載入已凍結的 Python 模型研究快照。','<div class="empty">正在載入 · LPOS V3.0 / B 級第三方行情</div>');
+ if(referenceStatus==='error')return panel('研究資料無法載入','其他 V0.1 資金與單步壓力功能仍可使用。',`<div class="error-list">${e(referenceError)}</div><p class="footnote">GitHub Pages 需包含 research/v3_observed_snapshots.json；不會用假數據填補。</p>`);
+ const data=reference,caseA=lookupResearchCase(data,study.portfolio,study.loan),base=lookupResearchCase(data,study.portfolio,0);
+ if(!caseA||!base)return panel('不支援的研究設定','沒有相符且已核對的 Python 快照。','請選擇支援的標的與借款額度。');
+ const a=caseA.stats,b=base.stats;
+ const rf=String(study.rf),sharpeA=caseA.sharpeByRiskFreePct[rf],sharpeB=base.sharpeByRiskFreePct[rf];
+ const optPortfolio=[['00878_only','00878 100%'],['half_00631L_half_00878','00631L 50% + 00878 50%']].map(([v,label])=>`<option value="${v}" ${v===study.portfolio?'selected':''}>${label}</option>`).join('');
+ const optLoans=data.controls.loanTwd.map(v=>`<option value="${v}" ${v===study.loan?'selected':''}>${v===0?'不借款':m(v)}</option>`).join('');
+ const rfOpt=[0,2,4].map(v=>`<option value="${v}" ${v===study.rf?'selected':''}>${v}%（假設）</option>`).join('');
+ const last=caseA.curveMonthly.at(-1),first=caseA.curveMonthly[0];
+ return `<div class="section-stack">
+  ${panel('Python 研究快照：操作設定','選擇 V3.0 已驗證的組合，圖表立即更新；非自訂策略即時 Python API。',
+   `<div class="form-grid">
+    <label class="field"><span>持有標的</span><select id="research-portfolio" aria-label="歷史研究標的">${optPortfolio}</select></label>
+    <label class="field"><span>外部借款本金</span><select id="research-loan" aria-label="歷史研究借款本金">${optLoans}</select></label>
+    <label class="field"><span>Sharpe 無風險利率</span><select id="research-rf" aria-label="Sharpe 無風險利率假設">${rfOpt}</select></label>
+    <div class="field"><span>固定模型條件</span><div class="param-note">自有資金 NT$100萬 · 80萬買入／20萬現金 · 借款利率 3.75% · 不定期再平衡 · 假設持續展延</div></div>
+   </div><div class="warning-block">⚠ 僅 10 組已核對策略（借款 0 / 10 / 20 / 30 / 48 萬）可用。本分頁與左側自訂 ETF 設定是不同的研究模型，無法將其他標的、任意借款額度或手動質押條件套用成歷史績效。</div>`)}
+  <section class="kpi-grid v02-kpis" aria-label="研究回測結果">
+    ${kpi('條件式 CAGR',pct(a.cagr_pct,2),`無借款 ${pct(b.cagr_pct,2)}`,'blue')}
+    ${kpi('最大回撤',pct(a.mdd_pct,2),`無借款 ${pct(b.mdd_pct,2)}`,'warn')}
+    ${kpi(`Sharpe（rf ${study.rf}%）`,Number(sharpeA).toFixed(3),`無借款 ${Number(sharpeB).toFixed(3)}`)}
+    ${kpi('期末經濟淨資產',m(a.end_economic_net_equity_twd),`尚未償還本金 ${m(a.remaining_loan_twd)}`,'teal')}
+  </section>
+  ${panel('條件式經濟淨資產走勢','2020/7/20～2026/3/6 · 圖表依 Python 每月底帳務抽樣；CAGR、回撤和 Sharpe 使用 1,366 個交易日計算。',researchChart(caseA,base))}
+  <div class="two-col v02-panels">
+  ${panel('同標的、同資本策略對照','固定資金結構並扣除模型利息與交易費。',`<div class="stats">
+  ${stat('起始股票等值曝險',pct(a.initial_nominal_stock_exposure_pct,2))}
+  ${stat('條件式 CAGR 增減',`${a.cagr_pct-b.cagr_pct>=0?'+':''}${(a.cagr_pct-b.cagr_pct).toFixed(2)} 百分點`)}
+  ${stat('最大回撤增加幅度',`${(Math.abs(a.mdd_pct)-Math.abs(b.mdd_pct)).toFixed(2)} 百分點`)}
+  ${stat('累計假設付息',m(a.interest_paid_twd))}
+  ${stat('現金實收配息',m(a.cash_dividends_paid_twd))}
+  ${stat('期末應收未付配息',m(a.unpaid_dividend_receivable_twd))}
+  ${stat('期末未清償貸款',m(a.remaining_loan_twd))}
+  ${stat('第一個 130% 追繳訊號',a.first_130_collateral_breach?e(a.first_130_collateral_breach):'本歷史路徑未觸發')}
+  ${stat('首次流動現金不足',a.first_negative_liquid_cash_date?e(a.first_negative_liquid_cash_date):'本歷史路徑未觸發')}
+  </div>`)}
+  ${panel('資料品質與可執行性','嚴格區分「模型能算」與「真實借貸可以做到」。',`<div class="data-grade"><span class="num">B</span><div><b>第三方行情＋混合證據配息</b><div class="description">${e(data.marketData.tradeSessions)} 交易日 · ${e(data.marketData.start)} 至 ${e(data.marketData.end)} · 無官方完整 OHLCV 原始 bytes</div></div></div>
+  <div class="warning-block red">借款歷史路徑預設可一直獲得展延，實際授信契約未驗證；期末未償本金不等於可立即提出的現金。</div>
+  <p class="footnote">00631L 使用研究中的分割前價格換算與實際調整價；不能以兩倍股票長期 CAGR 替代。應收配息與現金發放日分開記帳。借款本金、整數股數與交易費用沿用 V3.0 Python 模型。</p>
+  ${button('匯出此研究快照 JSON','download-research','slim primary')}`)}
+  </div>
+  ${panel('觀測點紀錄','展示每年部分月份與最後一個交易日的已計算經濟淨資產。',`<div class="table-wrap"><table class="comparison"><thead><tr><th>日期</th><th>選擇策略淨資產</th><th>無借款淨資產</th><th>資金現金</th><th>應收未付配息</th></tr></thead><tbody>${caseA.curveMonthly.filter((x,i)=>i===0||i===caseA.curveMonthly.length-1||x[0].endsWith('-12-31')).map(x=>{const y=base.curveMonthly.find(z=>z[0]===x[0]);return `<tr><td>${e(x[0])}</td><td>${m(x[1])}</td><td>${m(y?.[1])}</td><td>${m(x[2])}</td><td>${m(x[3])}</td></tr>`}).join('')}</tbody></table></div>`)}
+ </div>`;
+}
+function v03Chart(items){
+  if(!items.length)return '';
+  const all=items.flatMap(x=>x.result.path.map(y=>y.twrIndex*100)).filter(Number.isFinite);
+  if(!all.length)return '';
+  const lo=Math.max(0,Math.min(...all)*.89),hi=Math.max(...all)*1.10;
+  const firstDate=items.map(x=>x.result.path[0].date).sort()[0];
+  const finalDate=items.map(x=>x.result.path.at(-1).date).sort().at(-1);
+  const begin=Date.parse(firstDate+'T00:00:00Z'),finish=Date.parse(finalDate+'T00:00:00Z');
+  const X=date=>55+(Date.parse(date+'T00:00:00Z')-begin)/(finish-begin||1)*674;
+  const Y=x=>240-(x-lo)/(hi-lo||1)*211;
+  const colors=['#366be6','#0b9f82','#9e78cc','#d79657'];
+  const grid=[0,.25,.5,.75,1].map(q=>{const val=lo+(hi-lo)*q,y=Y(val);return `<line x1="55" y1="${y.toFixed(1)}" x2="730" y2="${y.toFixed(1)}" stroke="#e7edf4"/><text x="47" y="${(y+4).toFixed(1)}" text-anchor="end" font-size="10" fill="#7d8ea2">${val.toFixed(0)}</text>`;}).join('');
+  const lines=items.map((x,k)=>{
+    const a=x.result.path,step=Math.max(1,Math.floor(a.length/260));
+    const idx=[...new Set([0,...a.map((_,i)=>i).filter(i=>i%step===0),a.length-1])];
+    const d=idx.map((i,j)=>(j?'L':'M')+X(a[i].date).toFixed(1)+','+Y(a[i].twrIndex*100).toFixed(1)).join(' ');
+    return `<path d="${d}" stroke="${colors[k%colors.length]}" stroke-width="${k?2.3:3}" fill="none" stroke-linejoin="round"/>`;
+  }).join('');
+  const first=firstDate,last=finalDate;
+  const legends=items.map((x,k)=>`<span class="v03-legend"><i style="background:${colors[k%colors.length]}"></i>${e(x.name)}</span>`).join('');
+  return `<div class="v03-graph"><svg viewBox="0 0 760 280" role="img" aria-label="各策略的含融資成本、扣除外部金流影響之時間加權績效指數">${grid}${lines}<text x="55" y="266" font-size="10" fill="#7d8ea2">${e(first)}</text><text x="730" y="266" text-anchor="end" font-size="10" fill="#7d8ea2">${e(last)}</text></svg></div><div class="v03-legend-wrap">${legends}</div>`;
+}
+function v03Tools(){
+  const selectors=[
+    ['rebalance','再平衡頻率',[['none','不再平衡'],['monthly','每月'],['quarterly','每季'],['semiannual','每半年'],['annual','每年']]],
+    ['repayment','到期融資處理',[['repay_at_term','到期出售償還（簡化）'],['conditional_rollover','假設續借皆核准（高風險假設）']]],
+    ['rfPct','Sharpe 無風險利率',[['0','0%'],['2','2%'],['4','4%']]],
+  ];
+  return `<div class="v03-controls">${selectors.map(([key,label,opts])=>`<label class="field"><span>${label}</span><select data-v03="${key}" aria-label="${label}">${opts.map(([v,t])=>`<option value="${v}" ${String(v03Settings[key])===v?'selected':''}>${t}</option>`).join('')}</select></label>`).join('')}
+  <label class="field"><span>回測起始日</span><input type="date" data-v03="from" value="${e(v03Settings.from)}" aria-label="回測起始日"/></label>
+  <label class="field"><span>回測結束日（空白＝資料最新日）</span><input type="date" data-v03="to" value="${e(v03Settings.to)}" aria-label="回測結束日"/></label></div>
+  <div class="v03-grade">資料：PRStK 公開研究站 / TWSE 衍生之「分割調整價格代理」｜沒有完整配息總報酬、VT 匯率或真實核貸。00631L、00685L 使用其各自實際正二價格路徑，不是一般 ETF 報酬乘二。固定借款、月現金流與費用為情境假設。</div>`;
+}
+function v03Metrics(res){
+  const st=res.stats;
+  const num=(value,d=2)=>Number.isFinite(value)?Number(value).toFixed(d):'無法計算';
+  const debt=st.endUnpaidDebtTwd;
+  return `<section class="kpi-grid v02-kpis">
+    ${kpi('時間加權年化',num(st.cagrPct)+'%',`${e(res.period.start)} ～ ${e(res.period.end)}`,'blue')}
+    ${kpi('最大回撤',num(st.mddPct)+'%',`最長水下 ${st.longestUnderwaterSessions} 個交易日`,'warn')}
+    ${kpi('Sharpe',num(st.sharpe,3),`無風險利率 ${v03Settings.rfPct}%`)}
+    ${kpi('期末淨資產',m(st.endNetAssetTwd),`尚欠本金 ${m(debt)}`,'teal')}
+  </section>`;
+}
+function v03Details(res){
+  const st=res.stats;
+  const eventLabels={scheduled_rebalance:'定期再平衡',bullet_principal_repaid:'到期本金已清償（模型）',rollover_assumed_unverified:'假設續借核准',maintenance_under_130:'維持率低於 130%',forced_sale:'變現償付款項',pledged_sale_unverified:'涉及質押部位賣出',cash_shortfall:'現金不足',maturity_payment_failure:'本金到期付款不足',interest_payment_failure:'利息付款不足'};
+  const events=res.events.slice(0,10).map(y=>`<tr><td>${e(y.date)}</td><td>${e(eventLabels[y.type]||y.type)}</td><td>${e(y.reason||'—')}</td></tr>`).join('');
+  const note=st.hardFailure?`<div class="warning-block red">❗ 硬性資金失敗：${e(st.hardFailure)}。結果只計算到 ${e(st.lastDate)}。</div>`:'';
+  return `<div class="two-col v02-panels">
+    ${panel('資金與槓桿逐日帳務','外部現金流改變期末金額，但已從時間加權報酬中排除。',`<div class="stats">
+      ${stat('期初股票名目曝險',pct(st.startNominalExposurePct,2))}
+      ${stat('期末未償本金',m(st.endUnpaidDebtTwd))}
+      ${stat('模型已付利息',m(st.interestPaidTwd))}
+      ${stat('外部資金淨流入',signed(st.capitalInjectionsNetTwd))}
+      ${stat('再平衡費用',m(st.rebalancingFeesTwd))}
+      ${stat('強制賣出交易費',m(st.forcedSaleFeesTwd))}
+      ${stat('到期／現金不足賣出次數',st.forcedSales)}
+      ${stat('最小擔保維持率',st.minMaintenancePct===null?'無借款':pct(st.minMaintenancePct))}
+      ${stat('跌破 130% 日期',st.firstMarginSignal||'未偵測')}
+      ${stat('假設成功續借次數',st.rolloverAssumedCount)}
+      ${stat('到期解質押程序',st.pledgedSaleRequiresRelease?'需券商核准，未驗證':'未觸及')}
+    </div>${note}`)}
+    ${panel('事件與執行限制','每日價格序列不等於逐日成交實現；下列事件只按明確模型條件產生。',`<div class="table-wrap"><table class="comparison"><thead><tr><th>日期</th><th>事件</th><th>原因</th></tr></thead><tbody>${events||'<tr><td colspan="3">尚無事件</td></tr>'}</tbody></table></div>
+    <div class="warning-block">⚠ 補繳／維持率只是風險訊號，沒有模擬券商實際強平。到期賣股以當日立即入帳的價格代理估算，<b>未建模 T+2 交割</b>，因此不能宣稱已通過真實清償測試。</div>
+    <p class="footnote">網站不驗證 ETF 的實際可質押資格、券商授信、交易可成交性與續借核准；持有正二 ETF 的實際路徑由公開價格資料決定，曝險等值另外計算。</p>`)}
+  </div>`;
+}
+function backtestV03(){
+  const active=supportedSymbols(current),hasUnsupported=active.unsupported.length>0;
+  const supported=Object.keys(ASSETS).map(x=>x+'（'+ASSETS[x].name+'）').join('、');
+  const freshness=v03State.stamp===backtestStamp();
+  const result=v03State.kind==='solo'&&freshness?v03State.result:null;
+  const base=v03State.kind==='solo'&&freshness?v03State.baseline:null;
+  const report= v03State.status==='loading'?'<div class="empty">載入每日調整價格並計算中，請稍候……</div>':
+    v03State.status==='error'&&freshness?`<div class="error-list">${e(v03State.error)}</div>`:
+    result?`${v03Metrics(result)}${panel('每日歷史相對績效曲線','指數基準 100，包含起始交易成本；不是期末資產淨值的直接比較。',v03Chart([{name:'目前融資策略',result},{name:'同標的無借款',result:base}]))}${v03Details(result)}
+      <div class="row-actions">${button('匯出全部逐日 CSV','v03-export-csv','slim primary')}${button('匯出研究 JSON','v03-export-json','slim')}</div>`:
+    `<div class="empty"><div class="empty-icon">↗</div><h3>選定日期與再平衡方式，再執行回測</h3><p>尚無本次設定的研究結果，改動資金或 ETF 配置後需重新計算。</p></div>`;
+  return `<div class="section-stack">
+    ${panel('自由歷史研究（Web V0.3）','前往「投資標的配置」調整 006208／00631L／00685L 的自有與借款配置。',
+      `<div class="v03-supported"><strong>可用逐日標的：</strong>${e(supported)}</div>
+      ${hasUnsupported?`<div class="warning-block red">你目前使用 ${[...new Set(active.unsupported)].map(e).join('、')}，沒有同口徑可公開重現的價格資料，不能生成歷史回測。可使用原本 V0.2 的 00878 快照，或套用下方示範組合。</div>`:''}
+      ${v03Tools()}<div class="row-actions v03-btnrow">${button('▶ 計算目前組合','v03-run','primary')}${button('套用可回測示範（006208／00685L）','v03-sample','slim')}${button('查看 A/B/C 比較','v03-goto-compare','slim')}</div>
+      <p class="footnote">請特別留意：配息尚未獨立還原，不是實際含息績效；多日質押存活能力需另檢驗 T+2、追繳、核貸條款。這裡依調整價格重播並分離每月外部現金流。</p>`)}
+    ${report}
+  </div>`;
+}
+function v03ComparisonPanel(){
+  const fresh=v03State.stamp===backtestStamp();
+  const comp=v03State.kind==='comparison'&&fresh?v03State.comparison:null;
+  const mtx=comp?`<div class="table-wrap"><table class="comparison"><thead><tr><th>指標</th>${comp.results.map(x=>`<th>${e(x.name)}</th>`).join('')}</tr></thead><tbody>${[
+    ['同期間時間加權 CAGR',r=>comp.rankingEligible?pct(r.comparableCagrPct,2):'不排名（有方案未完成）'],
+    ['實際期間／完成狀態',r=>e(r.period.start+' ～ '+r.period.end)+(r.fullPeriod?'｜完成':'｜中斷')],
+    ['最大回撤',r=>pct(r.stats.mddPct,2)],
+    ['Sharpe',r=>!comp.rankingEligible?'不排名（有方案未完成）':r.stats.sharpe===null?'—':r.stats.sharpe.toFixed(3)],
+    ['期末經濟淨資產',r=>m(r.stats.endNetAssetTwd)],
+    ['期末未償貸款',r=>m(r.stats.endUnpaidDebtTwd)],
+    ['累計付息',r=>m(r.stats.interestPaidTwd)],
+    ['跌破 130% 維持率',r=>r.stats.firstMarginSignal||'未觀測'],
+    ['硬性失敗',r=>r.stats.hardFailure||'無'],
+  ].map(([title,fn])=>`<tr><td>${title}</td>${comp.results.map(x=>`<td>${fn(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:'';
+  const output= v03State.status==='loading'&&v03State.kind==='comparison'?'<div class="empty">正在同步計算多組策略……</div>':
+     v03State.status==='error'&&v03State.kind==='comparison'&&fresh?`<div class="error-list">${e(v03State.error)}</div>`:
+     comp?`${v03Chart(comp.results.map(x=>({name:x.name,result:x})))}${mtx}${button('匯出比較 JSON','v03-export-comparison','slim primary')}`:
+     '<p class="footnote">A/B/C 需先在上方儲存方案，且同一自有資金、相同交易日期。若存在不支援的標的，研究會明確拒絕比較。</p>';
+  return panel('Web V0.3｜A/B/C 真正的歷史路徑比較','可同時比較目前設定與最多三個已儲存方案；自動使用共同日期，不插補缺少的交易日。',
+    `<div class="row-actions">${button('▶ 執行同期比較','v03-compare','primary')}</div>
+     <p class="footnote">再平衡：${e(v03Settings.rebalance)}；到期：${e(v03Settings.repayment)}。修改選項請至「自訂回測 V0.3」。不同本金、不同外部現金流、不支援行情或共同期間太短會拒絕；任一方案中斷，全組停用報酬排名。</p>${output}`);
+}
+function sources(r){
+  const grades=[
+    ['A','政府／交易所官方原始 bytes','須有可存證原始檔、SHA256、欄位、權限及觀測日期；本頁尚未載入。'],
+    ['B','第三方歷史行情','V0.2 保留 V3.0 Python 的十組第三方研究快照；V0.3 另使用已公開的 TWSE 衍生調整價格代理，不可與含息總報酬混用。'],
+    ['C','公開網頁或指數替代','需要與 ETF 真實交易價格區分；公開資料入口不等於成功取得整段歷史。'],
+    ['S','合成情境／手動參數','成本、成數、利率、再平衡與借款到期處理屬模擬；實際授信資格與 T+2 仍未驗證。'],
+  ];
+  return `<div class="section-stack">
+    ${panel('模型模式','自訂配置使用資金快照；V0.2 顯示凍結 Python 快照；V0.3 可用三檔 TWSE 衍生調整價格重算逐日路徑。',
+      `<div class="data-grade"><div class="num">S</div><div><b>WEB V0.2 · 資金模型＋研究快照</b><div class="description">${e(RESEARCH_ENGINE_STATUS.note)}</div><div style="margin-top:9px"><span class="pill green">V3.0 Python 快照</span> <span class="pill orange">非官方完整日線</span> <span class="pill orange">未核貸</span></div></div></div>`)}
+    ${panel('研究資料分級','參考 LPOS V3.0 最終研究白皮書的證據邊界。',`<div class="data-grid">${grades.map(([x,t,d])=>`<div class="data-grade"><div class="num">${x}</div><div><b>${t}</b><div class="description">${d}</div></div></div>`).join('')}</div>`)}
+    ${panel('現階段可驗證項目','所有數值都可以透過內附的 Node.js 單元測試重新計算。',
+      `<div class="stats">
+      ${stat('淨資產 = 總資產 − 未償本金','已實作')}
+      ${stat('貸款買入部位不再質押','已實作')}
+      ${stat('自有 / 借款投資權重合計 100%','已檢查')}
+      ${stat('逐檔質押與成數','已實作')}
+      ${stat('1× / 2× 股票等值名目曝險','已實作')}
+      ${stat('130% / 166% 質押參考門檻','模型假設')}
+      ${stat('第 N 月本金到期現金缺口','簡化推估')}
+      ${stat('B 級第三方觀測與配息研究快照',referenceStatus==='ready'?'已連接（十組）':'未載入')}
+      ${stat('006208 / 00631L / 00685L 日線價格代理','V0.3 動態接入')}
+      ${stat('正二 ETF 逐日調整後價格','讀取既有正二價格，不再外乘兩倍')}
+      ${stat('V3.0 Python 凍結績效',referenceStatus==='ready'?'已驗證十組':'未載入')}
+      </div>`)}
+    ${panel('原始研究對照','本次僅引用 V3.0 定義，不在公開網站中暴露研究資料庫或任何個人資訊。',
+      `<div class="feature-row"><div class="feature-ico">∑</div><div><div class="feature-title">V3.0 量化研究總計畫</div><div class="feature-desc">淨資產採現金與持股市值減去借貸負債；股票曝險以淨資產為分母；維持率以質押借款為分母。</div></div></div>
+      <div class="feature-row"><div class="feature-ico">!</div><div><div class="feature-title">官方資料仍有缺口</div><div class="feature-desc">V3.0 封存指出官方 ETF OHLCV 完整原檔尚未具備、一般質押到期展延非保證。V0.1 不會聲稱已完成七年歷史回測。</div></div></div>
+      <p class="footnote">研究參考：臺灣證券交易所 <a target="_blank" rel="noopener noreferrer" href="https://twse-regulation.twse.com.tw/TW/law/DOC01.aspx?FLCODE=fl080086&FLNO=4">不限用途款項借貸期限規則</a>；<a target="_blank" rel="noopener noreferrer" href="https://twse-regulation.twse.com.tw/TW/law/DOC01.aspx?FLCODE=fl080086&FLNO=20">維持率及追繳相關條款</a>。詳細結果仍以最新公告與契約為準。</p>`)}
+    ${panel('完整風險提醒','以下為目前設定下的提示；資料缺口未解決前不提供可執行投資建議。',warnings(r,20))}
+  </div>`;
+}
+function workflowSteps(active){
+ const flow=[['portfolio','① 配置'],['financing','② 質押'],['backtest','③ 回測'],
+ ['survival','④ 生存'],['compare','⑤ 比較']];
+ return '<nav class="flowsteps" aria-label="LPOS 完整研究流程">'+flow.map(([k,t])=>
+ '<button type="button" data-nav="'+k+'" class="'+(active===k?'active':'')+'">'+t+'</button>').join('')+'</nav>';
+}
+function unifiedBacktest(){
+ return '<div class="section-stack">'+backtestV03()+
+ '<details class="expand-study"><summary>展開 V3.0 Python 研究快照：00878／00631L 10 組策略（不同證據口徑）</summary>'+
+ research()+'</details></div>';
+}
+function survivalRiskLabel(type){
+ const x={essential_spending_shortfall:"必要生活費無法支付",interest_payment_shortfall:"借款利息付款不足",
+ bullet_maturity_shortfall:"到期本金／利息現金不足",hypothetical_margin_cure_shortfall:"假設補擔保品不足",
+ nonpositive_net_equity:"淨資產歸零或負值",margin_warning_below_130:"維持率低於 130% 的警示",
+ rollover_assumed_NOT_APPROVED:"假設續借（尚未核准）",sell_receivable_T2:"賣出並等待 T+2",
+ T2_cash_settled:"待交割款入帳",synthetic_market_level_shock:"人工股災衝擊"};
+ return x[type]||type;
+}
+
+function svField(name,label,min,max,step=1){
+ const v=survivalSettings[name];
+ return `<label class="field"><span>${e(label)}</span><input type="number" data-survival="${e(name)}" value="${e(v)}" min="${min}" max="${max}" step="${step}"/></label>`;
+}
+
+function svChoice(name,label,options){
+ const v=name==='prefund'?(survivalSettings.prefund?'yes':'no'):survivalSettings[name];
+ return `<label class="field"><span>${e(label)}</span><select data-survival="${e(name)}">${options.map(([val,t])=>
+ `<option value="${e(val)}" ${String(v)===String(val)?'selected':''}>${e(t)}</option>`).join('')}</select></label>`;
+}
+
+function survivalChartView(result){
+ if(!result?.ledger?.length)return '<div class="empty">沒有可顯示的淨資產路徑</div>';
+ const rows=result.ledger,span=Math.max(1,Math.ceil(rows.length/120)),arr=rows.filter((x,i)=>i%span===0||i===rows.length-1);
+ const v=arr.flatMap(x=>[x.equity,x.cash]),hi=Math.max(1,...v),lo=Math.min(0,...v);
+ const X=i=>42+(i/Math.max(1,arr.length-1))*580,Y=a=>226-(a-lo)/(hi-lo)*195;
+ function trace(key,color){
+  return `<polyline fill="none" stroke="${color}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" points="${arr.map((p,i)=>`${X(i).toFixed(1)},${Y(p[key]).toFixed(1)}`).join(' ')}"/>`;
+ }
+ return `<div class="survival-chart"><svg viewBox="0 0 660 256" role="img" aria-label="淨資產與已交割現金曲線">
+  <rect x="0" y="0" width="660" height="256" rx="12" fill="#f8fafc"/>
+  ${[0,.25,.5,.75,1].map(q=>`<line x1="42" x2="622" y1="${Y(lo+(hi-lo)*q)}" y2="${Y(lo+(hi-lo)*q)}" stroke="#e6ecf2"/>`).join('')}
+  ${trace('equity','#174f81')}${trace('cash','#e29346')}
+  <text x="42" y="246" font-size="10" fill="#7e90a4">${e(rows[0].date)}</text>
+  <text x="622" y="246" text-anchor="end" font-size="10" fill="#7e90a4">${e(rows.at(-1).date)}</text>
+  </svg><div class="v03-legend-wrap"><span class="v03-legend"><i style="background:#174f81"></i>經濟淨資產</span>
+  <span class="v03-legend"><i style="background:#e29346"></i>已交割現金</span></div></div>`;
+}
+
+function survivalResultView(){
+ if(survivalState.status==='loading')return '<div class="empty">載入共同交易日與逐日記帳中，請稍候……</div>';
+ if(survivalState.status==='error'&&survivalState.stamp===survivalStamp())return `<div class="error-list"><strong>無法完成本次生存研究</strong><p>${e(survivalState.error)}</p></div>`;
+ if(survivalState.status!=='ready'||survivalState.stamp!==survivalStamp())
+  return '<div class="empty"><div class="empty-icon">◎</div><h3>套用目前資金設定，計算多日生存情境</h3><p>修改持股、質押或現金流後，請重新計算。歷史行情未涵蓋的 ETF 不能冒用其他代號補齊。</p></div>';
+ const q=survivalState.result,tail=q.terminalSnapshot||q.ledger.at(-1);
+ const first=q.firstHard?.date||'未出現';
+ const disposition=q.completed&&!q.horizonCovered?'資料不足指定觀測期':q.completed?(q.conditionalOnLoanRollover?'條件完成（依賴續借）':'完成研究區間'):'中途發生資金／政策失敗';
+ const data=[
+  ['研究狀態',disposition],['研究至',q.period.realizedTo],['經濟淨資產',m(tail?.equity)],
+  ['可支配現金',m(tail?.cash)],['T+2 待交割',m(tail?.receivable)],['期末借款',m(tail?.debt)],
+  ['首次維持率警示',q.firstMargin||'無'],['首次付款／政策失敗',first]
+ ];
+ const tiles=`<div class="survival-grid">${data.map(([label,value])=>`<div class="survival-tile"><small>${e(label)}</small><b>${e(value)}</b></div>`).join('')}</div>`;
+ const events=q.events.filter(x=>x.type!=='monthly_net_cash_flow').slice(-32);
+ const evTable=`<div class="integrated-table"><table><thead><tr><th>日期</th><th>事件</th><th>金額／備註</th></tr></thead><tbody>
+ ${events.map(x=>`<tr><td>${e(x.date)}</td><td>${e(survivalRiskLabel(x.type))}</td><td>${e(x.reason||x.why||x.amount||x.gross||x.pct||x.ratioPct||'—')}</td></tr>`).join('')}
+ </tbody></table></div>`;
+ const cases=survivalState.cases?.length?`<div class="thin-divider"></div><h3 class="panel-title">五組壓力劇本比較</h3>
+ <div class="integrated-table"><table><thead><tr><th>研究情境</th><th>是否完成</th><th>最後淨資產</th><th>第一次資金失敗</th><th>首次維持率警示</th></tr></thead><tbody>
+ ${survivalState.cases.map(v=>`<tr><td>${e(v.name)}</td><td>${v.result.firstHard?'失敗':!v.result.horizonCovered?'資料不足':'完成*'}</td>
+ <td>${m((v.result.terminalSnapshot||v.result.ledger.at(-1))?.equity)}</td><td>${e(v.result.firstHard?.date||'無')}</td>
+ <td>${e(v.result.firstMargin||'無')}</td></tr>`).join('')}</tbody></table></div>
+ <p class="footnote">*「完成」不是市場存活機率，更不代表續借或擔保資格已獲核准。</p>`:'';
+ return `${tiles}${survivalChartView(q)}
+  <div class="row-actions">${button('匯出本次每日帳 CSV','survival-export-csv','slim')}
+  ${button('匯出完整生存研究 JSON','survival-export','slim primary')}</div>
+  <div class="warning-block ${q.firstHard?'red':''}">研究判定：${e(disposition)}。${q.firstHard?`首次失敗原因：${e(survivalRiskLabel(q.firstHard.type))}（${e(q.firstHard.date)}）。`:
+  '未發現本情境設定中的硬性付款失敗。'} 賣股 T+2 應收款不可視為當日現金。</div>
+  ${cases}<div class="thin-divider"></div><h3 class="panel-title">事件軌跡</h3>${evTable}
+  <p class="footnote">累計已付利息 ${m(q.interestPaid)}，T+2 已結算款 ${m(q.totalT2Settled)}；低於 130% 僅是警示。
+  選擇「假設兩交易日補擔保品」時，為自訂研究政策，並非券商實際要求。</p>`;
+}
+
+function integratedSurvival(r){
+ const info=`目前策略：${e(current.scenarioName)} · 自有淨資產 ${m(current.ownCapital)} ·
+  假設質押借款 ${r.valid?m(r.borrow):'資料不完整'} · 保留現金 ${r.valid?m(r.liquidCash):'—'}。
+  <b>以下計算直接讀取持股與融資頁設定，不需要重新輸入兩份資金。</b>`;
+ const eligible=supportedSymbols(current);
+ const warn=eligible.unsupported.length?`<div class="warning-block red">目前持有
+   ${[...new Set(eligible.unsupported)].map(e).join('、')}，尚無同口徑逐日行情。請換成 006208／00631L／00685L，
+   或套用範例；00878 原有 V3.0 Python 參考快照仍在「歷史研究」內。</div>`:'';
+ const controls=`<div class="param-note">${info}</div>${warn}
+ <div class="row-actions" style="margin:14px 0">${button('返回持股配置','goto-portfolio','slim')}
+ ${button('調整借款與每月支出','goto-financing','slim')}
+ ${button('套用有行情的 ETF 示範組合','survival-sample','slim')}</div>
+ <div class="form-grid">
+   <label class="field"><span>共同回測起始日期</span><input type="date" data-v03="from" value="${e(v03Settings.from)}"/></label>
+   ${svField('horizonMonths','觀測期限（月）',1,120)}
+   ${svField('shockPct','額外假設指數跌幅（%）',0,90,5)}
+   ${svField('shockMonth','第幾個月發生股災',0,120)}
+   ${svField('unemploymentMonths','失業／收入中斷月數',0,120)}
+   ${svField('rateHikePct','借款升息（百分點）',0,20,.25)}
+   ${svChoice('rollover','借款到期怎麼辦',[['deny','必須還清（不假設續借）'],['conditional','假設券商願意展延（未核准）']])}
+   ${svChoice('prefund','T+2 到期預售',[['yes','預先兩交易日賣出可動用部位'],['no','不預先出售，只有已結算現金可付款']])}
+   ${svChoice('marginPolicy','維持率跌破 130% 時',[['warning','只記錄風險警示'],['hypothetical_two_day_cure','假設需兩交易日內補到 166%']])}
+ </div><div class="row-actions" style="margin-top:17px">
+ ${button('▶ 計算目前組合生存能力','survival-run','primary')}
+ ${button('比較五種極端情境','survival-cases','teal')}</div>
+ <p class="footnote">失業時假設收入降至零、生活費仍需支付；平常採用資金頁的「每月自由現金流（已扣生活費）」，不重複扣除。
+ 正二 ETF 的人工瞬間股災衝擊採約兩倍短期價格近似；日常路徑仍使用正二本身的調整價格。</p>`;
+ return `<div class="section-stack">
+  ${panel('04｜真正的多日生存能力檢驗','T+2 到帳、失業、升息、到期與質押風險，全部使用同一個投資組合。',controls)}
+  ${panel('生存結果、逐日現金與風險事件','可區分市場淨值、尚未交割賣款、已交割現金及未償還借款。',survivalResultView())}
+  <details class="expand-study"><summary>展開單日壓力預覽（V0.1 的 130%／166% 靜態風險模型）</summary>${stress(r)}</details>
+  ${panel('證據與操作邊界','調整價格研究快照不是經交易所核實的完整含息總報酬。',
+  `<div class="warning-block">不模擬盤中追繳、真實券商作業期限、個別質押資格、到期日節假日調整、無法成交的交易限制；
+  T+2 以共同市場交易日近似。持續借款僅為模型假設，非核准事實。</div>`)}
+ </div>`;
+}
+
+async function runSurvival(kind='solo'){
+ const stamp=survivalStamp(),requestScenario=deepCopy(current),requestSettings={...survivalSettings},requestDates={from:v03Settings.from,to:v03Settings.to};
+ survivalState={status:'loading',kind,result:null,cases:null,error:'',stamp};
+ render();
+ try{
+  if(!window.LPOSSurvival)throw Error('生存引擎尚未載入，請重新整理網頁');
+  const config=calculateScenario(requestScenario);
+  if(!config.valid)throw Error('配置或質押參數有誤：'+config.errors.join('；'));
+  const available=supportedSymbols(requestScenario);
+  if(available.unsupported.length)throw Error('不支援的逐日 ETF：'+[...new Set(available.unsupported)].join('、'));
+  const series=await loadMarketSeries(available.symbols);
+  const dates=sharedDates([requestScenario],series,requestDates);
+  const result=window.LPOSSurvival.run(requestScenario,config,series,dates,requestSettings);
+  const cases=kind==='cases'?window.LPOSSurvival.scenarios(requestSettings).map(([name,settings])=>
+    ({name,result:window.LPOSSurvival.run(requestScenario,config,series,dates,settings)})):null;
+  survivalState={status:'ready',kind,result,cases,error:'',stamp};
+ }catch(err){survivalState={status:'error',kind,result:null,cases:null,error:String(err.message||err),stamp}}
+ render();
+}
+function auditCapital(r){
+ if(!r.valid)return {ok:false,checks:[]};
+ const close=(a,b)=>Math.abs(a-b)<=Math.max(.01,Math.abs(a)*1e-12);
+ const checks=[
+  ['資產＝持股＋流動現金',close(r.assets,r.holdingValue+r.liquidCash)],
+  ['淨資產＝自有資金－全部初始費用',close(r.netAsset,r.config.ownCapital-r.fees)],
+  ['借款＝額度×動用比例',close(r.borrow,r.loanCapacity*r.config.borrowUtilPct/100)],
+  ['擔保額度＝各檔擔保市值×LTV',close(r.loanCapacity,r.legs.reduce((a,l)=>a+l.pledgedValue*l.ltvPct/100,0))],
+  ['借款部位不重複質押',r.legs.every(l=>close(l.pledgedValue,l.pledgeStatus==='blocked'?0:l.ownValue*l.pledgePct/100))]
+ ];
+ return {ok:checks.every(x=>x[1]),checks};
+}
+async function runDecision(){
+ // These independent research runs share the same scenario and chosen date window.
+ await Promise.all([runV03('solo'),runSurvival('cases')]);
+}
+function decisionOverview(r){
+ const audit=auditCapital(r);
+ const bt=v03State.kind==='solo'&&v03State.stamp===backtestStamp()?v03State.result:null;
+ const sv=survivalState.stamp===survivalStamp()?survivalState.result:null;
+ const cases=sv?survivalState.cases:null;
+ const stale=(v03State.result&&!bt)||(survivalState.result&&!sv);
+ const busy=v03State.status==='loading'||survivalState.status==='loading';
+ const error=[v03State.status==='error'&&v03State.stamp===backtestStamp()?v03State.error:'',survivalState.status==='error'&&survivalState.stamp===survivalStamp()?survivalState.error:''].filter(Boolean);
+ const rows=[
+  ['報酬｜代理時間加權 CAGR',bt&&!bt.flags.hardFailure?pct(bt.stats.cagrPct,2):'尚未完成有效研究'],
+  ['風險｜代理最大回撤',bt?pct(bt.stats.mddPct,2):'—'],
+  ['報酬研究實際期間',bt?e(bt.period.start+' ～ '+bt.period.end):'—'],
+  ['報酬模型執行限制',bt?(bt.flags.unsettledProceedsUsed?'曾使用即時賣出款代理；須另看 T+2 生存':'交易／融資執行均未核實'):'—'],
+  ['生存｜觀測結果',sv?(sv.firstHard?'中斷：'+e(survivalRiskLabel(sv.firstHard.type)):(sv.horizonCovered?'完成指定觀測期':'資料不足指定觀測期')):'尚未計算'],
+  ['生存研究實際期間',sv?e(sv.period.from+' ～ '+sv.period.realizedTo):'—'],
+  ['首次維持率警訊',sv?e(sv.firstMargin||'觀測期內無'):'—'],
+  ['首次預備金不足',sv?e(sv.firstReserve||'觀測期內無'):'—'],
+  ['期末未償本金',sv?m(sv.unpaidLoan):'—'],
+  ['五情境完成數（非機率）',cases?cases.filter(x=>x.result.completed&&x.result.horizonCovered).length+' / '+cases.length:'—'],
+  ['續借條件',sv?(sv.conditionalOnLoanRollover?'依賴假設續借，未獲核准':'未假設續借'):'—'],
+ ];
+ return panel('V0.6 決策總覽｜報酬・風險・存活','研究行情是調整價格代理，非已驗證含息真實可執行融資回測。報酬與生存引擎方法不同，各自列示實際期間；五情境完成數不是存活機率。',
+  `<div class="row-actions">${button(busy?'計算中…':'計算目前報酬／生存','decision-run','primary',busy?'disabled':'')}${supportedSymbols(current).unsupported.length?button('套用有行情的 ETF 示範組合','survival-sample'):''}</div>
+  <p class="footnote">報酬日期 ${e(v03Settings.from||'共同起日')} ～ ${e(v03Settings.to||'共同末日')}；生存觀測 ${survivalSettings.horizonMonths} 月、額外衝擊 ${survivalSettings.shockPct}%、${e(survivalSettings.rollover)}。調整期間請至歷史研究；壓力參數請至生存分析。</p>
+  ${stale?'<div class="warning-block">設定已變更，舊結果已隱藏。請重新計算。</div>':''}
+  ${error.map(x=>'<div class="error-list">'+e(x)+'</div>').join('')}
+  <div class="stats">${rows.map(([a,b])=>stat(a,b)).join('')}</div>
+  <details><summary>財務模型審計：${r.valid?(audit.ok?'全部通過':'發現不一致'):'請修正配置'}</summary><div class="stats">${audit.checks.map(([a,b])=>stat(a,b?'通過':'失敗',b?'green':'bad')).join('')}</div><p class="footnote">這些是會計一致性檢核，不代表資料來源、ETF 質押資格或券商實際執行已驗證。</p></details>`);
+}
+
+function body(tab,r){switch(tab){case'portfolio':return portfolio(r);case'financing':return financing(r);case'stress':case'survival':return integratedSurvival(r);case'compare':return compare(r);case'sources':return sources(r);case'research':case'backtest':return unifiedBacktest();default:return decisionOverview(r)+overview(r);}}
+function render(){
+  const r=calculateScenario(current);
+  const [title,subtitle]=titles[tab];
+  app.innerHTML=`${mobileMenu(tab)}<div class="app-shell">
+    <aside class="sidebar"><div class="brand"><span class="brand-symbol">LP</span><div><div class="brand-name">LPOS Lab</div><div class="brand-sub">PORTFOLIO RESEARCH</div></div></div>
+      <div><div class="nav-label">WORKSPACE</div><nav class="nav-list" aria-label="主選單">${menu(tab)}</nav></div>
+      <div class="sidebar-bottom"><span class="side-badge">WEB V0.6 · AUDITED WORKSPACE</span><div>數值僅供情境研究，非真實歷史回測或核貸報價。</div><div style="margin-top:6px">你的設定儲存在本機瀏覽器。</div></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div><div class="eyebrow">Quant Research / LPOS V3.0 Methodology</div><h1 class="page-title">${e(title)}</h1><p class="page-desc">${e(subtitle)}</p></div>
+      <div class="actions">${button('↺ 回復預設','reset')}${button('匯入 JSON','import')}${button('匯出設定','export','slim')}${button('匯出整合研究','export-workspace','primary')}</div></header>
+      <div class="notice"><span style="font-size:16px">ⓘ</span><div><strong>Web V0.6 財務審計與公平比較</strong> · ${e(current.scenarioName)}。全站共用持股、質押及現金流設定；回測為調整價格代理，真實 ETF 含息總報酬、融資核貸與券商處分並未獲認證。</div></div>
+      ${workflowSteps(tab)}
+      ${tab==='overview'?'<div class="integrated-hint"><div><b>一條流程完成整份研究</b><p>配置 → 質押 → 回測 → 生存 → 策略比較，不必重複輸入。</p></div>'+button('開始配置 →','goto-portfolio','primary')+'</div>':''}
+      ${topKpis(r)}
+      ${body(tab,r)}
+      <footer class="footnote" style="margin-top:27px;border-top:1px solid #e5ebf0;padding-top:14px">© LPOS Portfolio Lab · ${MODEL_VERSION} · 資金模型＋V3.0 Python 快照＋V0.3 調整價格回測＋V0.4 生存能力分析 · 不提供投資建議，請勿將研究數值視為實際融資核准或歷史總報酬。</footer>
+    </main>
+  </div>`;
+  safeSave();
+}
+function download(filename,content,mime='application/json'){
+  const blob=new Blob([content],{type:mime+';charset=utf-8'});
+  const url=URL.createObjectURL(blob);const link=document.createElement('a');
+  link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function changeField(field,value){
+  const keys={ownCapital:[1,1e12],ownCashPct:[0,100],tradeCostPct:[0,20],borrowUtilPct:[0,100],loanInvestPct:[0,100],originationFeePct:[0,20],aprPct:[0,50],termMonths:[1,360],monthlyFreeCashFlow:[-1e9,1e9],monthlyLivingExpense:[0,1e9],minReserveMonths:[0,36],shockPct:[0,100]};
+  if(!Object.hasOwn(keys,field))return;
+  const parsed=String(value).trim()===''?NaN:Number(value);
+  // Invalid input temporarily generates a visible validation error.
+  current[field]=parsed;
+  render();
+}
+function changeFund(id,field,value){
+  const fund=current.funds.find(f=>f.id===id);if(!fund)return;
+  if(field==='pledgeStatus'){if(value!=='assumed'&&value!=='blocked')return;fund[field]=value;}
+  else if(field==='factor'){const x=Number(value);if(![1,2].includes(x))return;fund.factor=x;}
+  else if(['ownWeightPct','loanWeightPct','pledgePct','ltvPct'].includes(field)){fund[field]=String(value).trim()===''?NaN:Number(value);}
+  else return;
+  render();
+}
+app.addEventListener('change',ev=>{
+  const t=ev.target;
+  if(t.matches('[data-text-field="scenarioName"]')){current.scenarioName=String(t.value).slice(0,60);render();return;}
+  if(t.matches('[data-field]')){changeField(t.dataset.field,t.value);return;}
+  if(t.matches('[data-fund-id]')){changeFund(t.dataset.fundId,t.dataset.fundField,t.value);return;}
+  if(t.id==='save-slot')saveSlot=t.value;
+  if(t.id==='research-portfolio'){study.portfolio=t.value;render();return;}
+  if(t.id==='research-loan'){study.loan=Number(t.value);render();return;}
+  if(t.id==='research-rf'){study.rf=Number(t.value);render();return;}
+  if(t.matches('[data-v03]')){v03Settings[t.dataset.v03]=t.dataset.v03==='rfPct'?Number(t.value):t.value;render();return;}
+  if(t.matches('[data-survival]')){
+    const key=t.dataset.survival;
+    const value=['shockPct','shockMonth','unemploymentMonths','rateHikePct','horizonMonths'].includes(key)?Number(t.value):
+      key==='prefund'?t.value==='yes':t.value;
+    const next={...survivalSettings,[key]:value};
+    try{
+      survivalSettings=window.LPOSSurvival.validate(next);
+      localStorage.setItem('lpos-v05-survival-controls',JSON.stringify(survivalSettings));
+      render();
+    }catch(err){toast('生存參數無效：'+String(err.message||err));render()}
+    return;
+  }
+});
+app.addEventListener('click',ev=>{
+  const t=ev.target.closest('button');if(!t)return;
+  if(t.dataset.nav){tab=t.dataset.nav;
+    if(typeof history!=='undefined'&&history.replaceState)history.replaceState(null,'','#'+tab);
+    render();window.scrollTo({top:0,behavior:'auto'});return;}
+  const act=t.dataset.action;if(!act)return;
+  if(act==='decision-run'){void runDecision();return;}
+  if(act==='goto-portfolio'){tab='portfolio';render();return;}
+  if(act==='goto-financing'){tab='financing';render();return;}
+  if(act==='survival-sample'){
+    const a=makeFund('006208',60,60);a.pledgePct=100;a.ltvPct=60;
+    const b=makeFund('00685L',40,40);b.pledgePct=0;b.ltvPct=0;
+    current.funds=[a,b];current.scenarioName='整合範例：006208／00685L';
+    render();toast('已切換至可進行逐日研究的 ETF 示例，資金與融資條件不變');return;
+  }
+  if(act==='survival-run'||act==='survival-cases'){void runSurvival(act==='survival-cases'?'cases':'solo');return;}
+  if(act==='survival-export'||act==='survival-export-csv'){
+    if(survivalState.status!=='ready'||survivalState.stamp!==survivalStamp())
+      return toast('請先重新計算目前設定的生存研究');
+    const q=survivalState.result;
+    if(act==='survival-export-csv'){
+      const head='date,equity,cash,debt,receivable,restricted_cash,maintenance_pct,accrued_interest';
+      const data=q.ledger.map(x=>[x.date,x.equity,x.cash,x.debt,x.receivable,x.restrictedCash,x.maintenancePct??'',x.accruedInterest].join(','));
+      download('LPOS_integrated_survival.csv','\ufeff'+head+'\n'+data.join('\n')+'\n','text/csv');
+    }else{
+      download('LPOS_integrated_survival.json',JSON.stringify({
+        version:'LPOS Web V0.6',scenario:current,controls:survivalSettings,
+        researchGrade:'TWSE-derived adjusted price proxy, NOT verified ETF total returns',
+        result:q,cases:survivalState.cases},null,2));
+    }return;
+  }
+  if(act==='export-workspace'){
+    download('LPOS_integrated_workspace.json',JSON.stringify({
+      version:'LPOS Web V0.6',scenario:current,savedScenarios:saved,
+      backtestSettings:v03Settings,survivalSettings,
+      backtest:v03State.status==='ready'&&v03State.stamp===backtestStamp()?v03State.result:null,
+      survival:survivalState.status==='ready'&&survivalState.stamp===survivalStamp()?survivalState.result:null,
+      caveats:'Adjusted-price research. No certified total returns, broker credit approval, or actual forced liquidation.'},null,2));
+    toast('已匯出整合研究設定與目前有效的結果');return;
+  }
+  if(act==='v03-goto-compare'){tab='compare';render();return;}
+  if(act==='v03-sample'){
+    const a=makeFund('006208',60,60);a.pledgePct=100;a.ltvPct=60;
+    const b=makeFund('00685L',40,40);b.pledgePct=0;b.ltvPct=0;
+    current.funds=[a,b];current.scenarioName='可回測示範：006208 60%／00685L 40%';
+    render();toast('已套用有逐日資料的雙 ETF 配置，可按「計算目前組合」');return;
+  }
+  if(act==='v03-run'){void runV03('solo');return;}
+  if(act==='v03-compare'){void runV03('comparison');return;}
+  if(act==='v03-export-csv'){
+    if(v03State.status!=='ready'||v03State.kind!=='solo'||v03State.stamp!==backtestStamp()||!v03State.result)return toast('請先重新執行目前組合回測');
+    download('LPOS_V0.3_daily_path.csv',backtestCsv(v03State.result),'text/csv');return;
+  }
+  if(act==='v03-export-json'||act==='v03-export-comparison'){
+    if(v03State.status!=='ready'||v03State.stamp!==backtestStamp())return toast('請先執行符合目前設定的回測');
+    const output=act==='v03-export-comparison'?v03State.comparison:v03State.result;
+    if(!output)return toast('沒有相應的研究結果');
+    download('LPOS_V0.3_'+(act==='v03-export-comparison'?'comparison':'scenario')+'.json',JSON.stringify({research:output,disclosure:'Price-adjusted proxy only. No total returns, margin execution contracts, or T+2 settlement validation.'},null,2));return;
+  }
+
+  if(act==='download-research'){
+    if(!reference)return toast('研究快照尚未載入');
+    const row=lookupResearchCase(reference,study.portfolio,study.loan);
+    if(!row)return toast('目前沒有這組已驗證策略');
+    download(`LPOS_V3.0_snapshot_${study.portfolio}_${study.loan}.json`,JSON.stringify({webVersion:'0.2.0',researchVersion:'V3.0',sourceGrade:reference.sourceGrade,marketData:reference.marketData,controls:reference.controls,model:reference.engine,case:row,sourceAudit:reference.sourceAudit,limitations:reference.limitations},null,2));
+    toast('已匯出可追溯的 Python 研究快照');return;
+  }
+  if(act==='normalize-own'||act==='normalize-loan'){
+    current.funds=normalizeFunds(current.funds,act==='normalize-own'?'ownWeightPct':'loanWeightPct');render();return;
+  }
+  if(act==='remove-fund'){
+    if(current.funds.length===1)return toast('至少保留一檔投資標的');
+    current.funds=current.funds.filter(f=>f.id!==t.dataset.id);
+    render();toast('已刪除標的；請檢查兩組權重是否合計為 100%');return;
+  }
+  if(act==='add-catalog'||act==='add-custom'){
+    if(current.funds.length>=MAX_ASSETS)return toast(`最多可加入 ${MAX_ASSETS} 檔標的`);
+    let symbol='';if(act==='add-catalog')symbol=document.getElementById('catalog-picker')?.value??'';
+    else symbol=(document.getElementById('custom-symbol')?.value??'').trim().toUpperCase();
+    if(!/^[A-Z0-9._-]{1,16}$/.test(symbol))return toast('請輸入有效 ETF 代號（英數與 ._-）');
+    if(current.funds.some(f=>f.symbol===symbol))return toast(`${symbol} 已在組合中`);
+    current.funds.push(makeFund(symbol,0,0));render();toast(`已加入 ${symbol}，請調整配置權重`);return;
+  }
+  if(act==='reset'){
+    if(window.confirm('確定回復預設情境？瀏覽器儲存的 A/B/C 方案仍會保留。')){
+      current=defaultScenario();render();toast('已回復整合研究基準情境');}return;
+  }
+  if(act==='export'){
+    try{download('LPOS_Portfolio_Lab_V0.3_'+new Date().toISOString().slice(0,10)+'.json',serializeScenario(current));toast('已匯出 JSON 情境設定');}
+    catch(err){toast(err.message)}return;
+  }
+  if(act==='import'){
+    if(!filePicker){filePicker=document.createElement('input');filePicker.type='file';filePicker.accept='.json,application/json';filePicker.style.display='none';document.body.append(filePicker);
+      filePicker.addEventListener('change',async()=>{
+        const file=filePicker.files?.[0];if(!file)return;
+        if(file.size>100000)return toast('檔案超過 100KB，拒絕匯入');
+        try{current=validateAndParse(await file.text());render();toast('已匯入 JSON 情境設定');}
+        catch(err){toast('匯入失敗：'+err.message)}filePicker.value='';});}
+    filePicker.click();return;
+  }
+  if(act==='save-slot'){
+    const r=calculateScenario(current);if(!r.valid)return toast('目前權重或參數不正確，無法儲存：'+r.errors[0]);
+    saved[saveSlot]=deepCopy(current);safeSaveSlots();render();toast(`已將目前設定儲存到方案 ${saveSlot}`);return;
+  }
+  if(act==='load-slot'){
+    if(!saved[saveSlot])return toast(`方案 ${saveSlot} 尚未儲存`);
+    try{current=validateAndParse(JSON.stringify(saved[saveSlot]));render();toast(`已載入方案 ${saveSlot}`)}catch(err){toast('載入失敗：'+err.message)}return;
+  }
+  if(act==='clear-slot'){
+    if(!saved[saveSlot])return toast(`方案 ${saveSlot} 目前是空的`);
+    delete saved[saveSlot];safeSaveSlots();render();toast(`已清除方案 ${saveSlot}`);return;
+  }
+});
+if(typeof window.addEventListener==='function')window.addEventListener('hashchange',()=>{
+  const raw=(typeof location!=='undefined'?location.hash.slice(1):'');
+  const target=tabAlias[raw]||raw;
+  if(tabs.some(x=>x[0]===target)&&target!==tab){tab=target;render();}
+});
+render();
+void loadResearch();
+</script>
+</body>
+</html>
