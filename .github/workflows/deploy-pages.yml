@@ -4,11 +4,32 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions: {contents: read, pages: write, id-token: write}
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: V0.6 financial unit and integration release gate
+        run: |
+          python -m pip install pytest
+          python -m pytest
+          node --test tests/*.test.mjs
+      - name: Install LPOS browser verification
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify LPOS desktop and mobile before publishing
+        run: node scripts/lpos_v06_browser_smoke.mjs
       - name: Validate publish inputs
         run: |
           python - <<'PY'
@@ -55,6 +76,7 @@ jobs:
           model=json.loads(Path('site/data/model-config.json').read_text(encoding='utf-8'))
           payload={
               'commit_sha': '${{ github.sha }}',
+              'lpos_web_version': '0.6.0',
               'data_end_date': manifest.get('data_end_date'),
               'model_version': model.get('model_version') or manifest.get('model_version'),
               'deployed_at': datetime.now(timezone.utc).isoformat()
@@ -93,6 +115,7 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with: {path: artifacts/reports}
       - uses: actions/deploy-pages@v4
+        id: deployment
       - name: Smoke test published site
         run: |
           set -euo pipefail
@@ -110,7 +133,7 @@ jobs:
           fi
           curl -fLsS --retry 4 --retry-all-errors --retry-delay 3 "$base/lpos-portfolio-lab/v04/index.html" -o /tmp/lpos-v04.html
           grep -q "LPOS 生存分析已整合至主網站" /tmp/lpos-v04.html
-          grep -q "web-v0.5.0" /tmp/lpos-portfolio-lab.html
+          grep -q "web-v0.6.0" /tmp/lpos-portfolio-lab.html
           grep -q "function integratedSurvival" /tmp/lpos-portfolio-lab.html
           curl -fLsS "$base/lpos-portfolio-lab/survival-engine.js" -o /tmp/lpos-survival-engine.js
           grep -q "integrated-survival-v0.5" /tmp/lpos-survival-engine.js
@@ -135,3 +158,13 @@ jobs:
           assert meta['commit_sha'] == expected, (meta, expected)
           print('published commit verified:', meta['commit_sha'])
           PY
+      - name: Verify public V0.6 user flows
+        env:
+          LPOS_BASE_URL: https://hanjhou2000716.github.io/prstk-taiwan-etf-research
+        run: node scripts/lpos_v06_browser_smoke.mjs
+      - name: Upload LPOS V0.6 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lpos-v06-browser-evidence
+          path: artifacts/lpos-v06

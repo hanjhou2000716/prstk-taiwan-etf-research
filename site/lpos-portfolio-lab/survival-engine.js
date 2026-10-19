@@ -51,7 +51,10 @@ function run(scenario,initial,series,dates,settings={}){
   if(!rows?.length)throw Error(sym+" 沒有有效逐日價格");
   maps[sym]=new Map(rows.map(x=>[x.date,x.nav]));
  }
- const selected=dates.filter(d=>month(start,d)<=s.horizonMonths);
+ if(dates.some((d,i)=>!Number.isFinite(stamp(d))||(i>0&&dates[i-1]>=d)))throw Error("共同交易日必須遞增且不重複");
+ const requestedEnd=addMonths(start,s.horizonMonths);
+ const horizonCovered=dates.at(-1)>=requestedEnd;
+ const selected=dates.filter(d=>d<=requestedEnd);
  const last=selected.at(-1);if(selected.length<30)throw Error("觀測期不足 30 個交易日");
  for(const d of selected)for(const sym of symbols)if(!(maps[sym].get(d)>0))throw Error(sym+" 缺少 "+d+" 價格");
  const positions={};for(const l of initial.legs.filter(l=>symbols.includes(l.symbol))){
@@ -62,7 +65,7 @@ function run(scenario,initial,series,dates,settings={}){
  }
  let cash=initial.liquidCash,restrictedCash=0,loan=initial.borrow,interest=0,interestPaid=0;
  let settledSales=0,saleFees=0,externalFlows=0,rollovers=0;
- let firstMargin=null,firstReserve=null,firstHard=null,marginDue=null;
+ let firstMargin=null,firstReserve=null,firstHard=null,marginDue=null,terminalSnapshot=null;
  let marginWarnings=0,shockApplied=false,events=[],ledger=[],receivables=[];
  const fee=scenario.tradeCostPct/100, targetReserve=scenario.monthlyLivingExpense*scenario.minReserveMonths;
  const loanMaturity=addMonths(start,scenario.termMonths);
@@ -105,6 +108,10 @@ function run(scenario,initial,series,dates,settings={}){
  function recordFailure(date,type,due=0){
    if(firstHard)return;
    firstHard={date,type,required:round(due),cashAvailable:round(Math.max(0,cash)),unsettled:round(pendingTotal())};
+   const h=holdings(date);
+   terminalSnapshot={date,equity:round(h.total+cash+restrictedCash+pendingTotal()-loan-interest),
+    debt:round(loan),cash:round(cash),receivable:round(pendingTotal()),restrictedCash:round(restrictedCash),
+    portfolioValue:round(h.total),accruedInterest:round(interest)};
    events.push({date,type:"hard_payment_failure",reason:type,required:round(due),cashAvailable:round(cash)});
  }
  function pay(due,date,label){if(due<=EPS)return true;
@@ -183,9 +190,10 @@ function run(scenario,initial,series,dates,settings={}){
     maintenancePct:ratio===null?null:round(ratio),portfolioValue:round(h.total)});
   prev=date;
  }
- const lastRow=ledger.at(-1)||null;
+ const lastRow=terminalSnapshot||ledger.at(-1)||null;
  return {model:"LPOS-integrated-survival-v0.5",evidence:"adjusted-price-only",
-  period:{from:start,to:last,realizedTo:lastRow?.date||start,sessions:ledger.length,expectedSessions:selected.length},
+  period:{from:start,to:last,requestedEnd,realizedTo:lastRow?.date||start,sessions:ledger.length,expectedSessions:selected.length},
+  horizonCovered,terminalSnapshot,
   completed:!firstHard&&ledger.length===selected.length,conditionalOnLoanRollover:rollovers>0,
   unpaidLoan:lastRow?.debt??loan,firstHard,firstMargin,firstReserve,
   interestPaid:round(interestPaid),externalNetFlows:round(externalFlows),totalT2Settled:round(settledSales),

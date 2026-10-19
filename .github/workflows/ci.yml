@@ -28,6 +28,12 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run responsive visual smoke
         run: node scripts/visual_smoke.mjs
+      - name: LPOS V0.1 through V0.6 regression
+        run: |
+          node scripts/lpos_v03_validate.mjs
+          node scripts/lpos_v05_validate.mjs
+          node scripts/lpos_v05_ui_smoke.mjs
+          node scripts/lpos_v06_browser_smoke.mjs
       - name: Upload responsive smoke screenshots
         if: always()
         uses: actions/upload-artifact@v4
