@@ -36,6 +36,12 @@ jobs:
         run: python scripts/validate_publish_contract.py
       - name: Independently validate LPOS Web V0.3 on archived published adjusted-price paths
         run: node scripts/lpos_v03_validate.mjs
+      - name: Validate unified LPOS portfolio, backtest and survival regression
+        run: |
+          node --check scripts/lpos_v05_validate.mjs
+          node --check site/lpos-portfolio-lab/survival-engine.js
+          node scripts/lpos_v03_validate.mjs
+          node scripts/lpos_v05_validate.mjs
       - name: Write deployment metadata
         env:
           SITE_COMMIT: ${{ github.sha }}
@@ -99,7 +105,11 @@ jobs:
           grep -q "Web V0.3" /tmp/lpos-portfolio-lab.html
           grep -q "v04/index.html" /tmp/lpos-portfolio-lab.html
           curl -fLsS --retry 4 --retry-all-errors --retry-delay 3 "$base/lpos-portfolio-lab/v04/index.html" -o /tmp/lpos-v04.html
-          grep -q "生存實驗室 V0.4" /tmp/lpos-v04.html
+          grep -q "LPOS 生存分析已整合至主網站" /tmp/lpos-v04.html
+          grep -q "web-v0.5.0" /tmp/lpos-portfolio-lab.html
+          grep -q "function integratedSurvival" /tmp/lpos-portfolio-lab.html
+          curl -fLsS "$base/lpos-portfolio-lab/survival-engine.js" -o /tmp/lpos-survival-engine.js
+          grep -q "integrated-survival-v0.5" /tmp/lpos-survival-engine.js
           grep -q "function runDynamicBacktest" /tmp/lpos-portfolio-lab.html
           for symbol in 006208 00631L 00685L; do
             test "$(curl -L -sS -o /dev/null -w '%{http_code}' "$base/data/backtests/buy_hold_${symbol}.csv")" = 200
