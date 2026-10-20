@@ -19,7 +19,7 @@ jobs:
         with: {node-version: '22'}
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
-      - name: V0.6 compatibility and V0.7 financial release gate
+      - name: V0.6 compatibility and V0.7.1 financial release gate
         run: |
           npm ci
           python -m pip install pytest==8.3.4 pypdf==6.1.3 pymupdf==1.26.5 fonttools==4.67.0
@@ -66,7 +66,7 @@ jobs:
           node scripts/lpos_v03_validate.mjs
           node scripts/lpos_v05_validate.mjs
           node scripts/lpos_v05_ui_smoke.mjs
-      - name: Build the LPOS V0.7 production application
+      - name: Build the LPOS V0.7.1 production application
         run: npm run build:lpos
       - name: Write deployment metadata
         env:
@@ -80,7 +80,7 @@ jobs:
           model=json.loads(Path('site/data/model-config.json').read_text(encoding='utf-8'))
           payload={
               'commit_sha': '${{ github.sha }}',
-              'lpos_web_version': '0.7.0',
+              'lpos_web_version': '0.7.1',
               'lpos_model_version': model.get('model_version'),
               'data_end_date': manifest.get('data_end_date'),
               'model_version': model.get('model_version') or manifest.get('model_version'),
@@ -163,17 +163,17 @@ jobs:
           meta=json.load(urllib.request.urlopen(base+'/data/deployment.json'))
           expected='${{ github.sha }}'
           assert meta['commit_sha'] == expected, (meta, expected)
-          assert meta['lpos_web_version'] == '0.7.0', meta
+          assert meta['lpos_web_version'] == '0.7.1', meta
           print('published commit verified:', meta['commit_sha'])
           PY
-      - name: Verify public V0.7 user flows and downloadable PDF
+      - name: Verify public V0.7.1 user flows and downloadable PDF
         env:
           LPOS_BASE_URL: https://hanjhou2000716.github.io/prstk-taiwan-etf-research
         run: |
           node scripts/lpos_v06_browser_smoke.mjs
           node scripts/lpos_v07_browser_smoke.mjs
           python scripts/lpos_v07_pdf_check.py artifacts/lpos-v07/representative-report.pdf
-      - name: Upload LPOS V0.7 browser and PDF evidence
+      - name: Upload LPOS V0.7.1 browser and PDF evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
