@@ -3,11 +3,11 @@ import { calculateScenario, compareDynamicBacktests, DYNAMIC_VERSION, MODEL_VERS
 import type { MarketSeries, ScenarioV1 } from "./engine/portfolio.js";
 import type { ResearchRequest, ResearchRun, ValidationLayer } from "./types.js";
 
-const APP_VERSION = "0.7.0";
+const APP_VERSION = "0.7.1";
 const workerScope = self as unknown as DedicatedWorkerGlobalScope;
 const SURVIVAL_VERSION = "LPOS-integrated-survival-" + workerScope.LPOSSurvival.version;
 const APP_BASE = new URL(import.meta.env.BASE_URL, self.location.origin);
-const DATA_BASE = new URL("../data/", APP_BASE);
+const DATA_BASE = new URL(import.meta.env.VITE_DATA_BASE_URL || "../data/", APP_BASE);
 const LIMITATIONS = [
   "研究行情是調整價格代理，非已驗證含息真實可執行融資回測。",
   "自由歷史報酬模型採即時出售入帳代理；生存模型另以第二個觀察交易日結算 T+2 應收款，兩者不可互相替代。",

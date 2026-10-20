@@ -1,7 +1,8 @@
-import { defaultScenario, parsePublishedBuyHoldCsv, validateAndParse, validateScenario } from "./engine/portfolio.js";
+import { calculateScenario, defaultScenario, parsePublishedBuyHoldCsv, validateAndParse, validateScenario } from "./engine/portfolio.js";
 import type { ScenarioV1 } from "./engine/portfolio.js";
 import type { ImportPreview, ResearchBundleV1, SlotName, WorkspaceV2 } from "./types.js";
 const STORAGE_KEY = "lpos-v07-workspace-v2";
+const EDITOR_STORAGE_KEY = "lpos-v071-editor-v3";
 const LEGACY_CURRENT_KEY = "lpos-web-v01-current";
 const LEGACY_SAVED_KEY = "lpos-web-v01-saved";
 const SURVIVAL_KEY = "lpos-v05-survival-controls";
@@ -66,9 +67,120 @@ export function loadWorkspace(): { workspace: WorkspaceV2; notice: string } {
   return { workspace: createDefaultWorkspace(), notice: "" };
 }
 export function persistWorkspace(workspace: WorkspaceV2): string {
-  const validated = validateWorkspace({ ...workspace, updatedAt: new Date().toISOString() });
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(validated)); return ""; }
-  catch { return "瀏覽器儲存空間不足或被停用，請下載工作區 JSON；本次編輯仍保留在畫面。"; }
+  try {
+    const validated = validateWorkspace({ ...workspace, updatedAt: new Date().toISOString() });
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+    return "";
+  } catch (error) {
+    return "工作區尚未通過驗證或瀏覽器無法保存：" + String((error as Error).message || error);
+  }
+}
+
+export interface EditorStateV3 {
+  schemaVersion: 3;
+  workspace: WorkspaceV2;
+  lastValidWorkspace: WorkspaceV2;
+  drafts: Record<string, string>;
+  activeStep: number;
+  loanAmountTwd: number;
+  cashReserveTwd: number;
+  linkLoanWeights: boolean;
+  canPersist: boolean;
+  notice: string;
+  rawBackup: string;
+}
+
+function applyDrafts(workspace: WorkspaceV2, drafts: Record<string, string>): WorkspaceV2 {
+  const next = JSON.parse(JSON.stringify(workspace)) as WorkspaceV2;
+  for (const [path, raw] of Object.entries(drafts)) {
+    if (raw.length > 256) continue;
+    if (path === "current.scenarioName") { next.current.scenarioName = raw.slice(0, 60); continue; }
+    const normalized = raw.replace(/[０-９]/g, digit => String(digit.charCodeAt(0) - 0xff10)).replace(/，/g, ",").trim();
+    const grouped = /^-?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?$/.test(normalized);
+    const plain = /^-?\d+(?:\.\d+)?$/.test(normalized);
+    const value = raw.trim() && (grouped || plain) ? Number(normalized.replace(/,/g, "")) : NaN;
+    if (!Number.isFinite(value)) continue;
+    const parts = path.split(".");
+    if (parts[0] === "current" && parts.length === 2 && parts[1] in next.current) {
+      (next.current as any)[parts[1]] = value;
+    } else if (parts[0] === "fund" && parts.length === 3) {
+      const fund = next.current.funds.find(item => item.id === parts[1]);
+      if (fund && parts[2] in fund) (fund as any)[parts[2]] = value;
+    } else if (parts[0] === "research" && parts.length === 2 && parts[1] === "rfPct") {
+      next.research.rfPct = value;
+    } else if (parts[0] === "survival" && parts.length === 2 && parts[1] in next.survival) {
+      (next.survival as any)[parts[1]] = value;
+    }
+  }
+  return next;
+}
+
+export function loadEditorState(): EditorStateV3 {
+  let rawBackup = "";
+  try {
+    const storage = window.localStorage;
+    rawBackup = storage.getItem(EDITOR_STORAGE_KEY) || storage.getItem(STORAGE_KEY) || storage.getItem(LEGACY_CURRENT_KEY) || "";
+    const raw = storage.getItem(EDITOR_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, any>;
+      if (parsed.schemaVersion !== 3 || typeof parsed.drafts !== "object" || !parsed.drafts || Array.isArray(parsed.drafts)) throw new Error("編輯備份版本或格式不正確");
+      const workspace = validateWorkspace(parsed.workspace);
+      const drafts: Record<string, string> = {};
+      for (const [key, value] of Object.entries(parsed.drafts)) {
+        if (typeof value !== "string" || key.length > 160 || value.length > 256) throw new Error("編輯草稿欄位格式不正確");
+        drafts[key] = value;
+      }
+      const step = Number.isInteger(parsed.activeStep) && parsed.activeStep >= 0 && parsed.activeStep <= 3 ? parsed.activeStep : 0;
+      const amount = Number.isFinite(parsed.loanAmountTwd) && parsed.loanAmountTwd >= 0 && parsed.loanAmountTwd <= 1e12 ? parsed.loanAmountTwd : calculateDefaultLoan(workspace);
+      const cash = Number.isFinite(parsed.cashReserveTwd) && parsed.cashReserveTwd >= 0 && parsed.cashReserveTwd <= 1e12 ? parsed.cashReserveTwd : workspace.current.ownCapital * workspace.current.ownCashPct / 100;
+      const loanDraft = drafts["loan.amount"];
+      const cashDraft = drafts["cash.reserve"];
+      const readDraftAmount = (rawValue: string | undefined, fallback: number) => {
+        if (!rawValue) return fallback;
+        const normalized = rawValue.replace(/[０-９]/g, digit => String(digit.charCodeAt(0) - 0xff10)).replace(/[，,]/g, ",");
+        return /^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?$/.test(normalized) ? Number(normalized.replace(/,/g, "")) : fallback;
+      };
+      const restoredLoan = readDraftAmount(loanDraft, amount);
+      const restoredCash = readDraftAmount(cashDraft, cash);
+      return { schemaVersion: 3, workspace: applyDrafts(workspace, drafts), lastValidWorkspace: workspace, drafts, activeStep: step, loanAmountTwd: restoredLoan, cashReserveTwd: restoredCash, linkLoanWeights: parsed.linkLoanWeights === true, canPersist: true, notice: "", rawBackup };
+    }
+    const legacy = loadWorkspace();
+    const migrated = validateWorkspace(legacy.workspace);
+    const calc = calculateDefaultLoan(migrated);
+    const hasExistingWorkspace = !!window.localStorage.getItem(STORAGE_KEY) || !!window.localStorage.getItem(LEGACY_CURRENT_KEY);
+    const valid = hasExistingWorkspace ? migrated : validateWorkspace({ ...migrated, current: { ...migrated.current, borrowUtilPct: 0 } });
+    const damagedLegacy = /無法讀取|格式不符/.test(legacy.notice);
+    return { schemaVersion: 3, workspace: valid, lastValidWorkspace: valid, drafts: {}, activeStep: 0, loanAmountTwd: hasExistingWorkspace ? calc : 0, cashReserveTwd: valid.current.ownCapital * valid.current.ownCashPct / 100, linkLoanWeights: !hasExistingWorkspace, canPersist: !damagedLegacy, notice: legacy.notice, rawBackup };
+  } catch (error) {
+    const fallback = createDefaultWorkspace();
+    return { schemaVersion: 3, workspace: fallback, lastValidWorkspace: fallback, drafts: {}, activeStep: 0, loanAmountTwd: 0, cashReserveTwd: 0, linkLoanWeights: false, canPersist: false, rawBackup,
+      notice: "已保留無法讀取的原始工作區。修復前不會覆寫它；請先下載原資料或明確重設。" };
+  }
+}
+
+function calculateDefaultLoan(workspace: WorkspaceV2): number {
+  const result = calculateScenario(workspace.current);
+  return result.valid ? Math.max(0, Number(result.borrow) || 0) : 0;
+}
+
+export function persistEditorState(state: Pick<EditorStateV3, "lastValidWorkspace" | "drafts" | "activeStep" | "loanAmountTwd" | "cashReserveTwd" | "linkLoanWeights">): string {
+  try {
+    const lastValid = validateWorkspace(state.lastValidWorkspace);
+    if (!Number.isFinite(state.loanAmountTwd) || state.loanAmountTwd < 0 || state.loanAmountTwd > 1e12 || !Number.isFinite(state.cashReserveTwd) || state.cashReserveTwd < 0 || state.cashReserveTwd > 1e12 || !Number.isInteger(state.activeStep) || state.activeStep < 0 || state.activeStep > 3 || typeof state.linkLoanWeights !== "boolean") return "草稿狀態不完整；目前畫面輸入仍保留，請重新載入或下載備份。";
+    const drafts: Record<string, string> = {};
+    for (const [key, value] of Object.entries(state.drafts)) {
+      if (key.length > 160 || value.length > 256) return "草稿內容超過本機保存限制，請先下載工作區備份。";
+      drafts[key] = value;
+    }
+    const payload = JSON.stringify({ schemaVersion: 3, workspace: lastValid, drafts, activeStep: state.activeStep, loanAmountTwd: state.loanAmountTwd, cashReserveTwd: state.cashReserveTwd, linkLoanWeights: state.linkLoanWeights, savedAt: new Date().toISOString() });
+    if (payload.length > 2_000_000) return "工作區超過本機保存限制，請先下載備份。";
+    const storage = window.localStorage;
+    storage.setItem(EDITOR_STORAGE_KEY, payload);
+    if (storage.getItem(EDITOR_STORAGE_KEY) !== payload) return "本機未能確認草稿保存；目前輸入仍保留在畫面。";
+    return "";
+  } catch (error) {
+    return "本機暫存失敗；目前輸入仍保留在畫面，請下載工作區備份。";
+  }
 }
 function isRecord(value: unknown): value is Record<string, any> { return !!value && typeof value === "object" && !Array.isArray(value); }
 function validMarketSeries(value: unknown): boolean {
