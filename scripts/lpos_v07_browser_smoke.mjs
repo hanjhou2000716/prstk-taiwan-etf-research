@@ -46,6 +46,18 @@ if (!base) {
   base = "http://127.0.0.1:" + server.address().port;
 }
 
+const dataManifestResponse = await fetch(base + repoPrefix + "data/manifest.json");
+assert.ok(dataManifestResponse.ok, "published data manifest must be reachable");
+const dataManifest = await dataManifestResponse.json();
+const dataManifestDate = dataManifest.generated_at_utc?.slice(0, 10);
+assert.match(dataManifestDate || "", /^\d{4}-\d{2}-\d{2}$/, "published data manifest must identify its generation date");
+const priceResponse = await fetch(base + repoPrefix + "data/backtests/buy_hold_006208.csv");
+assert.ok(priceResponse.ok, "published buy-and-hold price series must be reachable");
+const priceBytes = Buffer.from(await priceResponse.arrayBuffer());
+const latestResearchDate = priceBytes.toString("utf8").trim().split(/\r?\n/).at(-1)?.split(",")[0]?.trim();
+assert.match(latestResearchDate || "", /^\d{4}-\d{2}-\d{2}$/, "published price series must end with an actual data date");
+assert.ok(latestResearchDate <= dataManifestDate, "price series date must not exceed its published data manifest date");
+
 await mkdir("artifacts/lpos-v07", { recursive: true });
 const failures = [];
 const requestedEngines = process.env.LPOS_BROWSER_ENGINES?.split(",").map(x => x.trim()).filter(Boolean);
@@ -91,7 +103,7 @@ try {
       await page.getByRole("button", { name: "儲存 C" }).click();
       await nav(page, "research");
       await page.locator("#date-from").fill("2024-01-02");
-      await page.locator("#date-to").fill("2026-10-16");
+      await page.locator("#date-to").fill(latestResearchDate);
       await page.getByRole("button", { name: "開始完整研究" }).click();
       await waitForRun(page);
       await nav(page, "overview");
