@@ -35988,6 +35988,22 @@
         "reason": "daily accrual",
         "signal": "daily accrual",
         "amount": 0.00010542259393761229
+      },
+      {
+        "date": "2026-10-21",
+        "strategy": "pledge_006208_once",
+        "asset": "financing",
+        "action": "INTEREST",
+        "quantity": null,
+        "price": null,
+        "gross_amount": 0.0001054363992772946,
+        "transaction_fee": 0.0,
+        "tax": 0.0,
+        "slippage": 0.0,
+        "financing_cost": 0.0001054363992772946,
+        "reason": "daily accrual",
+        "signal": "daily accrual",
+        "amount": 0.0001054363992772946
       }
     ]
   },
@@ -76460,14 +76476,30 @@
         "reason": "daily accrual",
         "signal": "daily accrual",
         "amount": 0.00023738978317954716
+      },
+      {
+        "date": "2026-10-21",
+        "strategy": "pledge_006208_dynamic",
+        "asset": "financing",
+        "action": "INTEREST",
+        "quantity": null,
+        "price": null,
+        "gross_amount": 0.00023742086993686827,
+        "transaction_fee": 0.0,
+        "tax": 0.0,
+        "slippage": 0.0,
+        "financing_cost": 0.00023742086993686827,
+        "reason": "daily accrual",
+        "signal": "daily accrual",
+        "amount": 0.00023742086993686827
       }
     ]
   },
   "pledge_00685L_buy_006208": {
-    "margin_calls": 2247,
+    "margin_calls": 2248,
     "borrow_events": 2,
     "repay_events": 2,
-    "liquidation_events": 2246,
+    "liquidation_events": 2247,
     "ledger": [
       {
         "date": "2017-04-05",
@@ -148452,14 +148484,46 @@
         "reason": "forced liquidation threshold",
         "signal": "forced liquidation",
         "amount": 0.0
+      },
+      {
+        "date": "2026-10-21",
+        "strategy": "pledge_00685L_buy_006208",
+        "asset": "financing",
+        "action": "INTEREST",
+        "quantity": null,
+        "price": null,
+        "gross_amount": 7.639923320007984e-08,
+        "transaction_fee": 0.0,
+        "tax": 0.0,
+        "slippage": 0.0,
+        "financing_cost": 7.639923320007984e-08,
+        "reason": "daily accrual",
+        "signal": "daily accrual",
+        "amount": 7.639923320007984e-08
+      },
+      {
+        "date": "2026-10-21",
+        "strategy": "pledge_00685L_buy_006208",
+        "asset": "target",
+        "action": "LIQUIDATION",
+        "quantity": 0.0,
+        "price": 247.6,
+        "gross_amount": 0.0,
+        "transaction_fee": 0.0,
+        "tax": 0.0,
+        "slippage": 0.0,
+        "financing_cost": 0.0,
+        "reason": "forced liquidation threshold",
+        "signal": "forced liquidation",
+        "amount": 0.0
       }
     ]
   },
   "pledge_00685L_buy_00685L": {
-    "margin_calls": 2247,
+    "margin_calls": 2248,
     "borrow_events": 2,
     "repay_events": 2,
-    "liquidation_events": 2246,
+    "liquidation_events": 2247,
     "ledger": [
       {
         "date": "2017-04-05",
@@ -220436,6 +220500,38 @@
         "action": "LIQUIDATION",
         "quantity": 0.0,
         "price": 11.84,
+        "gross_amount": 0.0,
+        "transaction_fee": 0.0,
+        "tax": 0.0,
+        "slippage": 0.0,
+        "financing_cost": 0.0,
+        "reason": "forced liquidation threshold",
+        "signal": "forced liquidation",
+        "amount": 0.0
+      },
+      {
+        "date": "2026-10-21",
+        "strategy": "pledge_00685L_buy_00685L",
+        "asset": "financing",
+        "action": "INTEREST",
+        "quantity": null,
+        "price": null,
+        "gross_amount": 3.1929609015562866e-07,
+        "transaction_fee": 0.0,
+        "tax": 0.0,
+        "slippage": 0.0,
+        "financing_cost": 3.1929609015562866e-07,
+        "reason": "daily accrual",
+        "signal": "daily accrual",
+        "amount": 3.1929609015562866e-07
+      },
+      {
+        "date": "2026-10-21",
+        "strategy": "pledge_00685L_buy_00685L",
+        "asset": "target",
+        "action": "LIQUIDATION",
+        "quantity": 0.0,
+        "price": 12.13,
         "gross_amount": 0.0,
         "transaction_fee": 0.0,
         "tax": 0.0,
