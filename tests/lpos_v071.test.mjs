@@ -115,6 +115,39 @@ test("editor saves preserve decimal amount intent and storage failures stay reco
   }
 });
 
+test("preview editing cannot read, overwrite, or migrate the production workspace", async () => {
+  const module = await loadWorkspaceModule();
+  const priorWindow = globalThis.window;
+  const official = module.createDefaultWorkspace();
+  official.current.ownCapital = 7654321;
+  const seed = {
+    "lpos-v07-workspace-v2": JSON.stringify(official),
+    "lpos-v071-editor-v3": "{damaged production editor",
+    "lpos-web-v01-current": "private legacy settings",
+    "lpos-v07-migration-backup": "original migration backup"
+  };
+  const storage = localStorageMock(seed);
+  globalThis.window = { localStorage: storage, location: { pathname: "/prstk-taiwan-etf-research/lpos-portfolio-lab/preview/v071/index.html" } };
+  try {
+    const fresh = module.loadEditorState();
+    assert.equal(fresh.canPersist, true, "damaged production editor must not affect preview");
+    assert.notEqual(fresh.workspace.current.ownCapital, official.current.ownCapital);
+    const preview = module.createDefaultWorkspace();
+    preview.current.ownCapital = 1234567;
+    assert.equal(module.persistWorkspace(preview), "");
+    assert.equal(module.persistEditorState({ lastValidWorkspace: preview, drafts: { "current.ownCapital": "0" }, activeStep: 0, loanAmountTwd: 0, cashReserveTwd: 0, linkLoanWeights: true }), "");
+    assert.equal(module.loadEditorState().drafts["current.ownCapital"], "0");
+    for (const [key, value] of Object.entries(seed)) assert.equal(storage.getItem(key), value);
+    for (const key of storage.values.keys()) assert.ok(key in seed || key.startsWith("lpos-preview-v071:"), key);
+    globalThis.window.location.pathname = "/prstk-taiwan-etf-research/lpos-portfolio-lab/index.html";
+    assert.equal(module.loadWorkspace().workspace.current.ownCapital, official.current.ownCapital);
+    assert.equal(module.loadEditorState().canPersist, false, "production recovery state must be retained");
+  } finally {
+    if (priorWindow === undefined) delete globalThis.window;
+    else globalThis.window = priorWindow;
+  }
+});
+
 test("V0.7.1 user flow exposes the four setup steps and separates advanced research", () => {
   const app = readFileSync("apps/lpos/src/App.tsx", "utf8");
   assert.match(app, /資金.*ETF 配置.*借款.*確認試算/);

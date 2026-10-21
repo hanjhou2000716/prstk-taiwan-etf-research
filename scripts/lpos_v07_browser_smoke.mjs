@@ -11,6 +11,7 @@ const { chromium, firefox, webkit } = await import(playwrightImport);
 const repoPrefix = "/prstk-taiwan-etf-research/";
 const appPath = process.env.LPOS_APP_PATH || "lpos-portfolio-lab/";
 const lposPrefix = repoPrefix + appPath;
+const dataPrefix = appPath.includes("/preview/") ? lposPrefix + "data/" : repoPrefix + "data/";
 const publishRoot = resolve(process.env.LPOS_STATIC_ROOT || "site");
 const buildRoot = process.env.LPOS_STATIC_ROOT ? resolve(publishRoot, "lpos-portfolio-lab") : resolve("apps/lpos/dist");
 const publicBase = process.env.LPOS_BASE_URL;
@@ -46,12 +47,12 @@ if (!base) {
   base = "http://127.0.0.1:" + server.address().port;
 }
 
-const dataManifestResponse = await fetch(base + repoPrefix + "data/manifest.json");
+const dataManifestResponse = await fetch(base + dataPrefix + "manifest.json");
 assert.ok(dataManifestResponse.ok, "published data manifest must be reachable");
 const dataManifest = await dataManifestResponse.json();
 const dataManifestDate = dataManifest.generated_at_utc?.slice(0, 10);
 assert.match(dataManifestDate || "", /^\d{4}-\d{2}-\d{2}$/, "published data manifest must identify its generation date");
-const priceResponse = await fetch(base + repoPrefix + "data/backtests/buy_hold_006208.csv");
+const priceResponse = await fetch(base + dataPrefix + "backtests/buy_hold_006208.csv");
 assert.ok(priceResponse.ok, "published buy-and-hold price series must be reachable");
 const priceBytes = Buffer.from(await priceResponse.arrayBuffer());
 const latestResearchDate = priceBytes.toString("utf8").trim().split(/\r?\n/).at(-1)?.split(",")[0]?.trim();

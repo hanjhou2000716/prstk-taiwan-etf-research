@@ -6,6 +6,14 @@ const EDITOR_STORAGE_KEY = "lpos-v071-editor-v3";
 const LEGACY_CURRENT_KEY = "lpos-web-v01-current";
 const LEGACY_SAVED_KEY = "lpos-web-v01-saved";
 const SURVIVAL_KEY = "lpos-v05-survival-controls";
+function workspaceStorage() {
+  const storage = window.localStorage;
+  const prefix = window.location?.pathname?.includes("/lpos-portfolio-lab/preview/") ? "lpos-preview-v071:" : "";
+  return {
+    getItem: (key: string) => storage.getItem(prefix + key),
+    setItem: (key: string, value: string) => storage.setItem(prefix + key, value)
+  };
+}
 const DEFAULT_RESEARCH = { from: "", to: "", rebalance: "quarterly", repayment: "repay_at_term", rfPct: 0 };
 const DEFAULT_SURVIVAL = { shockPct: 0, shockMonth: 2, unemploymentMonths: 0, rateHikePct: 0, horizonMonths: 18, rollover: "deny", prefund: true, marginPolicy: "warning" } as const;
 function parseScenario(value: unknown): ScenarioV1 {
@@ -43,7 +51,7 @@ export function validateWorkspace(value: unknown): WorkspaceV2 {
   return { schemaVersion: 2, current, saved, research, survival, updatedAt: String(raw.updatedAt || new Date().toISOString()) };
 }
 export function loadWorkspace(): { workspace: WorkspaceV2; notice: string } {
-  const storage = window.localStorage;
+  const storage = workspaceStorage();
   const savedV07 = storage.getItem(STORAGE_KEY);
   if (savedV07) {
     try { return { workspace: validateWorkspace(JSON.parse(savedV07)), notice: "" }; }
@@ -69,7 +77,7 @@ export function loadWorkspace(): { workspace: WorkspaceV2; notice: string } {
 export function persistWorkspace(workspace: WorkspaceV2): string {
   try {
     const validated = validateWorkspace({ ...workspace, updatedAt: new Date().toISOString() });
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
+    workspaceStorage().setItem(STORAGE_KEY, JSON.stringify(validated));
     return "";
   } catch (error) {
     return "工作區尚未通過驗證或瀏覽器無法保存：" + String((error as Error).message || error);
@@ -118,7 +126,7 @@ function applyDrafts(workspace: WorkspaceV2, drafts: Record<string, string>): Wo
 export function loadEditorState(): EditorStateV3 {
   let rawBackup = "";
   try {
-    const storage = window.localStorage;
+    const storage = workspaceStorage();
     rawBackup = storage.getItem(EDITOR_STORAGE_KEY) || storage.getItem(STORAGE_KEY) || storage.getItem(LEGACY_CURRENT_KEY) || "";
     const raw = storage.getItem(EDITOR_STORAGE_KEY);
     if (raw) {
@@ -147,7 +155,7 @@ export function loadEditorState(): EditorStateV3 {
     const legacy = loadWorkspace();
     const migrated = validateWorkspace(legacy.workspace);
     const calc = calculateDefaultLoan(migrated);
-    const hasExistingWorkspace = !!window.localStorage.getItem(STORAGE_KEY) || !!window.localStorage.getItem(LEGACY_CURRENT_KEY);
+    const hasExistingWorkspace = !!storage.getItem(STORAGE_KEY) || !!storage.getItem(LEGACY_CURRENT_KEY);
     const valid = hasExistingWorkspace ? migrated : validateWorkspace({ ...migrated, current: { ...migrated.current, borrowUtilPct: 0 } });
     const damagedLegacy = /無法讀取|格式不符/.test(legacy.notice);
     return { schemaVersion: 3, workspace: valid, lastValidWorkspace: valid, drafts: {}, activeStep: 0, loanAmountTwd: hasExistingWorkspace ? calc : 0, cashReserveTwd: valid.current.ownCapital * valid.current.ownCashPct / 100, linkLoanWeights: !hasExistingWorkspace, canPersist: !damagedLegacy, notice: legacy.notice, rawBackup };
@@ -174,7 +182,7 @@ export function persistEditorState(state: Pick<EditorStateV3, "lastValidWorkspac
     }
     const payload = JSON.stringify({ schemaVersion: 3, workspace: lastValid, drafts, activeStep: state.activeStep, loanAmountTwd: state.loanAmountTwd, cashReserveTwd: state.cashReserveTwd, linkLoanWeights: state.linkLoanWeights, savedAt: new Date().toISOString() });
     if (payload.length > 2_000_000) return "工作區超過本機保存限制，請先下載備份。";
-    const storage = window.localStorage;
+    const storage = workspaceStorage();
     storage.setItem(EDITOR_STORAGE_KEY, payload);
     if (storage.getItem(EDITOR_STORAGE_KEY) !== payload) return "本機未能確認草稿保存；目前輸入仍保留在畫面。";
     return "";
