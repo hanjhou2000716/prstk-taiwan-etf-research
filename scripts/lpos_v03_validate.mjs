@@ -21,19 +21,25 @@ runInNewContext(inline+'\n;globalThis.__audited={makeFund,defaultScenario,calcul
 const e=sandbox.__audited;
 const symbols=['006208','00631L','00685L'];
 const series={};
+const releaseManifest=JSON.parse(readFileSync('site/data/manifest.json','utf8'));
+const manifestDate=releaseManifest.generated_at_utc?.slice(0,10);
+assert.match(manifestDate||'',/^\d{4}-\d{2}-\d{2}$/,'published data manifest must identify its generation date');
 for(const symbol of symbols){
  const csv=readFileSync('site/data/backtests/buy_hold_'+symbol+'.csv','utf8');
  series[symbol]=e.parsePublishedBuyHoldCsv(symbol,csv);
  assert.ok(series[symbol].rows.length>1500, symbol+' unexpectedly truncated');
- assert.equal(series[symbol].end,'2026-10-16');
+ assert.ok(series[symbol].end<=manifestDate, symbol+' price series must not exceed its release manifest date');
 }
+const seriesEndDates=new Set(symbols.map(symbol=>series[symbol].end));
+assert.equal(seriesEndDates.size,1,'published buy-and-hold series must share one actual release cutoff');
+const latestCommonDataDate=[...seriesEndDates][0];
 const make=(symbol)=>{
  const p=e.defaultScenario();p.scenarioName='Source parity '+symbol;
  p.funds=[e.makeFund(symbol,100,100)];p.ownCashPct=0;p.tradeCostPct=0;
  p.originationFeePct=0;p.borrowUtilPct=0;p.loanInvestPct=100;
  p.monthlyFreeCashFlow=0;p.aprPct=0;return p;
 };
-const options={from:'2018-01-01',to:'2026-10-16',rebalance:'none',repayment:'repay_at_term',rfPct:0};
+const options={from:'2018-01-01',to:latestCommonDataDate,rebalance:'none',repayment:'repay_at_term',rfPct:0};
 for(const symbol of symbols){
  const c=make(symbol);
  const r=e.runDynamicBacktest(c,series,options);
