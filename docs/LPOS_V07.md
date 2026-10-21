@@ -1,4 +1,12 @@
-# LPOS Portfolio Lab V0.7
+# LPOS Portfolio Lab V0.7.1
+
+## V0.7.1: simpler setup and stable editing
+
+The primary path is a four-step affordability check: funds, ETF allocation, loan terms, and confirmation. Historical research, A/B/C, reports, survival assumptions, and backup/import remain available from the advanced tools hub. Mobile navigation has three main entries, with the same settings and calculations as desktop.
+
+Numeric inputs keep their raw text while editing. Blank and incomplete values stay in a draft and block calculations instead of being coerced to zero; decimal amounts, full-width digits, grouped commas, and negative monthly cash flow are supported. The last valid workspace is stored separately from drafts under the V3 editor key, with a 600 ms merged save, save-on-blur and page-background attempts, read-back verification, and recovery of damaged data without automatic replacement. Existing V0.6/V0.7 workspace keys remain untouched during migration. Local browser tests exercise zero, intermediate minus, decimals, edit recovery, and the reproduced mobile crash path.
+
+The candidate preview is intended for `/lpos-portfolio-lab/preview/v071/`. Its data lives under that preview directory, and browser storage uses the `lpos-preview-v071:` prefix for all workspace, editor, legacy, and migration keys. Preview editing neither reads nor writes production settings. The publication tool must preserve the actual deployed production release, including its built application and deployment metadata, rather than copying unbuilt main HTML. The official LPOS path remains the production entry until the owner completes the physical-device checklist on Android 13 / Chrome 155.0.8059.39. Browser automation is responsive simulation, not physical-phone certification.
 
 V0.7 replaces the maintained LPOS page with a React, TypeScript, and Vite application while preserving the V0.6 page at site/lpos-portfolio-lab/legacy-v06.html as a regression baseline. The application is built into the existing Pages path; the other research pages remain static.
 
@@ -29,7 +37,7 @@ The source audit's layer states remain visible. Passing the application's accoun
 
 - The V0.6 page is preserved at legacy-v06.html; the old V0.4 route remains as its archived redirect.
 - Legacy hashes such as #portfolio, #financing, #survival, #backtest, and #sources resolve to V0.7 sections.
-- Existing V0.6 browser storage is backed up locally before migration to the V2 workspace key.
+- Existing V0.6 browser storage is backed up locally before migration; V0.7.1 stores editor drafts and last-valid settings separately under its V3 editor key.
 - Scenario, workspace, research, and replay exports remain local browser downloads. User settings are never sent to Actions or a hosted database.
 - PDF renderer and the self-hosted Noto Sans TC WOFF fonts load only when the user requests a PDF.
 
@@ -49,4 +57,4 @@ The root package-lock.json pins the front-end toolchain. The PDF's regular and b
 
 The browser check covers desktop and mobile in Chromium, Firefox, and WebKit, including same-capital A/B/C research, stale-result invalidation, an actual PDF download, and replay-bundle recomputation. The PDF check extracts selectable text, verifies all eight sections, exact Unicode disclosure, and matching research identifiers and CAGR against the JSON bundle, then renders every page to PNG for visual review. Fontsource's upstream Noto Sans TC font and SIL Open Font License are included in apps/lpos/THIRD_PARTY_NOTICES.txt.
 
-deploy-pages.yml assembles the existing website and apps/lpos/dist into one Pages artifact. It tests that exact staged artifact before publishing, records the commit and V0.7 version in data/deployment.json, and rechecks the public pages, assets, user flows, PDF, and commit after deployment. If release verification fails, fix the cause and publish a new validated commit. For a severe public regression, revert the deployment commit through the normal Git review flow; browser-local workspaces are not modified by site releases.
+deploy-pages.yml assembles the existing website and apps/lpos/dist into one Pages artifact. It tests that exact staged artifact before publishing, records the commit and app version in data/deployment.json, and rechecks the public pages, assets, user flows, PDF, and commit after deployment. The separate preview-lpos-v071.yml assembles the unchanged main site with the candidate under the isolated preview path. If release verification fails, fix the cause and publish a new validated commit. For a severe public regression, revert the deployment commit through the normal Git review flow; browser-local workspaces are not modified by site releases.

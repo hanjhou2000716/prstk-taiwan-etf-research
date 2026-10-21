@@ -35,12 +35,12 @@ jobs:
           node scripts/lpos_v05_validate.mjs
           node scripts/lpos_v05_ui_smoke.mjs
           node scripts/lpos_v06_browser_smoke.mjs
-      - name: Type check and build LPOS V0.7
+      - name: Type check and build LPOS V0.7.1
         run: |
           npm run fonts:lpos
           npm run typecheck
           npm run build:lpos
-      - name: LPOS V0.7 financial, report, and replay checks
+      - name: LPOS V0.7.1 input, financial, report, and replay checks
         run: |
           npm run test:lpos
           node scripts/lpos_v07_browser_smoke.mjs

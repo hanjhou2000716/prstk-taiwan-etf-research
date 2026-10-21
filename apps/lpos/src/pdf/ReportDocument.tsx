@@ -46,7 +46,7 @@ function VectorChart({ chart }: { chart: ResearchReportV1["charts"][number] }) {
 export function ReportDocument({ report }: { report: ResearchReportV1 }) {
   return <Document title={report.title + " - " + report.scenarioName} author="LPOS Portfolio Lab" subject="可重現的量化投資研究">
     <Page size="A4" style={styles.page} wrap>
-      <View style={styles.header} fixed><Text style={styles.brand}>LPOS PORTFOLIO LAB｜研究工作台 V0.7</Text><Text style={styles.small}>{report.status === "complete" ? "研究結果" : "診斷報告 · " + report.status}</Text></View>
+      <View style={styles.header} fixed><Text style={styles.brand}>LPOS PORTFOLIO LAB｜研究工作台 V0.7.1</Text><Text style={styles.small}>{report.status === "complete" ? "研究結果" : "診斷報告 · " + report.status}</Text></View>
       <Text style={styles.title}>{report.title}</Text>
       <Text style={styles.subtitle}>{report.subtitle}</Text>
       <Text style={styles.caveat}>{report.caveat}</Text>
@@ -55,7 +55,7 @@ export function ReportDocument({ report }: { report: ResearchReportV1 }) {
       <Text style={styles.body}>參數指紋：{report.parameterFingerprint}</Text>
       <Text style={styles.body}>資料指紋：{report.dataFingerprint}</Text>
       {report.charts.map(chart => <VectorChart key={chart.id} chart={chart} />)}
-      {report.blocks.map((block, index) => <View key={block.id} style={styles.section} break={index > 0 && index === 4}>
+      {report.blocks.map((block, index) => <View key={block.id} style={styles.section} break={index === 4 || index === 7}>
         <Text style={styles.sectionTitle}>{block.title}</Text>
         {block.narrative.map((line, i) => <Text key={i} style={styles.body}>{line}</Text>)}
         {block.table && <DataTable table={block.table} />}
